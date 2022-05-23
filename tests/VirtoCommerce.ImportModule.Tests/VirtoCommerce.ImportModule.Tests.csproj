@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Project is a test project -->
+    <SonarQubeTestProject>true</SonarQubeTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+    <PackageReference Include="Moq" Version="4.18.1" />
+    <PackageReference Include="VirtoCommerce.CatalogModule.Data" Version="3.200.0" />
+    <PackageReference Include="VirtoCommerce.ExportModule.Data" Version="3.200.0" />
+    <PackageReference Include="VirtoCommerce.ExportModule.JsonProvider" Version="3.200.0" />
+    <PackageReference Include="VirtoCommerce.OrdersModule.Core" Version="3.204.0" />
+    <PackageReference Include="VirtoCommerce.StoreModule.Core" Version="3.203.0" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="coverlet.collector" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VirtoCommerce.ImportModule.Core\VirtoCommerce.ImportModule.Core.csproj" />
+    <ProjectReference Include="..\..\src\VirtoCommerce.ImportModule.Data\VirtoCommerce.ImportModule.Data.csproj" />
+    <ProjectReference Include="..\..\src\VirtoCommerce.ImportModule.Web\VirtoCommerce.ImportModule.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="VirtoCommerce.MarketplaceVendorModule.Core">
+      <HintPath>..\..\..\vc-module-marketplace-vendor\src\VirtoCommerce.MarketplaceVendorModule.Core\bin\Debug\net6.0\VirtoCommerce.MarketplaceVendorModule.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="VirtoCommerce.MarketplaceVendorModule.Data">
+      <HintPath>..\..\..\vc-module-marketplace-vendor\src\VirtoCommerce.MarketplaceVendorModule.Data\bin\Debug\net6.0\VirtoCommerce.MarketplaceVendorModule.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,28 @@
+{
+    "Import": {
+        "blades": {
+            "hello-world": {
+                "title": "Hello world blade"
+            }
+        }
+    },
+    "permissions": {
+        "Import:access": "Open Import menu",
+        "Import:create": "Create Import related data",
+        "Import:read": "View Import related data",
+        "Import:update": "Update Import related data",
+        "Import:delete": "Delete Import related data"
+    },
+    "settings": {
+        "Import": {
+            "ImportPassword": {
+                "title": "Import Password",
+                "description": "Import Password setting"
+            },
+            "ImportEnabled": {
+                "title": "Import Enabled",
+                "description": "Import Enabled setting"
+            }
+        }
+    }
+}
