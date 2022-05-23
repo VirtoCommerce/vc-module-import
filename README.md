@@ -1,2 +1,2 @@
 # vc-module-import
-Generic import 
+Generic import. 
