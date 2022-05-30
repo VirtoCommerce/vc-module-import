@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using VirtoCommerce.ImportModule.Data.Commands.RunImport;
-using VirtoCommerce.ImportModule.Data.Models;
+using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Events;
 
 namespace VirtoCommerce.ImportModule.Data.Services
@@ -19,9 +19,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _dataImporterFactory = dataImporterFactory;
         }
 
-        public async Task ImportAsync(RunImportCommand importDataCommand, Action<ImportProgressInfo> progressCallback, CancellationToken token)
+        public async Task ImportAsync(ImportProfile importProfile, Action<ImportProgressInfo> progressCallback, CancellationToken token)
         {
-            var importProfile = importDataCommand.ImportProfile;
+            //var importProfile = importDataCommand.ImportProfile;
 
             var dataImporter = _dataImporterFactory.Create(importProfile.DataImporterType);
 

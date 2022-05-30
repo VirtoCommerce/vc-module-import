@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using VirtoCommerce.CatalogModule.Core.Model;
 using VirtoCommerce.CatalogModule.Core.Services;
-using System.Collections.Generic;
 
-namespace VirtoCommerce.MarketplaceVendorModule.Tests.Functional
+namespace VirtoCommerce.ImportModule.Tests.Functional
 {
     public class ItemServiceStub : IItemService
     {
@@ -28,7 +28,7 @@ namespace VirtoCommerce.MarketplaceVendorModule.Tests.Functional
         {
             foreach (var item in items)
             {
-                if(item.Id == null)
+                if (item.Id == null)
                     item.Id = Guid.NewGuid().ToString();
                 item.Category = new Category { OuterId = "TestCategoryOuterId" };
                 CatalogProducts.Add(item);

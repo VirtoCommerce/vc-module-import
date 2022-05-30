@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using VirtoCommerce.Platform.Core.GenericCrud;
 using VirtoCommerce.Platform.Core.Security;
-using VirtoCommerce.Platform.Data.GenericCrud;
 using VirtoCommerce.StoreModule.Core.Model;
 using VirtoCommerce.StoreModule.Core.Services;
 
-namespace VirtoCommerce.MarketplaceVendorModule.Tests.Functional
+namespace VirtoCommerce.ImportModule.Tests.Functional
 {
     public class StoreServiceStub : ICrudService<Store>, IStoreService
     {

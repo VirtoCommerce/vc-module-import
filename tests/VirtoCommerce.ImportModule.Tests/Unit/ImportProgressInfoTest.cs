@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using VirtoCommerce.ImportModule.Data.Models;
+using VirtoCommerce.ImportModule.Core.Models;
 
 namespace VirtoCommerce.ImportModule.Tests.Unit
 {

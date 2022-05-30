@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -5,14 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.ImportModule.Core;
+using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data;
+using VirtoCommerce.ImportModule.Data.BackgroundJobs;
 using VirtoCommerce.ImportModule.Data.Importers;
-using VirtoCommerce.ImportModule.Data.Importers.ShopifyProductImporter;
-using VirtoCommerce.ImportModule.Data.Queries.SearchImportProfiles;
-using VirtoCommerce.ImportModule.Data.Queries.SearchImportProfilesHistory;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.ImportModule.Data.Services;
-using VirtoCommerce.MarketplaceVendorModule.Core.Domains;
 using VirtoCommerce.Platform.Core.GenericCrud;
 using VirtoCommerce.Platform.Core.Modularity;
 using VirtoCommerce.Platform.Core.Security;
@@ -34,20 +34,29 @@ namespace VirtoCommerce.ImportModule.Web
                 options.UseSqlServer(configuration.GetConnectionString(ModuleInfo.Id) ?? configuration.GetConnectionString("VirtoCommerce"));
             });
 
+            serviceCollection.AddTransient<IImportRepository, ImportRepository>();
+            serviceCollection.AddTransient<Func<IImportRepository>>(provider => () => provider.CreateScope().ServiceProvider.GetRequiredService<IImportRepository>());
+
+            serviceCollection.AddTransient<IImportRunService, ImportRunService>();
+            serviceCollection.AddTransient<IImportProfileService, ImportProfileService>();
+
             serviceCollection.AddTransient<ICrudService<ImportProfile>, ImportProfileCrudService>();
-            serviceCollection.AddTransient<ISearchImportProfilesService, SearchImportProfilesService>();
+            serviceCollection.AddTransient<IImportProfilesSearchService, ImportProfilesSearchService>();
+            serviceCollection.AddTransient<ICrudService<ImportRunHistory>, ImportRunHistoryCrudService>();
             serviceCollection.AddTransient<IImportRunHistorySearchService, ImportRunHistorySearchService>();
 
             serviceCollection.AddSingleton<DataImporterRegistrar>();
             serviceCollection.AddSingleton<IDataImporterFactory>(provider => provider.GetService<DataImporterRegistrar>());
             serviceCollection.AddSingleton<IDataImporterRegistrar>(provider => provider.GetService<DataImporterRegistrar>());
             serviceCollection.AddTransient<IDataImportProcessManager, DataImportProcessManager>();
-            serviceCollection.AddTransient<CsvProductImporter>();
-            serviceCollection.AddTransient<CsvOfferImporter>();
-            serviceCollection.AddTransient<CsvProductImageImporter>();
+            //serviceCollection.AddTransient<CsvProductImporter>();
+            //serviceCollection.AddTransient<CsvOfferImporter>();
+            //serviceCollection.AddTransient<CsvProductImageImporter>();
             serviceCollection.AddTransient<TestImporter>();
-            serviceCollection.AddTransient<ShopifyProductImporter>();
-            serviceCollection.AddTransient<PropertyMetadataLoader>();
+            //serviceCollection.AddTransient<ShopifyProductImporter>();
+            //serviceCollection.AddTransient<PropertyMetadataLoader>();
+
+            serviceCollection.AddTransient<IBackgroundJobExecutor, BackgroundJobExecutor>();
 
             serviceCollection.AddMediatR(typeof(Anchor));
         }
@@ -80,11 +89,11 @@ namespace VirtoCommerce.ImportModule.Web
 
             //Importers
             var importerRegistrar = appBuilder.ApplicationServices.GetService<IDataImporterRegistrar>();
-            importerRegistrar.Register<CsvProductImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImporter>()).WithSettings(CsvProductSettings.AllSettings);
-            importerRegistrar.Register<CsvOfferImporter>(() => appBuilder.ApplicationServices.GetService<CsvOfferImporter>()).WithSettings(CsvSettings.AllSettings);
+            //importerRegistrar.Register<CsvProductImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImporter>()).WithSettings(CsvProductSettings.AllSettings);
+            //importerRegistrar.Register<CsvOfferImporter>(() => appBuilder.ApplicationServices.GetService<CsvOfferImporter>()).WithSettings(CsvSettings.AllSettings);
             importerRegistrar.Register<TestImporter>(() => appBuilder.ApplicationServices.GetService<TestImporter>()).WithSettings(TestSettings.AllSettings);
-            importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImageImporter>()).WithSettings(ProductImageImporterSettings.AllSettings);
-            importerRegistrar.Register<ShopifyProductImporter>(() => appBuilder.ApplicationServices.GetService<ShopifyProductImporter>()).WithSettings(ShopifyProductSettings.AllSettings);
+            //importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImageImporter>()).WithSettings(ProductImageImporterSettings.AllSettings);
+            //importerRegistrar.Register<ShopifyProductImporter>(() => appBuilder.ApplicationServices.GetService<ShopifyProductImporter>()).WithSettings(ShopifyProductSettings.AllSettings);
 
         }
 

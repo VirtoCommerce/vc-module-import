@@ -19,15 +19,6 @@
     <ProjectReference Include="..\VirtoCommerce.ImportModule.Core\VirtoCommerce.ImportModule.Core.csproj" />
     <ProjectReference Include="..\VirtoCommerce.ImportModule.Data\VirtoCommerce.ImportModule.Data.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="VirtoCommerce.MarketplaceVendorModule.Core">
-      <HintPath>..\..\..\vc-module-marketplace-vendor\src\VirtoCommerce.MarketplaceVendorModule.Core\bin\Debug\net6.0\VirtoCommerce.MarketplaceVendorModule.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="VirtoCommerce.MarketplaceVendorModule.Data">
-      <HintPath>..\..\..\vc-module-marketplace-vendor\src\VirtoCommerce.MarketplaceVendorModule.Data\bin\Debug\net6.0\VirtoCommerce.MarketplaceVendorModule.Data.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <None Update="module.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

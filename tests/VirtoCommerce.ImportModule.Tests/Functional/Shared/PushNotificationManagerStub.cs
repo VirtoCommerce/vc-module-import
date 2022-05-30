@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using VirtoCommerce.Platform.Core.PushNotifications;
 
-namespace VirtoCommerce.MarketplaceVendorModule.Tests.Functional
+namespace VirtoCommerce.ImportModule.Tests.Functional
 {
     public class PushNotificationManagerStub : IPushNotificationManager
     {

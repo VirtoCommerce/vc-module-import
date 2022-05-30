@@ -9,7 +9,7 @@ namespace VirtoCommerce.ImportModule.Data.Repositories
         {
             var builder = new DbContextOptionsBuilder<ImportDbContext>();
 
-            builder.UseSqlServer("Data Source=(local);Initial Catalog=VirtoCommerce3;Persist Security Info=True;User ID=virto;Password=virto;MultipleActiveResultSets=True;Connect Timeout=30");
+            builder.UseSqlServer("Data Source=DESKTOP-2EEHPNV\\SQLEXPRESS;Initial Catalog=VCRnD;Persist Security Info=True;User ID=virto;Password=virto;MultipleActiveResultSets=True;Connect Timeout=30");
 
             return new ImportDbContext(builder.Options);
         }

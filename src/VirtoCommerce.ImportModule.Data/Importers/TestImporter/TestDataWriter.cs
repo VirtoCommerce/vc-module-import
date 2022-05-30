@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using VirtoCommerce.ImportModule.Data.Models;
-using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.Services;
 
 namespace VirtoCommerce.ImportModule.Data.Importers
 {

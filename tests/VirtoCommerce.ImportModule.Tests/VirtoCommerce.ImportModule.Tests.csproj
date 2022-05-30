@@ -31,13 +31,4 @@
     <ProjectReference Include="..\..\src\VirtoCommerce.ImportModule.Web\VirtoCommerce.ImportModule.Web.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="VirtoCommerce.MarketplaceVendorModule.Core">
-      <HintPath>..\..\..\vc-module-marketplace-vendor\src\VirtoCommerce.MarketplaceVendorModule.Core\bin\Debug\net6.0\VirtoCommerce.MarketplaceVendorModule.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="VirtoCommerce.MarketplaceVendorModule.Data">
-      <HintPath>..\..\..\vc-module-marketplace-vendor\src\VirtoCommerce.MarketplaceVendorModule.Data\bin\Debug\net6.0\VirtoCommerce.MarketplaceVendorModule.Data.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

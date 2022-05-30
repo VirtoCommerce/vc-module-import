@@ -2,11 +2,10 @@ using System;
 using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.Server;
-using VirtoCommerce.MarketplaceVendorModule.Core.Domains;
-using VirtoCommerce.MarketplaceVendorModule.Core.PushNotifications;
-using VirtoCommerce.ImportModule.Data.Commands.RunImport;
-using VirtoCommerce.ImportModule.Data.Models;
-using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.PushNotifications;
+using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.GenericCrud;
 using VirtoCommerce.Platform.Core.PushNotifications;
 
@@ -29,10 +28,10 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
         }
 
         [AutomaticRetry(Attempts = 0)]
-        public async Task ImportBackgroundAsync(RunImportCommand importDataCommand, ImportPushNotification importPushNotifaction, IJobCancellationToken token, PerformContext context)
+        public async Task ImportBackgroundAsync(ImportProfile importProfile, ImportPushNotification importPushNotifaction, IJobCancellationToken token, PerformContext context)
         {
             void progressInfoCallback(ImportProgressInfo progressInfo)
-            {              
+            {
 
                 importPushNotifaction.JobId = context.BackgroundJob.Id;
 
@@ -45,12 +44,12 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
                 _pushNotificationManager.Send(importPushNotifaction);
             }
 
-            var profile = await _importProfileCrudService.GetByIdAsync(importDataCommand.ImportProfile.Id);
+            var profile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
 
             profile.Run(importPushNotifaction);
             try
             {
-                await _dataImportManager.ImportAsync(importDataCommand, progressInfoCallback, token.ShutdownToken);
+                await _dataImportManager.ImportAsync(importProfile, progressInfoCallback, token.ShutdownToken);
                 profile.Finish(importPushNotifaction);
             }
             catch (JobAbortedException ex)

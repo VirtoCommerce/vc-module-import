@@ -14,16 +14,12 @@ using VirtoCommerce.CatalogModule.Data.Search.BrowseFilters;
 using VirtoCommerce.CatalogModule.Data.Search.Indexing;
 using VirtoCommerce.CatalogModule.Data.Services;
 using VirtoCommerce.CatalogModule.Data.Validation;
+using VirtoCommerce.ImportModule.Core.Domains;
 using VirtoCommerce.ImportModule.Data;
 using VirtoCommerce.ImportModule.Data.Importers;
+using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.ImportModule.Data.Services;
-using VirtoCommerce.MarketplaceVendorModule.Core.Domains;
-using VirtoCommerce.MarketplaceVendorModule.Data.BackgroundJobs;
-using VirtoCommerce.MarketplaceVendorModule.Data.Infrastructure;
-using VirtoCommerce.MarketplaceVendorModule.Data.Queries;
-using VirtoCommerce.MarketplaceVendorModule.Data.Services;
-using VirtoCommerce.MarketplaceVendorModule.Data.Validators;
-using VirtoCommerce.MarketplaceVendorModule.Tests.Functional;
+using VirtoCommerce.ImportModule.Tests.Functional;
 using VirtoCommerce.Platform.Caching;
 using VirtoCommerce.Platform.Core.Bus;
 using VirtoCommerce.Platform.Core.Caching;
@@ -60,10 +56,9 @@ namespace VirtoCommerce.ImportModule.Tests
         public static T GetService<T>()
         {
             var services = new ServiceCollection();
-            services.AddTransient<ICrudService<SellerProduct>, SellerProductsCrudService>();
-            services.AddTransient<ICrudService<ProductPublicationRequest>, PublicationRequestCrudService>();
-            services.AddTransient<ISellerRepository, SellerRepositoryMock>();
-            services.AddTransient<Func<ISellerRepository>>(provider => () => provider.CreateScope().ServiceProvider.GetRequiredService<ISellerRepository>());
+            services.AddTransient<ICrudService<ImportProfile>, ImportProfileCrudService>();
+            services.AddTransient<IImportRepository, ImportRepositoryMock>();
+            services.AddTransient<Func<IImportRepository>>(provider => () => provider.CreateScope().ServiceProvider.GetRequiredService<IImportRepository>());
             services.AddTransient<IPlatformMemoryCache, PlatformMemoryCache>();
             services.AddTransient<IMemoryCache, MemoryCache>();
             services.AddLogging();
@@ -73,9 +68,6 @@ namespace VirtoCommerce.ImportModule.Tests
             services.AddTransient<IPushNotificationManager, PushNotificationManagerStub>();
             services.AddOptions();
             services.AddTransient<ILoggerFactory, LoggerFactory>();
-            services.AddTransient<IIndexingJobExecutor, IndexingJobExecutorStub>();
-            services.AddTransient<SellerProductValidator>();
-            services.AddTransient<ISellerProductsSearchService, SellerProductsSearchServiceStub>();
             services.AddSingleton<ISearchProvider, DummySearchProvider>();
             services.AddSingleton<ISearchRequestBuilderRegistrar, SearchRequestBuilderRegistrar>();
             services.AddTransient<IProductIndexedSearchService, ProductIndexedSearchService>();
@@ -99,7 +91,6 @@ namespace VirtoCommerce.ImportModule.Tests
             services.AddTransient<IPropertyDictionaryItemSearchService, PropertyDictionaryItemSearchService>();
             services.AddTransient<IPropertyDictionaryItemService, PropertyDictionaryItemService>();
             services.AddTransient<ICrudService<Store>, StoreServiceStub>();
-            services.AddTransient<IPublicationRequestsSearchService, PublicationRequestsSearchService>();
             services.AddMediatR(typeof(Anchor));
             var provider = services.BuildServiceProvider();
             var service = provider.GetService<T>();

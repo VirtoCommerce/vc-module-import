@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using VirtoCommerce.CatalogModule.Core.Model;
 using VirtoCommerce.CatalogModule.Core.Services;
 
-namespace VirtoCommerce.MarketplaceVendorModule.Tests.Functional
+namespace VirtoCommerce.ImportModule.Tests.Functional
 {
     public class CategoryServiceStub : ICategoryService
     {

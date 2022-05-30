@@ -4,10 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using VirtoCommerce.ImportModule.Data.Commands.RunImport;
+using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Data.Importers;
-using VirtoCommerce.ImportModule.Data.Models;
-using VirtoCommerce.MarketplaceVendorModule.Core.Domains;
 using VirtoCommerce.Platform.Core.Events;
 using VirtoCommerce.Platform.Core.Settings;
 using Xunit;
@@ -31,7 +30,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             ImportProgressInfo progress = null;
 
             // Act
-            await sut.ImportAsync(new RunImportCommand { ImportProfile = profile }, (x) => progress = x, new CancellationToken());
+            await sut.ImportAsync(profile, (x) => progress = x, new CancellationToken());
 
             // Assertion
             progress.Should().NotBeNull();
@@ -49,14 +48,14 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var profile = new ImportProfile
             {
                 DataImporterType = nameof(TestImporter),
-                Settings = new List<ObjectSettingEntry>() { new ObjectSettingEntry() { Name = "Vcmp.Import.Test.IsErrors", Value = true } }
+                Settings = new List<ObjectSettingEntry>() { new ObjectSettingEntry() { Name = "Import.Test.IsErrors", Value = true } }
             };
 
             var sut = TestHepler.GetDataImportProcessManager();
             ImportProgressInfo progress = null;
 
             // Act
-            await sut.ImportAsync(new RunImportCommand { ImportProfile = profile }, (x) => progress = x, new CancellationToken());
+            await sut.ImportAsync(profile, (x) => progress = x, new CancellationToken());
 
             // Assertion
             progress.TotalCount.Should().Be((int)TestSettings.TotalCount.DefaultValue);
@@ -80,7 +79,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var progress = new ImportProgressInfoTest();
 
             // Act
-            await sut.ImportAsync(new RunImportCommand { ImportProfile = profile }, (x) => progress.EventsSuppressed.Add(EventSuppressor.EventsSuppressed), new CancellationToken());
+            await sut.ImportAsync(profile, (x) => progress.EventsSuppressed.Add(EventSuppressor.EventsSuppressed), new CancellationToken());
 
             // Assertion
             progress.EventsSuppressed.Where(x => x == true).Should().HaveCount((int)TestSettings.TotalCount.DefaultValue);
@@ -103,7 +102,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             // Act
             try
             {
-                await sut.ImportAsync(new RunImportCommand { ImportProfile = profile }, (x) => progress = x, new CancellationToken(true));
+                await sut.ImportAsync(profile, (x) => progress = x, new CancellationToken(true));
             }
 
             // Assertion

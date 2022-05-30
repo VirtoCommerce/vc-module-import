@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VirtoCommerce.ImportModule.Data.Models;
+using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Common;
 
 namespace VirtoCommerce.ImportModule.Data.Services

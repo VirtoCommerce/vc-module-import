@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using VirtoCommerce.ImportModule.Data.Models;
-using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Data.Importers
