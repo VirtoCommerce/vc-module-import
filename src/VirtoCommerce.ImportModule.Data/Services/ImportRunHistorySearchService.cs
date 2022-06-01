@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Infrastructure.DataEntities;

@@ -2,25 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MediatR;
-using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Data.Infrastructure.DataEntities;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.Platform.Core.Caching;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Events;
+using VirtoCommerce.Platform.Data.GenericCrud;
 
 namespace VirtoCommerce.ImportModule.Data.Services
 {
-    public class ImportRunHistoryCrudService : AggregateRootCrudServiceBase<ImportRunHistory, ImportRunHistoryEntity>
+    public class ImportRunHistoryCrudService : CrudService<ImportRunHistory, ImportRunHistoryEntity,
+         GenericChangedEntryEvent<ImportRunHistory>, GenericChangedEntryEvent<ImportRunHistory>>
     {
         public ImportRunHistoryCrudService(
-            IMediator mediator,
             Func<IImportRepository> repositoryFactory,
             IPlatformMemoryCache platformMemoryCache,
             IEventPublisher eventPublisher
             )
-            : base(mediator, repositoryFactory, platformMemoryCache, eventPublisher)
+            : base(repositoryFactory, platformMemoryCache, eventPublisher)
         {
         }
 

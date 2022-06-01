@@ -8,11 +8,12 @@
 <!--        <dependency id="VirtoCommerce.Core" version="3.200.0" /> -->
     </dependencies>
 
-    <title>VirtoCommerce Import extension module</title>
-    <description>VirtoCommerce Import extension module</description>
+    <title>VirtoCommerce Import module</title>
+    <description>Provides flexible functionality for writing Importers</description>
 
     <authors>
-        <author>John Doe</author>
+        <author>Eugeney Tatarincev</author>
+        <author>Vladimir Buravlev</author>
     </authors>
     <owners>
         <owner>VirtoCommerce</owner>

@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.Server;
-using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
@@ -16,15 +16,19 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
         private readonly IDataImportProcessManager _dataImportManager;
         private readonly IPushNotificationManager _pushNotificationManager;
         private readonly ICrudService<ImportProfile> _importProfileCrudService;
+        private readonly ICrudService<ImportRunHistory> _importRunHistoryCrudService;
 
         public ImportJob(
             IDataImportProcessManager dataImportManager,
             IPushNotificationManager pushNotificationManager,
-            ICrudService<ImportProfile> importProfileCrudService)
+            ICrudService<ImportProfile> importProfileCrudService,
+            ICrudService<ImportRunHistory> importRunHistoryCrudService
+            )
         {
             _dataImportManager = dataImportManager;
             _pushNotificationManager = pushNotificationManager;
             _importProfileCrudService = importProfileCrudService;
+            _importRunHistoryCrudService = importRunHistoryCrudService;
         }
 
         [AutomaticRetry(Attempts = 0)]
@@ -46,22 +50,21 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
 
             var profile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
 
-            profile.Run(importPushNotifaction);
             try
             {
                 await _dataImportManager.ImportAsync(importProfile, progressInfoCallback, token.ShutdownToken);
-                profile.Finish(importPushNotifaction);
+                var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, importPushNotifaction);
+                await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
+
             }
             catch (JobAbortedException ex)
             {
-                profile.Abort(ex, importPushNotifaction);
                 importPushNotifaction.Title = "Import was cancelled by user";
             }
             catch (Exception ex)
             {
                 importPushNotifaction.Errors.Add(ex.ToString());
                 importPushNotifaction.Title = "Import failed";
-                profile.Abort(ex, importPushNotifaction);
                 throw;
             }
             finally

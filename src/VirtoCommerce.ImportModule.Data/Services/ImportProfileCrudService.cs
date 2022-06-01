@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MediatR;
-using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Infrastructure.DataEntities;
 using VirtoCommerce.ImportModule.Data.Repositories;
@@ -11,22 +10,23 @@ using VirtoCommerce.Platform.Core.Caching;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Events;
 using VirtoCommerce.Platform.Core.Settings;
+using VirtoCommerce.Platform.Data.GenericCrud;
 
 namespace VirtoCommerce.ImportModule.Data.Services
 {
-    public class ImportProfileCrudService : AggregateRootCrudServiceBase<ImportProfile, ImportProfileEntity>
+    public class ImportProfileCrudService : CrudService<ImportProfile, ImportProfileEntity,
+         GenericChangedEntryEvent<ImportProfile>, GenericChangedEntryEvent<ImportProfile>>
     {
         private readonly ISettingsManager _settingsManager;
         private readonly IDataImporterRegistrar _importersRegistry;
 
         public ImportProfileCrudService(
-            IMediator mediator,
             IDataImporterRegistrar importersRegistry,
             Func<IImportRepository> repositoryFactory,
             IPlatformMemoryCache platformMemoryCache,
             IEventPublisher eventPublisher,
             ISettingsManager settingsManager)
-            : base(mediator, repositoryFactory, platformMemoryCache, eventPublisher)
+            : base(repositoryFactory, platformMemoryCache, eventPublisher)
         {
             _settingsManager = settingsManager;
             _importersRegistry = importersRegistry;
@@ -55,7 +55,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         protected override async Task AfterSaveChangesAsync(IEnumerable<ImportProfile> models, IEnumerable<GenericChangedEntry<ImportProfile>> changedEntries)
         {
-            await DispathDomainEvents(models);
+            // ?? await DispathDomainEvents(models);
             await _settingsManager.DeepSaveSettingsAsync(models);
         }
     }

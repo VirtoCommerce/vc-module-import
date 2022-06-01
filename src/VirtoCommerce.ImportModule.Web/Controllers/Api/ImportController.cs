@@ -1,10 +1,16 @@
+using System;
 using System.Threading.Tasks;
+using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.CatalogModule.Core;
+using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.ImportModule.Data.Infrastructure.Validators;
+using VirtoCommerce.Platform.Core.GenericCrud;
 
 namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 {
@@ -14,21 +20,28 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
     {
         private readonly IDataImporterRegistrar _importersRegistry;
         private readonly IImportRunService _importRunService;
-        private readonly IImportProfileService _importProfileService;
+        private readonly IImportProfilesSearchService _importProfilesSearchService;
+        private readonly IImportRunHistorySearchService _importRunHistorySearchService;
+        private readonly ICrudService<ImportProfile> _importProfileCrudService;
 
         public ImportController(
             IDataImporterRegistrar importersRegistry,
             IImportRunService importRunService,
-            IImportProfileService importProfileService
+            IImportProfilesSearchService importProfilesSearchService,
+            IImportRunHistorySearchService importRunHistorySearchService,
+            ICrudService<ImportProfile> importProfileCrudService
             )
         {
             _importersRegistry = importersRegistry;
             _importRunService = importRunService;
-            _importProfileService = importProfileService;
+            _importProfilesSearchService = importProfilesSearchService;
+            _importRunHistorySearchService = importRunHistorySearchService;
+            _importProfileCrudService = importProfileCrudService;
         }
 
         [HttpPost]
         [Route("run")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public ActionResult<ImportPushNotification> RunImport([FromBody] ImportProfile importProfile)
         {
             var result = _importRunService.RunImport(importProfile);
@@ -38,6 +51,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("task/cancel")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public ActionResult CancelJob([FromBody] ImportCancellationRequest cancellationRequest)
         {
             _importRunService.CancelJob(cancellationRequest);
@@ -47,6 +61,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("preview")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<ImportDataPreview>> Preview([FromBody] ImportProfile importProfile)
         {
             var result = await _importRunService.PreviewAsync(importProfile);
@@ -56,6 +71,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpGet]
         [Route("importers")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public ActionResult<IDataImporter[]> GetImporters()
         {
             return Ok(_importersRegistry.AllRegisteredImporters);
@@ -63,55 +79,91 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpGet]
         [Route("profiles/{profileId}")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<ImportProfile>> GetImportProfileById([FromRoute] string profileId)
         {
-            var result = await _importProfileService.GetImportProfileByIdAsync(profileId);
+            var result = await _importProfileCrudService.GetByIdAsync(profileId);
 
             return Ok(result);
         }
 
         [HttpPost]
         [Route("profiles")]
+        [Authorize(ModuleConstants.Security.Permissions.Create)]
         public async Task<ActionResult<ImportProfile>> CreateImportProfile([FromBody] ImportProfile importProfile)
         {
-            var result = await _importProfileService.CreateImportProfileAsync(importProfile);
+            await ExType<CreateProfileValidator>.New().ValidateAndThrowAsync(importProfile);
 
-            return Ok(result);
+            var searchResult = await _importProfilesSearchService.SearchAsync(new SearchImportProfilesCriteria
+            {
+                SellerId = importProfile.SellerId,
+                Name = importProfile.Name
+            });
+
+            if (searchResult.TotalCount == 0)
+            {
+                await _importProfileCrudService.SaveChangesAsync(new[] { importProfile });
+                return Ok(importProfile);
+            }
+            else
+            {
+                throw new InvalidOperationException("This profile already exists");
+            }
         }
 
         [HttpPut]
         [Route("profiles")]
+        [Authorize(ModuleConstants.Security.Permissions.Update)]
         public async Task<ActionResult<ImportProfile>> UpdateImportProfile([FromBody] ImportProfile importProfile)
         {
             string profileId = importProfile.Id;
-            var result = await _importProfileService.UpdateImportProfileAsync(profileId, importProfile);
+            await ExType<UpdateProfileValidator>.New().ValidateAndThrowAsync(importProfile);
 
-            return Ok(result);
+            var existedImportProfile = await _importProfileCrudService.GetByIdAsync(profileId);
+
+            if (existedImportProfile == null)
+            {
+                throw new OperationCanceledException($"ImportProfile with {profileId} is not found");
+            }
+
+            existedImportProfile.Update(importProfile);
+            await _importProfileCrudService.SaveChangesAsync(new[] { existedImportProfile });
+
+            return Ok(existedImportProfile);
         }
 
         [HttpPost]
         [Route("profiles/search")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<SearchImportProfilesResult>> SearchImportProfiles([FromBody] SearchImportProfilesCriteria criteria)
         {
-            var result = await _importProfileService.SearchImportProfilesAsync(criteria);
+            var result = await _importProfilesSearchService.SearchAsync(criteria);
 
             return Ok(result);
         }
 
         [HttpDelete]
         [Route("profiles")]
-        public async Task<ActionResult> DeleteProfile([FromQuery] string id)
+        [Authorize(ModuleConstants.Security.Permissions.Delete)]
+        public async Task<ActionResult> DeleteProfile([FromQuery] string profileId)
         {
-            await _importProfileService.DeleteProfileAsync(id);
+            var importProfile = await _importProfileCrudService.GetByIdAsync(profileId);
+
+            if (importProfile == null)
+            {
+                throw new OperationCanceledException($"ImportProfile with {profileId} is not found");
+            }
+            await _importProfileCrudService.DeleteAsync(new[] { importProfile.Id });
 
             return Ok();
         }
 
         [HttpPost]
         [Route("profiles/execution/history/search")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<SearchImportRunHistoryResult>> SearchImportRunHistory([FromBody] SearchImportRunHistoryCriteria criteria)
         {
-            var result = await _importRunService.SearchImportRunHistoryAsync(criteria);
+            var result = await _importRunHistorySearchService.SearchAsync(criteria);
 
             return Ok(result);
         }

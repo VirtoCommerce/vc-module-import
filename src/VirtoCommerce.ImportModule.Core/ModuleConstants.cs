@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using VirtoCommerce.Platform.Core.Settings;
-
 namespace VirtoCommerce.ImportModule.Core
 {
     public static class ModuleConstants
@@ -16,45 +13,6 @@ namespace VirtoCommerce.ImportModule.Core
                 public const string Delete = "Import:delete";
 
                 public static string[] AllPermissions { get; } = { Read, Create, Access, Update, Delete };
-            }
-        }
-
-        public static class Settings
-        {
-            public static class General
-            {
-                public static SettingDescriptor ImportEnabled { get; } = new SettingDescriptor
-                {
-                    Name = "Import.ImportEnabled",
-                    GroupName = "Import|General",
-                    ValueType = SettingValueType.Boolean,
-                    DefaultValue = false
-                };
-
-                public static SettingDescriptor ImportPassword { get; } = new SettingDescriptor
-                {
-                    Name = "Import.ImportPassword",
-                    GroupName = "Import|Advanced",
-                    ValueType = SettingValueType.SecureString,
-                    DefaultValue = "qwerty"
-                };
-
-                public static IEnumerable<SettingDescriptor> AllSettings
-                {
-                    get
-                    {
-                        yield return ImportEnabled;
-                        yield return ImportPassword;
-                    }
-                }
-            }
-
-            public static IEnumerable<SettingDescriptor> AllSettings
-            {
-                get
-                {
-                    return General.AllSettings;
-                }
             }
         }
     }

@@ -1,5 +1,4 @@
 using System;
-using VirtoCommerce.ImportModule.Core.Domains;
 
 namespace VirtoCommerce.ImportModule.Core.Models
 {

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using VirtoCommerce.ImportModule.Core.Common;
-using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 
-namespace VirtoCommerce.ImportModule.Core.Domains
+namespace VirtoCommerce.ImportModule.Core.Models
 {
-    public class ImportRunHistory : AggregateRoot, IHasSellerId
+    public class ImportRunHistory : AuditableEntity, ICloneable, IHasSellerId
     {
         public string SellerId { get; set; }
         public string SellerName { get; set; }
@@ -43,9 +43,9 @@ namespace VirtoCommerce.ImportModule.Core.Domains
             return result;
         }
 
-        public override object Clone()
+        public object Clone()
         {
-            var result = base.Clone() as ImportRunHistory;
+            var result = MemberwiseClone() as ImportRunHistory;
             return result;
         }
     }

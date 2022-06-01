@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
-using VirtoCommerce.ImportModule.Core.Domains;
 using VirtoCommerce.ImportModule.Core.Models;
-using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
@@ -18,18 +16,15 @@ namespace VirtoCommerce.ImportModule.Data.Services
         private readonly IUserNameResolver _userNameResolver;
         private readonly IBackgroundJobExecutor _backgroundJobExecutor;
         private readonly IDataImporterFactory _dataImporterFactory;
-        private readonly IImportRunHistorySearchService _importRunHistorySearchService;
 
         public ImportRunService(IUserNameResolver userNameResolver,
             IBackgroundJobExecutor backgroundJobExecutor,
-            IDataImporterFactory dataImporterFactory,
-            IImportRunHistorySearchService importRunHistorySearchService
+            IDataImporterFactory dataImporterFactory
             )
         {
             _userNameResolver = userNameResolver;
             _backgroundJobExecutor = backgroundJobExecutor;
             _dataImporterFactory = dataImporterFactory;
-            _importRunHistorySearchService = importRunHistorySearchService;
         }
 
         public ImportPushNotification RunImport(ImportProfile importProfile)
@@ -82,12 +77,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 Records = records.Take(importProfile.PreviewObjectCount).ToArray(),
             };
 
-            return result;
-        }
-
-        public async Task<SearchImportRunHistoryResult> SearchImportRunHistoryAsync(SearchImportRunHistoryCriteria criteria)
-        {
-            var result = await _importRunHistorySearchService.SearchAsync(criteria);
             return result;
         }
     }

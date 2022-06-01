@@ -1,6 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Domain;
 

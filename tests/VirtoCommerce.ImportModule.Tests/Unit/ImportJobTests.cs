@@ -1,11 +1,9 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Hangfire;
 using Moq;
-using VirtoCommerce.ImportModule.Core.Domains;
-using VirtoCommerce.ImportModule.Core.Domains.ImportProfileAggregate.Events;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
@@ -19,6 +17,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
     {
         private readonly Mock<IPushNotificationManager> _pushNotificationManager = new();
         private readonly Mock<ICrudService<ImportProfile>> _importProfileCrudService = new();
+        private readonly Mock<ICrudService<ImportRunHistory>> _importRunHistoryCrudService = new();
         private readonly ImportProfile profile = new();
         private readonly ImportPushNotification importPushNotifaction = new("TestUser");
 
@@ -32,7 +31,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             // Arrange
             Mock<IDataImportProcessManager> _dataImportManager = new();
-            var importJob = new ImportJob(_dataImportManager.Object, _pushNotificationManager.Object, _importProfileCrudService.Object);
+            var importJob = new ImportJob(_dataImportManager.Object, _pushNotificationManager.Object,
+                _importProfileCrudService.Object, _importRunHistoryCrudService.Object);
 
             // Act
             await importJob.ImportBackgroundAsync(profile, importPushNotifaction, new JobCancellationToken(false), null);
@@ -40,9 +40,6 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             // Assertion
             _pushNotificationManager.Verify(x => x.Send(It.IsAny<ImportPushNotification>()), Times.Once());
             importPushNotifaction.Finished.Should().HaveValue();
-            profile.DomainEvents.Select(x => x.GetType().Name).Should().Contain("ImportFinishedDomainEvent");
-            var importFinishedDomainEvent = (ImportFinishedDomainEvent)profile.DomainEvents.FirstOrDefault(x => x.GetType().Name == "ImportFinishedDomainEvent");
-            importFinishedDomainEvent.Notification.ErrorCount.Should().Be(0);
         }
 
         [Fact]
@@ -50,7 +47,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             // Arrange
             var _dataImportManager = TestHepler.GetDataImportProcessManager();
-            var importJob = new ImportJob(_dataImportManager, _pushNotificationManager.Object, _importProfileCrudService.Object);
+            var importJob = new ImportJob(_dataImportManager, _pushNotificationManager.Object,
+                _importProfileCrudService.Object, _importRunHistoryCrudService.Object);
 
             // Act
             try
@@ -59,11 +57,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             }
 
             // Assertion
-            catch (Exception)
+            catch (Exception ex)
             {
-                var importFinishedDomainEvent = (ImportFinishedDomainEvent)profile.DomainEvents.FirstOrDefault(x => x.GetType().Name == "ImportFinishedDomainEvent");
-                importFinishedDomainEvent.Notification.ErrorCount.Should().Be(1);
-                importFinishedDomainEvent.Notification.Title.Should().Be("Import failed");
+                ex.Should().NotBeNull();
             }
         }
     }

@@ -2,14 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using VirtoCommerce.ImportModule.Core.Common;
-using VirtoCommerce.ImportModule.Core.Domains.ImportProfileAggregate.Events;
-using VirtoCommerce.ImportModule.Core.Models;
-using VirtoCommerce.ImportModule.Core.PushNotifications;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 
-namespace VirtoCommerce.ImportModule.Core.Domains
+namespace VirtoCommerce.ImportModule.Core.Models
 {
-    public class ImportProfile : AggregateRoot, IHasSellerId, IHasSettings
+    public class ImportProfile : AuditableEntity, ICloneable, IHasSellerId, IHasSettings
     {
         public string Name { get; set; }
         public string DataImporterType { get; set; }
@@ -44,24 +42,9 @@ namespace VirtoCommerce.ImportModule.Core.Domains
             return result;
         }
 
-        public virtual void Run(ImportPushNotification notification)
+        public object Clone()
         {
-            AddDomainEvent(new ImportStartedDomainEvent { ImportProfile = this, Notification = notification });
-        }
-
-        public virtual void Finish(ImportPushNotification notification)
-        {
-            AddDomainEvent(new ImportFinishedDomainEvent { ImportProfile = this, Notification = notification });
-        }
-
-        public virtual void Abort(Exception exception, ImportPushNotification notification)
-        {
-            AddDomainEvent(new ImportFinishedDomainEvent { Exception = exception, ImportProfile = this, Notification = notification });
-        }
-
-        public override object Clone()
-        {
-            var result = base.Clone() as ImportProfile;
+            var result = MemberwiseClone() as ImportProfile;
             result.Settings = Settings?.Select(x => x.Clone()).OfType<ObjectSettingEntry>().ToList();
             return result;
         }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.ImportModule.Core;
-using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data;
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
@@ -38,7 +38,6 @@ namespace VirtoCommerce.ImportModule.Web
             serviceCollection.AddTransient<Func<IImportRepository>>(provider => () => provider.CreateScope().ServiceProvider.GetRequiredService<IImportRepository>());
 
             serviceCollection.AddTransient<IImportRunService, ImportRunService>();
-            serviceCollection.AddTransient<IImportProfileService, ImportProfileService>();
 
             serviceCollection.AddTransient<ICrudService<ImportProfile>, ImportProfileCrudService>();
             serviceCollection.AddTransient<IImportProfilesSearchService, ImportProfilesSearchService>();
@@ -49,12 +48,8 @@ namespace VirtoCommerce.ImportModule.Web
             serviceCollection.AddSingleton<IDataImporterFactory>(provider => provider.GetService<DataImporterRegistrar>());
             serviceCollection.AddSingleton<IDataImporterRegistrar>(provider => provider.GetService<DataImporterRegistrar>());
             serviceCollection.AddTransient<IDataImportProcessManager, DataImportProcessManager>();
-            //serviceCollection.AddTransient<CsvProductImporter>();
-            //serviceCollection.AddTransient<CsvOfferImporter>();
-            //serviceCollection.AddTransient<CsvProductImageImporter>();
+
             serviceCollection.AddTransient<TestImporter>();
-            //serviceCollection.AddTransient<ShopifyProductImporter>();
-            //serviceCollection.AddTransient<PropertyMetadataLoader>();
 
             serviceCollection.AddTransient<IBackgroundJobExecutor, BackgroundJobExecutor>();
 
@@ -65,7 +60,6 @@ namespace VirtoCommerce.ImportModule.Web
         {
             // register settings
             var settingsRegistrar = appBuilder.ApplicationServices.GetRequiredService<ISettingsRegistrar>();
-            settingsRegistrar.RegisterSettings(ModuleConstants.Settings.AllSettings, ModuleInfo.Id);
 
             // register permissions
             var permissionsProvider = appBuilder.ApplicationServices.GetRequiredService<IPermissionsRegistrar>();
@@ -89,12 +83,7 @@ namespace VirtoCommerce.ImportModule.Web
 
             //Importers
             var importerRegistrar = appBuilder.ApplicationServices.GetService<IDataImporterRegistrar>();
-            //importerRegistrar.Register<CsvProductImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImporter>()).WithSettings(CsvProductSettings.AllSettings);
-            //importerRegistrar.Register<CsvOfferImporter>(() => appBuilder.ApplicationServices.GetService<CsvOfferImporter>()).WithSettings(CsvSettings.AllSettings);
             importerRegistrar.Register<TestImporter>(() => appBuilder.ApplicationServices.GetService<TestImporter>()).WithSettings(TestSettings.AllSettings);
-            //importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImageImporter>()).WithSettings(ProductImageImporterSettings.AllSettings);
-            //importerRegistrar.Register<ShopifyProductImporter>(() => appBuilder.ApplicationServices.GetService<ShopifyProductImporter>()).WithSettings(ShopifyProductSettings.AllSettings);
-
         }
 
         public void Uninstall()

@@ -1,5 +1,5 @@
 using FluentValidation;
-using VirtoCommerce.ImportModule.Core.Domains;
+using VirtoCommerce.ImportModule.Core.Models;
 
 namespace VirtoCommerce.ImportModule.Data.Infrastructure.Validators
 {

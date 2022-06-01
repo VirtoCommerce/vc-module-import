@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using VirtoCommerce.ImportModule.Core.Domains;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Data.Importers;
 using VirtoCommerce.Platform.Core.Events;
