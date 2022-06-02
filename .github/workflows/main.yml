@@ -1,0 +1,101 @@
+# v1.0.0.vc-import
+name: Module CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      [master, dev]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - 'build/**'
+      - 'README.md'
+      - 'LICENSE'
+      - '**/argoDeploy.json'
+  pull_request:
+    branches:
+      [master, dev]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - 'build/**'
+      - 'README.md'
+      - 'LICENSE'
+      - '**/argoDeploy.json'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+      NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      BLOB_SAS: ${{ secrets.BLOB_TOKEN }}
+      VERSION_SUFFIX: ""
+      BUILD_STATE: 'failed'
+      RELEASE_STATUS: 'false'
+    outputs:
+      artifactUrl: ${{ steps.blobRelease.outputs.packageUrl }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install VirtoCommerce.GlobalTool
+        run: dotnet tool install --global VirtoCommerce.GlobalTool
+
+      # - name: Get changelog
+      #   id: changelog
+      #   uses: VirtoCommerce/vc-github-actions/changelog-generator@master
+
+      - name: Get Image Version
+        uses: VirtoCommerce/vc-github-actions/get-image-version@master
+        id: image
+
+      - name: Set release variables
+        run: |
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}" >> $GITHUB_ENV
+
+      - name: Set release-alpha variables
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.fullSuffix }}" >> $GITHUB_ENV
+
+      - name: Set PR variables
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}-${{ steps.image.outputs.SHA }}" >> $GITHUB_ENV
+
+      - name: Add version suffix
+        if: ${{ github.ref != 'refs/heads/master' }}
+        uses: VirtoCommerce/vc-github-actions/add-version-suffix@master
+        with:
+          versionSuffix: ${{ env.VERSION_SUFFIX }}
+
+      - name: Build
+        run: vc-build Compile
+
+      - name: Unit Tests
+        run: vc-build Test -skip
+
+      - name: Packaging
+        run: vc-build Compress -skip Clean+Restore+Compile+Test
+
+      - name: Publish Nuget
+        if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
+        uses: VirtoCommerce/vc-github-actions/publish-nuget@master
+
+      - name: Publish to Blob
+        if: ${{ github.ref == 'refs/heads/dev' }}
+        id: blobRelease
+        uses: VirtoCommerce/vc-github-actions/publish-blob-release@master
+        with:
+          blobSAS: ${{ secrets.BLOB_TOKEN }}
+
+      - name: Publish Github Release
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+#          changelog: ${{ steps.changelog.outputs.changelog }}
+          changelog: ''
+        uses: VirtoCommerce/vc-github-actions/publish-github-release@master
