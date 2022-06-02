@@ -8,7 +8,7 @@
 <!--        <dependency id="VirtoCommerce.Core" version="3.200.0" /> -->
     </dependencies>
 
-    <title>VirtoCommerce Import module</title>
+    <title>Import module</title>
     <description>Provides flexible functionality for writing Importers</description>
 
     <authors>
