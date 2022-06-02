@@ -80,7 +80,7 @@ jobs:
         run: vc-build Test -skip
 
       - name: Packaging
-        run: vc-build Compress -skip Clean+Restore+Compile+Test
+        run: vc-build Compress -skip Clean+Restore+Compile+WebPackBuild+Test
 
       - name: Publish Nuget
         if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
