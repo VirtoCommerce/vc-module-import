@@ -57,7 +57,7 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
 
             }
-            catch (JobAbortedException ex)
+            catch (JobAbortedException)
             {
                 importPushNotifaction.Title = "Import was cancelled by user";
             }
