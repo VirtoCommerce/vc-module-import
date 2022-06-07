@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using VirtoCommerce.ImportModule.Data.Infrastructure.DataEntities;
+using VirtoCommerce.ImportModule.Data.Models;
 using VirtoCommerce.Platform.Core.Common;
 
 namespace VirtoCommerce.ImportModule.Data.Repositories

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "VirtoCommerce.ImportSampleModule.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:30558;http://localhost:30559"
+    }
+  }
+}

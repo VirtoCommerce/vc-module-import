@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using EntityFrameworkCore.Triggers;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using VirtoCommerce.ImportModule.Data.Infrastructure.DataEntities;
+using VirtoCommerce.ImportModule.Data.Models;
 
 namespace VirtoCommerce.ImportModule.Data.Repositories
 {
@@ -22,7 +22,7 @@ namespace VirtoCommerce.ImportModule.Data.Repositories
             #region ImportProfileEntity
             modelBuilder.Entity<ImportProfileEntity>().ToTable("ImportProfile").HasKey(x => x.Id);
             modelBuilder.Entity<ImportProfileEntity>().Property(x => x.Id).HasMaxLength(128).ValueGeneratedOnAdd();
-            modelBuilder.Entity<ImportProfileEntity>().HasIndex(x => new { x.SellerId, x.Name });
+            modelBuilder.Entity<ImportProfileEntity>().HasIndex(x => new { x.UserId, x.Name });
             #endregion
 
             #region ImportRunHistoryEntity

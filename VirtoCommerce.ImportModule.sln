@@ -4,15 +4,19 @@ VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CFC1B42A-2604-4030-BD28-7706B47C6365}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{60C5F34E-58CA-43A7-AFAF-57F20755E996}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.ImportModule.Web", "src\VirtoCommerce.ImportModule.Web\VirtoCommerce.ImportModule.Web.csproj", "{CD3F7D18-253A-444E-BC50-5426E87D8288}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.ImportModule.Data", "src\VirtoCommerce.ImportModule.Data\VirtoCommerce.ImportModule.Data.csproj", "{6C32DFC5-1DA1-45DB-BBB1-D2FED110EB38}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.ImportModule.Tests", "tests\VirtoCommerce.ImportModule.Tests\VirtoCommerce.ImportModule.Tests.csproj", "{6E46FEB9-F50B-4C49-BE63-72D9D4C0CD63}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.ImportModule.Core", "src\VirtoCommerce.ImportModule.Core\VirtoCommerce.ImportModule.Core.csproj", "{F16973D5-749D-4992-8503-A0DDDF744D3E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.ImportModule.CsvHelper", "src\VirtoCommerce.ImportModule.CsvHelper\VirtoCommerce.ImportModule.CsvHelper.csproj", "{9855708F-B80A-4B01-BA46-5932B267D22E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F4A093B3-4F51-44FC-9A2E-18BE17F7541A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.ImportSampleModule.Web", "samples\VirtoCommerce.ImportSampleModule.Web\VirtoCommerce.ImportSampleModule.Web.csproj", "{6F6272B0-9C4F-4166-8942-BE39002194DE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.ImportSampleModule.Tests", "samples\VirtoCommerce.ImportSampleModule.Tests\VirtoCommerce.ImportSampleModule.Tests.csproj", "{866C6093-7B23-473D-86AF-F5FD59970747}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,14 +32,22 @@ Global
 		{6C32DFC5-1DA1-45DB-BBB1-D2FED110EB38}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C32DFC5-1DA1-45DB-BBB1-D2FED110EB38}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C32DFC5-1DA1-45DB-BBB1-D2FED110EB38}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6E46FEB9-F50B-4C49-BE63-72D9D4C0CD63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6E46FEB9-F50B-4C49-BE63-72D9D4C0CD63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6E46FEB9-F50B-4C49-BE63-72D9D4C0CD63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6E46FEB9-F50B-4C49-BE63-72D9D4C0CD63}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F16973D5-749D-4992-8503-A0DDDF744D3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F16973D5-749D-4992-8503-A0DDDF744D3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F16973D5-749D-4992-8503-A0DDDF744D3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F16973D5-749D-4992-8503-A0DDDF744D3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9855708F-B80A-4B01-BA46-5932B267D22E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9855708F-B80A-4B01-BA46-5932B267D22E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9855708F-B80A-4B01-BA46-5932B267D22E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9855708F-B80A-4B01-BA46-5932B267D22E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F6272B0-9C4F-4166-8942-BE39002194DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F6272B0-9C4F-4166-8942-BE39002194DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F6272B0-9C4F-4166-8942-BE39002194DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F6272B0-9C4F-4166-8942-BE39002194DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{866C6093-7B23-473D-86AF-F5FD59970747}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{866C6093-7B23-473D-86AF-F5FD59970747}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{866C6093-7B23-473D-86AF-F5FD59970747}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{866C6093-7B23-473D-86AF-F5FD59970747}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,8 +55,10 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{CD3F7D18-253A-444E-BC50-5426E87D8288} = {CFC1B42A-2604-4030-BD28-7706B47C6365}
 		{6C32DFC5-1DA1-45DB-BBB1-D2FED110EB38} = {CFC1B42A-2604-4030-BD28-7706B47C6365}
-		{6E46FEB9-F50B-4C49-BE63-72D9D4C0CD63} = {60C5F34E-58CA-43A7-AFAF-57F20755E996}
 		{F16973D5-749D-4992-8503-A0DDDF744D3E} = {CFC1B42A-2604-4030-BD28-7706B47C6365}
+		{9855708F-B80A-4B01-BA46-5932B267D22E} = {CFC1B42A-2604-4030-BD28-7706B47C6365}
+		{6F6272B0-9C4F-4166-8942-BE39002194DE} = {F4A093B3-4F51-44FC-9A2E-18BE17F7541A}
+		{866C6093-7B23-473D-86AF-F5FD59970747} = {F4A093B3-4F51-44FC-9A2E-18BE17F7541A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		882C72C9-3D60-40B4-8DF5-E8630BD7511A = {882C72C9-3D60-40B4-8DF5-E8630BD7511A}

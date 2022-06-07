@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Core.Models
 {
-    public class ImportProfile : AuditableEntity, ICloneable, IHasSellerId, IHasSettings
+    public class ImportProfile : AuditableEntity, ICloneable, IHasSettings
     {
         public string Name { get; set; }
         public string DataImporterType { get; set; }
 
-        public string SellerId { get; set; }
-        public string SellerName { get; set; }
+        public string UserId { get; set; }
+        public string UserName { get; set; }
 
         public ICollection<ObjectSettingEntry> Settings { get; set; }
         public string TypeName => nameof(ImportProfile);
@@ -26,20 +25,6 @@ namespace VirtoCommerce.ImportModule.Core.Models
         {
             DataImporterType = importProfile.DataImporterType;
             Settings = importProfile.Settings;
-        }
-
-        public virtual ImportProfile CreateNew(string sellerId, string sellerName, string name, string importer, ICollection<ObjectSettingEntry> settings)
-        {
-            var result = ExType<ImportProfile>.New();
-            result.Name = name;
-            result.DataImporterType = importer;
-
-            result.SellerId = sellerId;
-            result.SellerName = sellerName;
-
-            result.Settings = settings;
-
-            return result;
         }
 
         public object Clone()

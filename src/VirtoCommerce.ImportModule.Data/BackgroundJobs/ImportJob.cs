@@ -6,7 +6,6 @@ using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
-using VirtoCommerce.Platform.Core.GenericCrud;
 using VirtoCommerce.Platform.Core.PushNotifications;
 
 namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
@@ -15,14 +14,14 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
     {
         private readonly IDataImportProcessManager _dataImportManager;
         private readonly IPushNotificationManager _pushNotificationManager;
-        private readonly ICrudService<ImportProfile> _importProfileCrudService;
-        private readonly ICrudService<ImportRunHistory> _importRunHistoryCrudService;
+        private readonly IImportProfileCrudService _importProfileCrudService;
+        private readonly IImportRunHistoryCrudService _importRunHistoryCrudService;
 
         public ImportJob(
             IDataImportProcessManager dataImportManager,
             IPushNotificationManager pushNotificationManager,
-            ICrudService<ImportProfile> importProfileCrudService,
-            ICrudService<ImportRunHistory> importRunHistoryCrudService
+            IImportProfileCrudService importProfileCrudService,
+            IImportRunHistoryCrudService importRunHistoryCrudService
             )
         {
             _dataImportManager = dataImportManager;
@@ -32,20 +31,20 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
         }
 
         [AutomaticRetry(Attempts = 0)]
-        public async Task ImportBackgroundAsync(ImportProfile importProfile, ImportPushNotification importPushNotifaction, IJobCancellationToken token, PerformContext context)
+        public async Task ImportBackgroundAsync(ImportProfile importProfile, ImportPushNotification importPushNotification, IJobCancellationToken token, PerformContext context)
         {
             void progressInfoCallback(ImportProgressInfo progressInfo)
             {
 
-                importPushNotifaction.JobId = context.BackgroundJob.Id;
+                importPushNotification.JobId = context.BackgroundJob.Id;
 
-                importPushNotifaction.Finished = progressInfo.Finished;
-                importPushNotifaction.ProcessedCount = progressInfo.ProcessedCount;
-                importPushNotifaction.TotalCount = progressInfo.TotalCount;
-                importPushNotifaction.Title = progressInfo.Description;
-                importPushNotifaction.Errors = progressInfo.Errors;
+                importPushNotification.Finished = progressInfo.Finished;
+                importPushNotification.ProcessedCount = progressInfo.ProcessedCount;
+                importPushNotification.TotalCount = progressInfo.TotalCount;
+                importPushNotification.Title = progressInfo.Description;
+                importPushNotification.Errors = progressInfo.Errors;
 
-                _pushNotificationManager.Send(importPushNotifaction);
+                _pushNotificationManager.Send(importPushNotification);
             }
 
             var profile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
@@ -53,24 +52,24 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
             try
             {
                 await _dataImportManager.ImportAsync(importProfile, progressInfoCallback, token.ShutdownToken);
-                var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, importPushNotifaction);
+                var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, importPushNotification);
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
 
             }
             catch (JobAbortedException)
             {
-                importPushNotifaction.Title = "Import was cancelled by user";
+                importPushNotification.Title = "Import was cancelled by user";
             }
             catch (Exception ex)
             {
-                importPushNotifaction.Errors.Add(ex.ToString());
-                importPushNotifaction.Title = "Import failed";
+                importPushNotification.Errors.Add(ex.ToString());
+                importPushNotification.Title = "Import failed";
                 throw;
             }
             finally
             {
-                importPushNotifaction.Finished = DateTime.UtcNow;
-                _pushNotificationManager.Send(importPushNotifaction);
+                importPushNotification.Finished = DateTime.UtcNow;
+                _pushNotificationManager.Send(importPushNotification);
                 await _importProfileCrudService.SaveChangesAsync(new[] { profile });
             }
 

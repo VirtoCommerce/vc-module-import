@@ -1,0 +1,2 @@
+Name;Gtin;CategoryId;OuterId;Boolean;DateTime;Dictionary;Integer;ShortText;Decimal
+Test product 1;GTIN1;61c16420-3454-48ea-abf8-a6525092080f;b0947d7f-beec-4a07-9694-58000ee6out1;true;08/14/2015 08:26:12;Red;49;Smart TV;51.00

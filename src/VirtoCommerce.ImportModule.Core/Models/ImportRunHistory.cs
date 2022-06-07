@@ -7,10 +7,10 @@ using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Core.Models
 {
-    public class ImportRunHistory : AuditableEntity, ICloneable, IHasSellerId
+    public class ImportRunHistory : AuditableEntity, ICloneable
     {
-        public string SellerId { get; set; }
-        public string SellerName { get; set; }
+        public string UserId { get; set; }
+        public string UserName { get; set; }
         public string JobId { get; set; }
         public string ProfileId { get; set; }
         public string ProfileName { get; set; }
@@ -28,8 +28,8 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public virtual ImportRunHistory CreateNew(ImportProfile profile, ImportPushNotification notification)
         {
             var result = ExType<ImportRunHistory>.New();
-            result.SellerId = profile.SellerId;
-            result.SellerName = profile.SellerName;
+            result.UserId = profile.UserId;
+            result.UserName = profile.UserName;
             result.ProfileId = profile.Id;
             result.ProfileName = profile.Name;
             result.JobId = notification.JobId;

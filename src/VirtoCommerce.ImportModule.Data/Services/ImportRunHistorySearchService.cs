@@ -4,7 +4,7 @@ using System.Linq;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Services;
-using VirtoCommerce.ImportModule.Data.Infrastructure.DataEntities;
+using VirtoCommerce.ImportModule.Data.Models;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.Platform.Core.Caching;
 using VirtoCommerce.Platform.Core.Common;
@@ -26,9 +26,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             var query = ((IImportRepository)repository).ImportRunHistorys;
 
-            if (!string.IsNullOrEmpty(criteria.SellerId))
+            if (!string.IsNullOrEmpty(criteria.UserId))
             {
-                query = query.Where(x => x.SellerId == criteria.SellerId);
+                query = query.Where(x => x.UserId == criteria.UserId);
             }
 
             if (!string.IsNullOrEmpty(criteria.ProfileId))

@@ -1,0 +1,2 @@
+Name;Description;Gtin;CategoryId;OuterId;Images;PropertyBool;PropertyDateTime;PropertyDictionary;PropertyInt;PropertyString;PropertyDecimal;PropertyMultiValue
+Test product 1;Description1;GTIN1;68681c66-fa61-4fc6-af37-ba4a510c3437;b0947d7f-beec-4a07-9694-58000ee6out1;"http://localhost:5000/assets/catalog/image1.png;http://localhost:5000/assets/catalog/image2.png;http://localhost:5000/assets/catalog/image3.png";true;08/14/2015 08:26:12;Red;49;Smart TV;54.00;Value1

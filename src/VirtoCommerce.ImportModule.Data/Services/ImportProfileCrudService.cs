@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
-using VirtoCommerce.ImportModule.Data.Infrastructure.DataEntities;
+using VirtoCommerce.ImportModule.Data.Models;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.Platform.Core.Caching;
 using VirtoCommerce.Platform.Core.Common;
@@ -15,7 +15,7 @@ using VirtoCommerce.Platform.Data.GenericCrud;
 namespace VirtoCommerce.ImportModule.Data.Services
 {
     public class ImportProfileCrudService : CrudService<ImportProfile, ImportProfileEntity,
-         GenericChangedEntryEvent<ImportProfile>, GenericChangedEntryEvent<ImportProfile>>
+         GenericChangedEntryEvent<ImportProfile>, GenericChangedEntryEvent<ImportProfile>>, IImportProfileCrudService
     {
         private readonly ISettingsManager _settingsManager;
         private readonly IDataImporterRegistrar _importersRegistry;
@@ -55,7 +55,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         protected override async Task AfterSaveChangesAsync(IEnumerable<ImportProfile> models, IEnumerable<GenericChangedEntry<ImportProfile>> changedEntries)
         {
-            // ?? await DispathDomainEvents(models);
             await _settingsManager.DeepSaveSettingsAsync(models);
         }
     }

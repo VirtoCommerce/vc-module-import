@@ -9,7 +9,7 @@ using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
-using VirtoCommerce.ImportModule.Data.Infrastructure.Validators;
+using VirtoCommerce.ImportModule.Data.Validators;
 using VirtoCommerce.Platform.Core.GenericCrud;
 
 namespace VirtoCommerce.ImportModule.Web.Controllers.Api
@@ -44,7 +44,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         [Authorize(ModuleConstants.Security.Permissions.Access)]
         public ActionResult<ImportPushNotification> RunImport([FromBody] ImportProfile importProfile)
         {
-            var result = _importRunService.RunImport(importProfile);
+            var result = _importRunService.RunImportBackgroundJob(importProfile);
 
             return Ok(result);
         }
@@ -54,7 +54,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         [Authorize(ModuleConstants.Security.Permissions.Access)]
         public ActionResult CancelJob([FromBody] ImportCancellationRequest cancellationRequest)
         {
-            _importRunService.CancelJob(cancellationRequest);
+            _importRunService.CancelRunBackgroundJob(cancellationRequest);
 
             return Ok();
         }
@@ -66,7 +66,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         {
             var result = await _importRunService.PreviewAsync(importProfile);
 
-            return result;
+            return Ok(result);
         }
 
         [HttpGet]
@@ -96,7 +96,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
             var searchResult = await _importProfilesSearchService.SearchAsync(new SearchImportProfilesCriteria
             {
-                SellerId = importProfile.SellerId,
+                UserId = importProfile.UserId,
                 Name = importProfile.Name
             });
 
