@@ -10,7 +10,6 @@ using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Validators;
-using VirtoCommerce.Platform.Core.GenericCrud;
 
 namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 {
@@ -22,14 +21,14 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         private readonly IImportRunService _importRunService;
         private readonly IImportProfilesSearchService _importProfilesSearchService;
         private readonly IImportRunHistorySearchService _importRunHistorySearchService;
-        private readonly ICrudService<ImportProfile> _importProfileCrudService;
+        private readonly IImportProfileCrudService _importProfileCrudService;
 
         public ImportController(
             IDataImporterRegistrar importersRegistry,
             IImportRunService importRunService,
             IImportProfilesSearchService importProfilesSearchService,
             IImportRunHistorySearchService importRunHistorySearchService,
-            ICrudService<ImportProfile> importProfileCrudService
+            IImportProfileCrudService importProfileCrudService
             )
         {
             _importersRegistry = importersRegistry;

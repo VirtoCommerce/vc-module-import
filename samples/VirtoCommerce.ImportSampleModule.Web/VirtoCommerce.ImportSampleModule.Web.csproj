@@ -26,6 +26,7 @@
     <Folder Include="Importers\CsvProductImporter\" />
     <Folder Include="Content\" />
     <Folder Include="Importers\CsvProductImageImporter\" />
+    <Folder Include="Importers\ShopifyProductImporter\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\VirtoCommerce.ImportModule.Core\VirtoCommerce.ImportModule.Core.csproj" />

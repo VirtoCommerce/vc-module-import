@@ -8,7 +8,6 @@ using VirtoCommerce.ImportModule.Data.Models;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.Platform.Core.Caching;
 using VirtoCommerce.Platform.Core.Common;
-using VirtoCommerce.Platform.Core.GenericCrud;
 using VirtoCommerce.Platform.Data.GenericCrud;
 
 namespace VirtoCommerce.ImportModule.Data.Services
@@ -18,7 +17,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         public ImportProfilesSearchService(
             Func<IImportRepository> repositoryFactory,
             IPlatformMemoryCache platformMemoryCache,
-            ICrudService<ImportProfile> crudService)
+            IImportProfileCrudService crudService)
             : base(repositoryFactory, platformMemoryCache, crudService)
         {
         }
