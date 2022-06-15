@@ -35,4 +35,5 @@ As you can clearly see, VC Data Import is based on three main objects:
         
 
 > ***Note:*** *More information about Module services [here](02-additional-development-information.md).
+
 > ***Note:*** *You can also create your own data importers, which we explain [here](03-building-custom-importer.md).
