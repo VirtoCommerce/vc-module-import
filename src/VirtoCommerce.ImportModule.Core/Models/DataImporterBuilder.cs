@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Settings;
+using VirtoCommerce.Platform.Security.Authorization;
 
 namespace VirtoCommerce.ImportModule.Core.Models
 {
@@ -35,6 +37,19 @@ namespace VirtoCommerce.ImportModule.Core.Models
             return this;
         }
 
+        public DataImporterBuilder WithAuthorizationReqirement(IAuthorizationRequirement authorizationReqirement)
+        {
+            DataImporter.AuthorizationReqirement = authorizationReqirement;
+
+            return this;
+        }
+        public DataImporterBuilder WithAuthorizationPermission(string permission)
+        {
+            PermissionAuthorizationRequirement permissionAuthorizationRequirement = new PermissionAuthorizationRequirement(permission);
+            DataImporter.AuthorizationReqirement = permissionAuthorizationRequirement;
+
+            return this;
+        }
         public IDataImporter Build()
         {
             return DataImporter.Clone() as IDataImporter;

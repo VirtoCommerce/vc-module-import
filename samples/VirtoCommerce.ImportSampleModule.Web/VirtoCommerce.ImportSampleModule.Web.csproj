@@ -25,7 +25,6 @@
   <ItemGroup>
     <Folder Include="Importers\CsvProductImporter\" />
     <Folder Include="Content\" />
-    <Folder Include="Importers\CsvProductImageImporter\" />
     <Folder Include="Importers\ShopifyProductImporter\" />
   </ItemGroup>
   <ItemGroup>

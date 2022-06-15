@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VirtoCommerce.CatalogModule.Core;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Validators;
+using ModuleConstants = VirtoCommerce.ImportModule.Core.ModuleConstants;
 
 namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 {
@@ -22,13 +22,17 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         private readonly IImportProfilesSearchService _importProfilesSearchService;
         private readonly IImportRunHistorySearchService _importRunHistorySearchService;
         private readonly IImportProfileCrudService _importProfileCrudService;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IDataImporterFactory _dataImporterFactory;
 
         public ImportController(
             IDataImporterRegistrar importersRegistry,
             IImportRunService importRunService,
             IImportProfilesSearchService importProfilesSearchService,
             IImportRunHistorySearchService importRunHistorySearchService,
-            IImportProfileCrudService importProfileCrudService
+            IImportProfileCrudService importProfileCrudService,
+            IAuthorizationService authorizationService,
+            IDataImporterFactory dataImporterFactory
             )
         {
             _importersRegistry = importersRegistry;
@@ -36,13 +40,24 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             _importProfilesSearchService = importProfilesSearchService;
             _importRunHistorySearchService = importRunHistorySearchService;
             _importProfileCrudService = importProfileCrudService;
+            _authorizationService = authorizationService;
+            _dataImporterFactory = dataImporterFactory;
         }
 
         [HttpPost]
         [Route("run")]
-        [Authorize(ModuleConstants.Security.Permissions.Access)]
-        public ActionResult<ImportPushNotification> RunImport([FromBody] ImportProfile importProfile)
+        public async Task<ActionResult<ImportPushNotification>> RunImport([FromBody] ImportProfile importProfile)
         {
+            var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
+            if (importer.AuthorizationReqirement != null)
+            {
+                var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, importer.AuthorizationReqirement);
+                if (!authorizationResult.Succeeded)
+                {
+                    return Unauthorized();
+                }
+            }
+
             var result = _importRunService.RunImportBackgroundJob(importProfile);
 
             return Ok(result);

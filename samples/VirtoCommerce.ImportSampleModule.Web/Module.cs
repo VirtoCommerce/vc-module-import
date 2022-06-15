@@ -22,6 +22,7 @@ namespace VirtoCommerce.ImportSampleModule.Web
             serviceCollection.AddTransient<TestImporter>();
             serviceCollection.AddTransient<CsvProductImporter>();
             serviceCollection.AddTransient<CsvProductImageImporter>();
+            serviceCollection.AddTransient<ShopifyProductImporter>();
 
             AbstractTypeFactory<ProductSearchCriteria>.OverrideType<ProductSearchCriteria, ExtendedProductSearchCriteria>();
         }
@@ -32,7 +33,8 @@ namespace VirtoCommerce.ImportSampleModule.Web
             var importerRegistrar = appBuilder.ApplicationServices.GetService<IDataImporterRegistrar>();
             importerRegistrar.Register<TestImporter>(() => appBuilder.ApplicationServices.GetService<TestImporter>()).WithSettings(TestSettings.AllSettings);
             importerRegistrar.Register<CsvProductImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImporter>()).WithSettings(CsvProductSettings.AllSettings);
-            importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImageImporter>()).WithSettings(ProductImageImporterSettings.AllSettings);
+            importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImageImporter>()).WithSettings(CsvProductImageSettings.AllSettings);
+            importerRegistrar.Register<ShopifyProductImporter>(() => appBuilder.ApplicationServices.GetService<ShopifyProductImporter>()).WithSettings(ShopifyProductSettings.AllSettings);
         }
 
         public void Uninstall()

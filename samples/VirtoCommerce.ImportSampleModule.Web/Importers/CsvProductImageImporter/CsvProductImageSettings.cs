@@ -5,7 +5,7 @@ using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportSampleModule.Web.Importers
 {
-    public class ProductImageImporterSettings
+    public class CsvProductImageSettings
     {
         public static SettingDescriptor DebugSetting { get; } = new SettingDescriptor
         {

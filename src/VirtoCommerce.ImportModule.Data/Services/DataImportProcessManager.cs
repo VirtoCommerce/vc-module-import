@@ -20,7 +20,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         public async Task ImportAsync(ImportProfile importProfile, Action<ImportProgressInfo> progressCallback, CancellationToken token)
         {
-            //var importProfile = importDataCommand.ImportProfile;
 
             var dataImporter = _dataImporterFactory.Create(importProfile.DataImporterType);
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using VirtoCommerce.AssetsModule.Core.Assets;
 using VirtoCommerce.CatalogModule.Core.Services;
 using VirtoCommerce.ImportModule.Core.Models;
@@ -31,6 +32,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         public Dictionary<string, string> Metadata { get; private set; }
 
         public SettingDescriptor[] AvailSettings { get; set; }
+        public IAuthorizationRequirement AuthorizationReqirement { get; set; }
 
         public IImportDataReader OpenReader(ImportContext context)
         {

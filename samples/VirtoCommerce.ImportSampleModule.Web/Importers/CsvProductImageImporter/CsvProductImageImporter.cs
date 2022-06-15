@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using VirtoCommerce.AssetsModule.Core.Assets;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
@@ -29,6 +30,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         /// Avail settings that importer exposes and allows to edit by users
         /// </summary>
         public SettingDescriptor[] AvailSettings { get; set; }
+        public IAuthorizationRequirement AuthorizationReqirement { get; set; }
 
         public IImportDataReader OpenReader(ImportContext context)
         {

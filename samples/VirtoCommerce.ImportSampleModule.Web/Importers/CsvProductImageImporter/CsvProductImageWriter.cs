@@ -12,7 +12,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         private readonly bool _debug;
         public CsvProductImageWriter(ImportContext context)
         {
-            _debug = Convert.ToBoolean(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == ProductImageImporterSettings.DebugSetting.Name)?.Value ?? false);
+            _debug = Convert.ToBoolean(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == CsvProductImageSettings.DebugSetting.Name)?.Value ?? false);
         }
         public Task WriteAsync(object[] items, ImportContext context)
         {

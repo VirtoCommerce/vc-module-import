@@ -47,8 +47,6 @@ namespace VirtoCommerce.ImportModule.Web
             serviceCollection.AddSingleton<IDataImporterRegistrar>(provider => provider.GetService<DataImporterRegistrar>());
             serviceCollection.AddTransient<IDataImportProcessManager, DataImportProcessManager>();
 
-            //serviceCollection.AddTransient<TestImporter>();
-
             serviceCollection.AddTransient<IBackgroundJobExecutor, BackgroundJobExecutor>();
 
             serviceCollection.AddMediatR(typeof(Anchor));
@@ -79,9 +77,6 @@ namespace VirtoCommerce.ImportModule.Web
                 }
             }
 
-            ////Importers
-            //var importerRegistrar = appBuilder.ApplicationServices.GetService<IDataImporterRegistrar>();
-            //importerRegistrar.Register<TestImporter>(() => appBuilder.ApplicationServices.GetService<TestImporter>()).WithSettings(TestSettings.AllSettings);
         }
 
         public void Uninstall()

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Settings;
@@ -10,6 +11,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         public virtual string TypeName { get; } = nameof(TestImporter);
         public virtual Dictionary<string, string> Metadata { get; }
         public virtual SettingDescriptor[] AvailSettings { get; set; }
+        public IAuthorizationRequirement AuthorizationReqirement { get; set; }
 
         public IImportDataReader OpenReader(ImportContext context)
         {
