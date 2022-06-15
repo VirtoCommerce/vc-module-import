@@ -10,7 +10,8 @@ Provides flexible functionality for writing your own Importers
 ## Documentation
 
 1. [Main Concept](/docs/01-main-concept.md)
-1. [How to build custom Importer](/docs/02-building-custom-importer.md)
+1. [Additional development information](/docs/02-additional-development-information.md)
+1. [How to build custom Importer](/docs/03-building-custom-importer.md)
 
 ## References
 

@@ -34,4 +34,5 @@ As you can clearly see, VC Data Import is based on three main objects:
     -   _Settings_, which provides settings that can be used to configure _ImportProfile_ linked to the importer in question.
         
 
-> ***Note:*** *You can also create your own data importers, which we explain [here](https://virtocommerce.atlassian.net/browse/PD-35 "LINK_TO_CREATING_DATA_IMPORTERS").
+> ***Note:*** *More information about Module services [here](02-additional-development-information.md).
+> ***Note:*** *You can also create your own data importers, which we explain [here](03-building-custom-importer.md).

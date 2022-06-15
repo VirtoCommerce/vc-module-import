@@ -1,10 +1,10 @@
-# Building Custom Data Importer -- In Progress
+# Building Custom Data Importer
 
 This section will guide you through building your own data importer of a specific type. All steps described below are based on a real example of importing product images from a CSV file.
 
 > ***Note:*** *Currently, we only support CSV for out-of-the-box import. You can, however, create your own file reader if you want to use a different format.*
 
-Link to source code - TBA
+Link to [source code](../samples/VirtoCommerce.ImportSampleModule.Web/Importers/CsvProductImageImporter)
 
 ## Prerequisites
 
@@ -186,9 +186,9 @@ Lines 23 and 34: Factory methods that return both the reader and writer and get 
 
 ## Registering Data Importer
 
-Now that we have everything at hand to wire up our new _CsvProductImageImporter_ and run it, we add the following content to the _module.cs_ file:
+Now that we have everything at hand to wire up our new _CsvProductImageImporter_ and run it, we add the following content to the _Module.cs_ file:
 
-`module.cs`
+`Module.cs`
 ```cs
 1 public void Initialize(IServiceCollection serviceCollection)
 2 {
