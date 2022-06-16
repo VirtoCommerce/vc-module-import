@@ -13,12 +13,21 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             DefaultValue = ";"
         };
 
+        public static SettingDescriptor PageSize { get; } = new SettingDescriptor
+        {
+            Name = "Import.Csv.PageSize",
+            ValueType = SettingValueType.Integer,
+            GroupName = "Import",
+            IsDictionary = false,
+            DefaultValue = "50"
+        };
 
         public static IEnumerable<SettingDescriptor> AllSettings
         {
             get
             {
                 yield return Delimiter;
+                yield return PageSize;
             }
         }
     }

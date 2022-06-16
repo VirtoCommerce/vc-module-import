@@ -10,7 +10,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
     public class CsvDataReader<TCsvImportable, TCsvClassMap> : IImportDataReader where TCsvClassMap : ClassMap
     {
         private int? _totalCount;
-        private const int _pageSize = 50;
+        private int _pageSize;
         private readonly Stream _stream;
         protected CsvConfiguration CsvConfiguration { get; set; }
         private readonly CsvReader _csvReader;
@@ -24,6 +24,8 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             _stream = stream;
             _csvReader = new CsvReader(new StreamReader(_stream), CsvConfiguration);
             _csvReader.Context.RegisterClassMap<TCsvClassMap>();
+
+            _pageSize = Convert.ToInt32(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == CsvSettings.PageSize.Name)?.Value ?? 50);
         }
 
         public async Task<int> GetTotalCountAsync(ImportContext context)

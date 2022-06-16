@@ -45,10 +45,9 @@ namespace VirtoCommerce.ImportModule.Core.Models
         }
         public DataImporterBuilder WithAuthorizationPermission(string permission)
         {
-            PermissionAuthorizationRequirement permissionAuthorizationRequirement = new PermissionAuthorizationRequirement(permission);
-            DataImporter.AuthorizationReqirement = permissionAuthorizationRequirement;
+            var permissionAuthorizationRequirement = new PermissionAuthorizationRequirement(permission);
 
-            return this;
+            return WithAuthorizationReqirement(permissionAuthorizationRequirement);
         }
         public IDataImporter Build()
         {
