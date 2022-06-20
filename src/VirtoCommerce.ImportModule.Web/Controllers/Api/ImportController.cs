@@ -83,6 +83,16 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             return Ok(result);
         }
 
+        [HttpPost]
+        [Route("validate")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
+        public async Task<ActionResult<ValidationResult>> Validate([FromBody] ImportProfile importProfile)
+        {
+            var result = await _importRunService.ValidateAsync(importProfile);
+
+            return Ok(result);
+        }
+
         [HttpGet]
         [Route("importers")]
         [Authorize(ModuleConstants.Security.Permissions.Access)]

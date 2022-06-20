@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
@@ -26,6 +27,11 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         public object Clone()
         {
             return base.MemberwiseClone();
+        }
+
+        public Task<ValidationResult> ValidateAsync(ImportContext context)
+        {
+            return Task.FromResult(new ValidationResult());
         }
     }
 }

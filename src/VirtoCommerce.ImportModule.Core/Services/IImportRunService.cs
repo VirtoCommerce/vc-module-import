@@ -11,5 +11,6 @@ namespace VirtoCommerce.ImportModule.Core.Services
         void CancelRunBackgroundJob(ImportCancellationRequest cancellationRequest);
         Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken);
         Task<ImportDataPreview> PreviewAsync(ImportProfile importProfile);
+        Task<ValidationResult> ValidateAsync(ImportProfile importProfile);
     }
 }

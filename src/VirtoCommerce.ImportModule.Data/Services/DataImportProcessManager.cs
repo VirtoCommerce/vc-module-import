@@ -4,18 +4,19 @@ using System.Threading.Tasks;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Events;
+using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Data.Services
 {
     public class DataImportProcessManager : IDataImportProcessManager
     {
-        //TODO: move to options
-        private const int _maxErrorsCountThreshold = 50;
+        private int _maxErrorsCountThreshold;
         private readonly IDataImporterFactory _dataImporterFactory;
 
-        public DataImportProcessManager(IDataImporterFactory dataImporterFactory)
+        public DataImportProcessManager(IDataImporterFactory dataImporterFactory, ISettingsManager settingsManager)
         {
             _dataImporterFactory = dataImporterFactory;
+            _maxErrorsCountThreshold = settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.MaxErrorsCountThreshold.Name, 50).Result;
         }
 
         public async Task ImportAsync(ImportProfile importProfile, Action<ImportProgressInfo> progressCallback, CancellationToken token)

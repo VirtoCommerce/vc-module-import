@@ -31,10 +31,23 @@ namespace VirtoCommerce.ImportSampleModule.Web
         {
             //Importers
             var importerRegistrar = appBuilder.ApplicationServices.GetService<IDataImporterRegistrar>();
-            importerRegistrar.Register<TestImporter>(() => appBuilder.ApplicationServices.GetService<TestImporter>()).WithSettings(TestSettings.AllSettings);
-            importerRegistrar.Register<CsvProductImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImporter>()).WithSettings(CsvProductSettings.AllSettings);
-            importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImageImporter>()).WithSettings(CsvProductImageSettings.AllSettings);
-            importerRegistrar.Register<ShopifyProductImporter>(() => appBuilder.ApplicationServices.GetService<ShopifyProductImporter>()).WithSettings(ShopifyProductSettings.AllSettings);
+
+            importerRegistrar.Register<TestImporter>(() => appBuilder.ApplicationServices
+                .GetService<TestImporter>())
+                .WithSettings(TestSettings.AllSettings);
+
+            importerRegistrar.Register<CsvProductImporter>(() => appBuilder.ApplicationServices
+                .GetService<CsvProductImporter>())
+                .WithSettings(CsvProductSettings.AllSettings);
+
+            importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices
+                .GetService<CsvProductImageImporter>())
+                .WithSettings(CsvProductImageSettings.AllSettings)
+                .WithAuthorizationPermission("catalog:update");
+
+            importerRegistrar.Register<ShopifyProductImporter>(() => appBuilder.ApplicationServices
+                .GetService<ShopifyProductImporter>())
+                .WithSettings(ShopifyProductSettings.AllSettings);
         }
 
         public void Uninstall()

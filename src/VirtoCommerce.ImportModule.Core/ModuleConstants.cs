@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using VirtoCommerce.Platform.Core.Settings;
+
 namespace VirtoCommerce.ImportModule.Core
 {
     public static class ModuleConstants
@@ -14,6 +17,29 @@ namespace VirtoCommerce.ImportModule.Core
                 public const string Execute = "import:execute";
 
                 public static string[] AllPermissions { get; } = { Read, Create, Access, Update, Delete, Execute };
+            }
+        }
+
+        public static class Settings
+        {
+            public static class General
+            {
+                public static SettingDescriptor MaxErrorsCountThreshold { get; } = new SettingDescriptor
+                {
+                    Name = "Import.MaxErrorsCountThreshold",
+                    ValueType = SettingValueType.PositiveInteger,
+                    GroupName = "Import",
+                    IsDictionary = false,
+                    DefaultValue = "50"
+                };
+
+                public static IEnumerable<SettingDescriptor> AllSettings
+                {
+                    get
+                    {
+                        yield return MaxErrorsCountThreshold;
+                    }
+                }
             }
         }
     }

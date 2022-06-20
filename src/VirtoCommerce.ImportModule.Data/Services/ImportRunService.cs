@@ -121,21 +121,39 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             using var reader = importer.OpenReader(context);
 
-            var records = new List<object>();
+            var result = new ImportDataPreview();
 
-            do
+            var validationResult = await importer.ValidateAsync(context);
+            if (validationResult.ErrorsCount == 0)
             {
-                records.AddRange(await reader.ReadNextPageAsync(context));
+                var records = new List<object>();
 
-            } while (reader.HasMoreResults && records.Count < importProfile.PreviewObjectCount);
+                do
+                {
+                    records.AddRange(await reader.ReadNextPageAsync(context));
 
-            var result = new ImportDataPreview
+                } while (reader.HasMoreResults && records.Count < importProfile.PreviewObjectCount);
+
+                result.TotalCount = await reader.GetTotalCountAsync(context);
+                result.Records = records.Take(importProfile.PreviewObjectCount).ToArray();
+            }
+            else
             {
-                TotalCount = await reader.GetTotalCountAsync(context),
-                Records = records.Take(importProfile.PreviewObjectCount).ToArray(),
-            };
+                result.Errors = validationResult.Errors;
+            }
 
             return result;
         }
+
+        public async Task<ValidationResult> ValidateAsync(ImportProfile importProfile)
+        {
+            var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
+            var context = new ImportContext(importProfile);
+
+            var validationResult = await importer.ValidateAsync(context);
+
+            return validationResult;
+        }
+
     }
 }

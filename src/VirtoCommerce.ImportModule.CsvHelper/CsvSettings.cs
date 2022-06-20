@@ -16,7 +16,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
         public static SettingDescriptor PageSize { get; } = new SettingDescriptor
         {
             Name = "Import.Csv.PageSize",
-            ValueType = SettingValueType.Integer,
+            ValueType = SettingValueType.PositiveInteger,
             GroupName = "Import",
             IsDictionary = false,
             DefaultValue = "50"

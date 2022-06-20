@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using VirtoCommerce.AssetsModule.Core.Assets;
 using VirtoCommerce.CatalogModule.Core.Model;
@@ -12,7 +13,7 @@ using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportSampleModule.Web.Importers
 {
-    public class CsvProductImporter : IDataImporter
+    public class CsvProductImporter : IDataImporter, IFileBased
     {
         private readonly IBlobStorageProvider _blobStorageProvider;
         private readonly IExtendedProductSearchService _extendedProductSearchService;
@@ -32,7 +33,8 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
             _propertyMetadataLoader = propertyMetadataLoader;
             Metadata = new Dictionary<string, string>()
             {
-                { "sampleCsvUrl", "/Modules/$(VirtoCommerce.ImportSampleModule)/Content/seller_product_import_template.csv" }
+                { "sampleCsvUrl", "/Modules/$(VirtoCommerce.ImportSampleModule)/Content/seller_product_import_template.csv" },
+                { "availableFileExtensions", AvailableFileExtensions }
             };
             _itemService = itemService;
             _categoryService = categoryService;
@@ -43,7 +45,10 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         public virtual SettingDescriptor[] AvailSettings { get; set; }
 
         public virtual Dictionary<string, string> Metadata { get; }
+
         public IAuthorizationRequirement AuthorizationReqirement { get; set; }
+
+        public string AvailableFileExtensions => ".csv";
 
         public virtual IImportDataReader OpenReader(ImportContext context)
         {
@@ -64,6 +69,11 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         public virtual object Clone()
         {
             return MemberwiseClone();
+        }
+
+        public Task<ValidationResult> ValidateAsync(ImportContext context)
+        {
+            throw new NotImplementedException();
         }
     }
 }
