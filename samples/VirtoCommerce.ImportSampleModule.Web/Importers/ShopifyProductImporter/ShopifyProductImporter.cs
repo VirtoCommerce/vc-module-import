@@ -69,33 +69,39 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
                 return result;
             }
 
-            var importStream = _blobStorageProvider.OpenRead(context.ImportProfile.ImportFileUrl);
-            if (importStream.Length == 0)
+            try
             {
-                result.Errors.Add("Import file must not empty");
-                return result;
-            }
-
-            var reader = new CsvDataReader<ShopifyProductLine, ShopifyProductClassMap>(importStream, context);
-
-            var productValidator = ExType<ShopifyProductValidator>.New();
-            int lineNumber = 0;
-
-            do
-            {
-                var items = await reader.ReadNextPageAsync(context);
-                var shopifyProducts = items.Cast<ShopifyProductLine>();
-                foreach (var shopifyProduct in shopifyProducts)
+                var importStream = _blobStorageProvider.OpenRead(context.ImportProfile.ImportFileUrl);
+                if (importStream.Length == 0)
                 {
-                    lineNumber++;
-                    var validationResult = await productValidator.ValidateAsync(shopifyProduct);
-                    if (!validationResult.IsValid)
-                    {
-                        result.Errors.Add($"{validationResult} in line {lineNumber}");
-                    }
+                    result.Errors.Add("Import file must not be empty");
+                    return result;
                 }
-            } while (reader.HasMoreResults);
 
+                var reader = new CsvDataReader<ShopifyProductLine, ShopifyProductClassMap>(importStream, context);
+
+                var productValidator = ExType<ShopifyProductValidator>.New();
+                int lineNumber = 0;
+
+                do
+                {
+                    var items = await reader.ReadNextPageAsync(context);
+                    var shopifyProducts = items.Cast<ShopifyProductLine>();
+                    foreach (var shopifyProduct in shopifyProducts)
+                    {
+                        lineNumber++;
+                        var validationResult = await productValidator.ValidateAsync(shopifyProduct);
+                        if (!validationResult.IsValid)
+                        {
+                            result.Errors.Add($"{validationResult} in line {lineNumber}");
+                        }
+                    }
+                } while (reader.HasMoreResults);
+            }
+            catch (Exception ex)
+            {
+                result.Errors.Add(ex.Message);
+            }
             return result;
         }
 

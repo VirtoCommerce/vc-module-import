@@ -119,13 +119,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
             var context = new ImportContext(importProfile);
 
-            using var reader = importer.OpenReader(context);
-
             var result = new ImportDataPreview();
 
             var validationResult = await importer.ValidateAsync(context);
-            if (validationResult.ErrorsCount == 0)
+            try
             {
+                using var reader = importer.OpenReader(context);
+
                 var records = new List<object>();
 
                 do
@@ -137,10 +137,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 result.TotalCount = await reader.GetTotalCountAsync(context);
                 result.Records = records.Take(importProfile.PreviewObjectCount).ToArray();
             }
-            else
+            catch (Exception ex)
             {
-                result.Errors = validationResult.Errors;
+                result.Errors.Add(ex.Message);
             }
+            result.Errors = validationResult.Errors;
 
             return result;
         }

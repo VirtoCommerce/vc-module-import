@@ -41,6 +41,14 @@ namespace VirtoCommerce.ImportModule.Core
                     }
                 }
             }
+
+            public static IEnumerable<SettingDescriptor> AllSettings
+            {
+                get
+                {
+                    return General.AllSettings;
+                }
+            }
         }
     }
 }

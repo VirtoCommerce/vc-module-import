@@ -72,33 +72,39 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
                 return result;
             }
 
-            var importStream = _blobStorageProvider.OpenRead(context.ImportProfile.ImportFileUrl);
-            if (importStream.Length == 0)
+            try
             {
-                result.Errors.Add("Import file must not empty");
-                return result;
-            }
-
-            var reader = new CsvDataReader<ProductImage, CsvProductImageClassMap>(importStream, context);
-
-            var productImageValidator = ExType<CsvProductImageValidator>.New();
-            int lineNumber = 0;
-
-            do
-            {
-                var items = await reader.ReadNextPageAsync(context);
-                var productImages = items.Cast<ProductImage>();
-                foreach (var productImage in productImages)
+                var importStream = _blobStorageProvider.OpenRead(context.ImportProfile.ImportFileUrl);
+                if (importStream.Length == 0)
                 {
-                    lineNumber++;
-                    var validationResult = await productImageValidator.ValidateAsync(productImage);
-                    if (!validationResult.IsValid)
-                    {
-                        result.Errors.Add($"{validationResult} in line {lineNumber}");
-                    }
+                    result.Errors.Add("Import file must not be empty");
+                    return result;
                 }
-            } while (reader.HasMoreResults);
 
+                var reader = new CsvDataReader<ProductImage, CsvProductImageClassMap>(importStream, context);
+
+                var productImageValidator = ExType<CsvProductImageValidator>.New();
+                int lineNumber = 0;
+
+                do
+                {
+                    var items = await reader.ReadNextPageAsync(context);
+                    var productImages = items.Cast<ProductImage>();
+                    foreach (var productImage in productImages)
+                    {
+                        lineNumber++;
+                        var validationResult = await productImageValidator.ValidateAsync(productImage);
+                        if (!validationResult.IsValid)
+                        {
+                            result.Errors.Add($"{validationResult} in line {lineNumber}");
+                        }
+                    }
+                } while (reader.HasMoreResults);
+            }
+            catch (Exception ex)
+            {
+                result.Errors.Add(ex.Message);
+            }
             return result;
         }
     }
