@@ -199,8 +199,9 @@ Now that we have everything at hand to wire up our new _CsvProductImageImporter_
 7  var importerRegistrar = appBuilder.ApplicationServices.GetService<IDataImporterRegistrar>();
 8  importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImageImporter>())
 9                    .WithSettings(CsvSettings.AllSettings)
-10                   .WithSettings(ProductImageImporterSettings.AllSettings);
-11 }
+10                   .WithSettings(CsvProductImageSettings.AllSettings)
+11                   .WithAuthorizationPermission("catalog:update");
+12 }
 ```
 
 ***Notes:***
@@ -208,6 +209,8 @@ Now that we have everything at hand to wire up our new _CsvProductImageImporter_
 Line 3: Registering `CsvProductImageImporter` in the DI
 
 Line 8: Registering `CsvProductImageImporter` in the global importer registry, so that the new importer may become available for import profile creation and for running the import process.
+
+Line 11: Adding necessary authorization permissions.
 
 ## Running Data Importer
 
