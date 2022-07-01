@@ -82,7 +82,11 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             var csvConfigurarion = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = context.ImportProfile.Settings.GetSettingValue(CsvSettings.Delimiter.Name, (string)CsvSettings.Delimiter.DefaultValue),
-
+                PrepareHeaderForMatch = (PrepareHeaderForMatchArgs args) => {
+                    var result = args.Header.ToLower();
+                    return result;
+                },
+                Mode = CsvMode.NoEscape,
                 BadDataFound = args =>
                 {
                     var errorInfo = new ErrorInfo
