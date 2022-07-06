@@ -12,7 +12,7 @@ namespace VirtoCommerce.ImportModule.Core.Services
         string TypeName { get; }
         Dictionary<string, string> Metadata { get; }
         SettingDescriptor[] AvailSettings { get; set; }
-        IAuthorizationRequirement AuthorizationReqirement { get; set; }
+        IAuthorizationRequirement AuthorizationRequirement { get; set; }
 
         IImportDataReader OpenReader(ImportContext context);
         IImportDataWriter OpenWriter(ImportContext context);

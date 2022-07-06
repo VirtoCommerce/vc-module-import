@@ -40,7 +40,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
 
         public SettingDescriptor[] AvailSettings { get; set; }
 
-        public IAuthorizationRequirement AuthorizationReqirement { get; set; }
+        public IAuthorizationRequirement AuthorizationRequirement { get; set; }
 
         public string AvailableFileExtensions => ".csv";
 

@@ -39,7 +39,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public DataImporterBuilder WithAuthorizationReqirement(IAuthorizationRequirement authorizationReqirement)
         {
-            DataImporter.AuthorizationReqirement = authorizationReqirement;
+            DataImporter.AuthorizationRequirement = authorizationReqirement;
 
             return this;
         }

@@ -46,7 +46,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
 
         public virtual Dictionary<string, string> Metadata { get; }
 
-        public IAuthorizationRequirement AuthorizationReqirement { get; set; }
+        public IAuthorizationRequirement AuthorizationRequirement { get; set; }
 
         public string AvailableFileExtensions => ".csv";
 

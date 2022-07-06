@@ -49,9 +49,9 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         public async Task<ActionResult<ImportPushNotification>> RunImport([FromBody] ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
-            if (importer.AuthorizationReqirement != null)
+            if (importer.AuthorizationRequirement != null)
             {
-                var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, importer.AuthorizationReqirement);
+                var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, importer.AuthorizationRequirement);
                 if (!authorizationResult.Succeeded)
                 {
                     return Unauthorized();
