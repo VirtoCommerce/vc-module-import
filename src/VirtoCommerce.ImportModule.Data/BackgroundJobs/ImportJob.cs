@@ -47,13 +47,11 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
                 _pushNotificationManager.Send(importPushNotification);
             }
 
-            var profile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
 
             try
             {
                 await _dataImportManager.ImportAsync(importProfile, progressInfoCallback, token.ShutdownToken);
-                var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, importPushNotification);
-                await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
+           
 
             }
             catch (JobAbortedException)
@@ -70,7 +68,8 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
             {
                 importPushNotification.Finished = DateTime.UtcNow;
                 _pushNotificationManager.Send(importPushNotification);
-                await _importProfileCrudService.SaveChangesAsync(new[] { profile });
+                var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, importPushNotification);
+                await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
             }
 
         }
