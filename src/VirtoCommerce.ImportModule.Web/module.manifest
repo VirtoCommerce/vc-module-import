@@ -5,7 +5,6 @@
     <version-tag></version-tag>
     <platformVersion>3.200.0</platformVersion>
     <dependencies>
-<!--        <dependency id="VirtoCommerce.Core" version="3.200.0" /> -->
     </dependencies>
 
     <title>Import module</title>
