@@ -24,6 +24,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public virtual void Update(ImportProfile importProfile)
         {
+            Name = importProfile.Name;
             DataImporterType = importProfile.DataImporterType;
             Settings = importProfile.Settings;
         }

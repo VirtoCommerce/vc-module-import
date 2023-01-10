@@ -71,6 +71,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
         public virtual void Patch(ImportProfileEntity target)
         {
             target.DataImporterType = DataImporterType;
+            target.Name = Name;
         }
     }
 }
