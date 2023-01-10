@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
-using VirtoCommerce.Platform.Core.Events;
 using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Data.Services
@@ -61,36 +60,22 @@ namespace VirtoCommerce.ImportModule.Data.Services
             importProgress.Description = "Import in progress";
             progressCallback(importProgress);
 
-
-            //suppress emitting all domain events during data importing. First of all to do not produces pushnotifcations during import process
-            //TODO: remove  later and replace to special commands for import???
-            var domainEventsSupressor = importProfile.SuppressDomainEvents ? EventSuppressor.SupressEvents() : null;
-            try
+            do
             {
-                do
-                {
-                    token.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
 
-                    var items = await reader.ReadNextPageAsync(context);
+                var items = await reader.ReadNextPageAsync(context);
 
-                    token.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
 
-                    await writer.WriteAsync(items, context);
+                await writer.WriteAsync(items, context);
 
-                    importProgress.ProcessedCount += items.Length;
+                importProgress.ProcessedCount += items.Length;
 
-                    progressCallback(importProgress);
+                progressCallback(importProgress);
 
-                } while (reader.HasMoreResults && errorsCount < _maxErrorsCountThreshold);
-            }
-            finally
-            {
-                if (domainEventsSupressor != null)
-                {
-                    domainEventsSupressor.Dispose();
-                }
-            }
-         
+            } while (reader.HasMoreResults && errorsCount < _maxErrorsCountThreshold);
+
             importProgress.Description = "Import has been finished";
             importProgress.Finished = DateTime.UtcNow;
             progressCallback(importProgress);
