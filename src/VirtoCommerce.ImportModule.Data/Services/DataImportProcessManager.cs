@@ -64,7 +64,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             //suppress emitting all domain events during data importing. First of all to do not produces pushnotifcations during import process
             //TODO: remove  later and replace to special commands for import???
-            using (EventSuppressor.SupressEvents())
+            var domainEventsSupressor = importProfile.SuppressDomainEvents ? EventSuppressor.SupressEvents() : null;
+            try
             {
                 do
                 {
@@ -82,7 +83,14 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                 } while (reader.HasMoreResults && errorsCount < _maxErrorsCountThreshold);
             }
-
+            finally
+            {
+                if (domainEventsSupressor != null)
+                {
+                    domainEventsSupressor.Dispose();
+                }
+            }
+         
             importProgress.Description = "Import has been finished";
             importProgress.Finished = DateTime.UtcNow;
             progressCallback(importProgress);
