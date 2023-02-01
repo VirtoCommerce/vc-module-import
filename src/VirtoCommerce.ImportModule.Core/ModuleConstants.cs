@@ -33,11 +33,40 @@ namespace VirtoCommerce.ImportModule.Core
                     DefaultValue = "50"
                 };
 
+                public static SettingDescriptor ImportLimitOfLines { get; } = new SettingDescriptor
+                {
+                    Name = "Import.LimitOfLines",
+                    GroupName = "Import",
+                    ValueType = SettingValueType.PositiveInteger,
+                    IsHidden = true,
+                    DefaultValue = 10000
+                };
+
+                public static SettingDescriptor ImportFileMaxSize { get; } = new SettingDescriptor
+                {
+                    Name = "Import.FileMaxSize",
+                    GroupName = "Import",
+                    ValueType = SettingValueType.PositiveInteger,
+                    IsHidden = true,
+                    DefaultValue = 1 // MB
+                };
+
+                public static SettingDescriptor DefaultImportReporter { get; } = new SettingDescriptor
+                {
+                    Name = "Import.DefaultImportReporter",
+                    GroupName = "Import",
+                    ValueType = SettingValueType.ShortText,
+                    DefaultValue = "DefaultDataReporter"
+                };
+
                 public static IEnumerable<SettingDescriptor> AllSettings
                 {
                     get
                     {
                         yield return MaxErrorsCountThreshold;
+                        yield return ImportLimitOfLines;
+                        yield return ImportFileMaxSize;
+                        yield return DefaultImportReporter;
                     }
                 }
             }

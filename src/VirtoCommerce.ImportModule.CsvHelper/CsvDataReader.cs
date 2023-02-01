@@ -16,13 +16,15 @@ namespace VirtoCommerce.ImportModule.CsvHelper
     {
         private int? _totalCount;
         private int _pageSize;
+        private string _headerRaw;
         private readonly Stream _stream;
         protected CsvConfiguration CsvConfiguration { get; set; }
         private readonly CsvReader _csvReader;
+        private readonly bool _needReadRaw;
 
         public bool HasMoreResults { get; private set; } = true;
 
-        public CsvDataReader(Stream stream, ImportContext context)
+        public CsvDataReader(Stream stream, ImportContext context, bool needReadRaw = false)
         {
             CsvConfiguration = GetConfiguration(context);
 
@@ -31,6 +33,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             _csvReader.Context.RegisterClassMap<TCsvClassMap>();
 
             _pageSize = Convert.ToInt32(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == CsvSettings.PageSize.Name)?.Value ?? 50);
+            _needReadRaw = needReadRaw;
         }
 
         public async Task<int> GetTotalCountAsync(ImportContext context)
@@ -47,6 +50,9 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             var csvReader = new CsvReader(streamReader, CsvConfiguration);
 
             await csvReader.ReadAsync();
+            csvReader.ReadHeader();
+
+            _headerRaw = string.Join(csvReader.Configuration.Delimiter, csvReader.HeaderRecord);
 
             _totalCount = 0;
 
@@ -70,7 +76,23 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                 if (HasMoreResults)
                 {
                     var record = _csvReader.GetRecord<TCsvImportable>();
-                    result.Add(record);
+                    if (!_needReadRaw)
+                    {
+                        result.Add(record);
+                    }
+                    else
+                    {
+                        var rawRecord = _csvReader.Parser.RawRecord.TrimEnd('\r', '\n');
+                        var row = _csvReader.Parser.Row;
+
+                        result.Add(new ImportRecord<TCsvImportable>
+                        {
+                            Row = row,
+                            RawHeader = _headerRaw,
+                            RawRecord = rawRecord,
+                            Record = record
+                        });
+                    }
                 }
             }
 
@@ -82,7 +104,8 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             var csvConfigurarion = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = context.ImportProfile.Settings.GetSettingValue(CsvSettings.Delimiter.Name, (string)CsvSettings.Delimiter.DefaultValue),
-                PrepareHeaderForMatch = (PrepareHeaderForMatchArgs args) => {
+                PrepareHeaderForMatch = (PrepareHeaderForMatchArgs args) =>
+                {
                     var result = args.Header.ToLower();
                     return result;
                 },
@@ -94,6 +117,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                         ErrorMessage = $"Bad entry found at field {args.Field}",
                         ErrorCode = "BadData",
                         ErrorLine = args.Context.Parser.Row,
+                        RawHeader = string.Join(args.Context.Parser.Delimiter, args.Context.Reader.HeaderRecord),
                         RawData = args.Context.Parser.RawRecord,
                     };
                     context.ErrorCallback(errorInfo);
@@ -121,6 +145,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                         ErrorMessage = "This row has either an unclosed quote or missed column",
                         ErrorCode = "MissingFieldFound",
                         ErrorLine = args.Context.Parser.Row,
+                        RawHeader = string.Join(args.Context.Parser.Delimiter, args.Context.Reader.HeaderRecord),
                         RawData = args.Context.Parser.RawRecord,
                     };
 
@@ -129,12 +154,12 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             }
             return csvConfigurarion;
         }
+
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
 
         protected virtual void Dispose(bool disposing)
         {

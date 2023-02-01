@@ -10,5 +10,6 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public int ProcessedCount { get; set; }
         public int TotalCount { get; set; }
         public ICollection<string> Errors { get; set; } = new List<string>();
+        public string ReportUrl { get; set; }
     }
 }
