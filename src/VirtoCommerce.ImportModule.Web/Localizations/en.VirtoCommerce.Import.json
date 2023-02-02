@@ -1,0 +1,20 @@
+{
+  "settings": {
+    "Import": {
+      "MaxErrorsCountThreshold": {
+        "title": "Maximum number of errors",
+        "description": "Number of errors after which the import will be aborted"
+      },
+      "Csv": {
+        "Delimiter": {
+          "title": "Delimiter",
+          "description": "Symbol used to separate values in CSV file"
+        },
+        "PageSize": {
+          "title": "Page size",
+          "description": "The number of rows read from the CSV file at a time"
+        }
+      }
+    }
+  }
+}
