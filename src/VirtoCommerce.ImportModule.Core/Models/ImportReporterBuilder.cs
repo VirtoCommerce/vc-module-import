@@ -23,13 +23,6 @@ namespace VirtoCommerce.ImportModule.Core.Models
             {
                 throw new ArgumentNullException(nameof(settings));
             }
-            //ImportReporter.AvailSettings = (ImportReporter.AvailSettings ?? Array.Empty<SettingDescriptor>()).Concat(settings).ToArray();
-            //if (ServiceProvider != null)
-            //{
-            //    var settingsRegistrar = ServiceProvider.GetRequiredService<ISettingsRegistrar>();
-            //    settingsRegistrar.RegisterSettings(ImportReporter.AvailSettings);
-            //    settingsRegistrar.RegisterSettingsForType(ImportReporter.AvailSettings, typeof(ImportProfile).Name);
-            //}
             return this;
         }
 

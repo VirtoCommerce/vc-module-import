@@ -24,6 +24,11 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 
         public bool HasMoreResults { get; private set; } = true;
 
+        public CsvDataReader(Stream stream, ImportContext context) :
+            this(stream, context, false)
+        {
+        }
+
         public CsvDataReader(Stream stream, ImportContext context, bool needReadRaw = false)
         {
             CsvConfiguration = GetConfiguration(context);
@@ -85,7 +90,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                         var rawRecord = _csvReader.Parser.RawRecord.TrimEnd('\r', '\n');
                         var row = _csvReader.Parser.Row;
 
-                        result.Add(new ImportRecord<TCsvImportable>
+                        result.Add(new CsvImportRecord<TCsvImportable>
                         {
                             Row = row,
                             RawHeader = _headerRaw,

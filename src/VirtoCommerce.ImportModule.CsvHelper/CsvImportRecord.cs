@@ -1,6 +1,6 @@
-namespace VirtoCommerce.ImportModule.Core.Models
+namespace VirtoCommerce.ImportModule.CsvHelper
 {
-    public class ImportRecord<TRecord>
+    public class CsvImportRecord<TRecord>
     {
         public int Row { get; set; }
 
