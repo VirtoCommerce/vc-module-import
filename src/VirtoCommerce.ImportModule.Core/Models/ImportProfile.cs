@@ -19,8 +19,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public string ImportFileUrl { get; set; }
         public int PreviewObjectCount { get; set; } = 10;
-
-
+      
         public virtual void Update(ImportProfile importProfile)
         {
             Name = importProfile.Name;

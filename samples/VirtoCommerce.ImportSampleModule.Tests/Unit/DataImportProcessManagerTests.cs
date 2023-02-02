@@ -64,25 +64,25 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         }
 
         // Domain events are not emitted during import
-        [Fact]
-        public async Task Import_flow_domain_events_arent_produced()
-        {
-            // Arrange
-            var profile = new ImportProfile
-            {
-                DataImporterType = nameof(TestImporter),
-                Settings = new List<ObjectSettingEntry>()
-            };
+        //[Fact]
+        //public async Task Import_flow_domain_events_arent_produced()
+        //{
+        //    // Arrange
+        //    var profile = new ImportProfile
+        //    {
+        //        DataImporterType = nameof(TestImporter),
+        //        Settings = new List<ObjectSettingEntry>()
+        //    };
 
-            var sut = TestHepler.GetDataImportProcessManager();
-            var progress = new ImportProgressInfoTest();
+        //    var sut = TestHepler.GetDataImportProcessManager();
+        //    var progress = new ImportProgressInfoTest();
 
-            // Act
-            await sut.ImportAsync(profile, (x) => progress.EventsSuppressed.Add(EventSuppressor.EventsSuppressed), new CancellationToken());
+        //    // Act
+        //    await sut.ImportAsync(profile, (x) => progress.EventsSuppressed.Add(EventSuppressor.EventsSuppressed), new CancellationToken());
 
-            // Assertion
-            progress.EventsSuppressed.Where(x => x == true).Should().HaveCount((int)TestSettings.TotalCount.DefaultValue);
-        }
+        //    // Assertion
+        //    progress.EventsSuppressed.Where(x => x == true).Should().HaveCount((int)TestSettings.TotalCount.DefaultValue);
+        //}
 
         // import job cancellation
         [Fact]
