@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "Import": {
+      "Csv": {
+        "Delimiter": {
+          "title": "Csv delimiter",
+          "description": "Symbol used to separate values in CSV file"
+        },
+        "PageSize": {
+          "title": "Page size",
+          "description": "The number of rows read from the CSV file at a time"
+        }
+      },
+      "DefaultImportReporter": {
+        "title": "Default import reporter",
+        "description": "Default reporter for import"
+      },
+      "FileMaxSize": {
+        "title": "Import file max size",
+        "description": "Max file size for import file"
+      },
+      "MaxErrorsCountThreshold": {
+        "title": "Maximum number of errors",
+        "description": "Number of errors after which the import will be aborted"
+      },
+      "LimitOfLines": {
+        "title": "Limit of lines in import file",
+        "description": "Max number of lines in import file"
+      }
+    }
+  }
+}
