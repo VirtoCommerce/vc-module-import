@@ -20,6 +20,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public int ProcessedCount { get; set; }
         public int ErrorsCount { get; set; }
         public ICollection<string> Errors { get; set; }
+        public string ReportUrl { get; set; }
 
         public string TypeName => nameof(ImportRunHistory);
 
@@ -39,6 +40,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
             result.ProcessedCount = notification.ProcessedCount;
             result.ErrorsCount = notification.ErrorCount;
             result.Errors = notification.Errors;
+            result.ReportUrl = notification.ReportUrl;
 
             return result;
         }

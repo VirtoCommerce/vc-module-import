@@ -43,6 +43,7 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
                 importPushNotification.TotalCount = progressInfo.TotalCount;
                 importPushNotification.Title = progressInfo.Description;
                 importPushNotification.Errors = progressInfo.Errors;
+                importPushNotification.ReportUrl = progressInfo.ReportUrl;
 
                 _pushNotificationManager.Send(importPushNotification);
             }
@@ -51,7 +52,7 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
             try
             {
                 await _dataImportManager.ImportAsync(importProfile, progressInfoCallback, token.ShutdownToken);
-           
+
 
             }
             catch (JobAbortedException)
