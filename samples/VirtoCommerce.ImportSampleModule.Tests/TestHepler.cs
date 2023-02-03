@@ -14,11 +14,14 @@ namespace VirtoCommerce.ImportSampleModule.Tests
             services.AddTransient<ISettingsManager, SettingsManagerStub>();
 
             var provider = services.BuildServiceProvider();
-            var registrar = new DataImporterRegistrar(provider);
-            registrar.Register<TestImporter>(() => new TestImporter());
+            var dataImporterRegistrar = new DataImporterRegistrar(provider);
+            dataImporterRegistrar.Register<TestImporter>(() => new TestImporter());
+
+            var importReporterRegistrar = new ImportReporterRegistrar(provider);
+            importReporterRegistrar.Register<TestDataReporter>(() => new TestDataReporter());
 
             var settingsManager = provider.GetService<ISettingsManager>();
-            var result = new DataImportProcessManager(registrar, settingsManager);
+            var result = new DataImportProcessManager(dataImporterRegistrar, importReporterRegistrar, settingsManager);
             return result;
         }
 

@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportSampleModule.Web.Importers;
-using VirtoCommerce.Platform.Core.Events;
 using VirtoCommerce.Platform.Core.Settings;
 using Xunit;
 
@@ -22,6 +20,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
             var profile = new ImportProfile
             {
                 DataImporterType = nameof(TestImporter),
+                ImportReporterType = nameof(TestDataReporter),
                 Settings = new List<ObjectSettingEntry>()
             };
 
@@ -37,6 +36,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
             progress.ProcessedCount.Should().Be((int)TestSettings.TotalCount.DefaultValue);
             progress.Finished.Should().HaveValue();
             progress.Errors.Should().BeNullOrEmpty();
+            progress.ReportUrl.Should().Be(nameof(TestDataReporter));
         }
 
         // Flow with errors
@@ -47,6 +47,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
             var profile = new ImportProfile
             {
                 DataImporterType = nameof(TestImporter),
+                ImportReporterType = nameof(TestDataReporter),
                 Settings = new List<ObjectSettingEntry>() { new ObjectSettingEntry() { Name = "Import.Test.IsErrors", Value = true } }
             };
 
@@ -92,6 +93,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
             var profile = new ImportProfile
             {
                 DataImporterType = nameof(TestImporter),
+                ImportReporterType = nameof(TestDataReporter),
                 Settings = new List<ObjectSettingEntry>()
             };
 

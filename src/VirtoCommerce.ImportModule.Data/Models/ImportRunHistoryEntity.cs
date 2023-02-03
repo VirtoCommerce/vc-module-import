@@ -31,6 +31,9 @@ namespace VirtoCommerce.ImportModule.Data.Models
 
         public ICollection<string> Errors { get; set; }
 
+        [StringLength(2048)]
+        public string ReportUrl { get; set; }
+
         public virtual ImportRunHistoryEntity FromModel(ImportRunHistory model, PrimaryKeyResolvingMap pkMap)
         {
             if (model == null)
@@ -56,6 +59,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             ProcessedCount = model.ProcessedCount;
             ErrorsCount = model.ErrorsCount;
             Errors = model.Errors;
+            ReportUrl = model.ReportUrl;
 
             return this;
         }
@@ -83,6 +87,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             model.ProcessedCount = ProcessedCount;
             model.ErrorsCount = ErrorsCount;
             model.Errors = Errors;
+            model.ReportUrl = ReportUrl;
 
             return model;
         }

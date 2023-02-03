@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.ImportModule.CsvHelper;
+using VirtoCommerce.ImportModule.Data;
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.ImportModule.Data.Services;
@@ -43,6 +45,14 @@ namespace VirtoCommerce.ImportModule.Web
             serviceCollection.AddSingleton<DataImporterRegistrar>();
             serviceCollection.AddSingleton<IDataImporterFactory>(provider => provider.GetService<DataImporterRegistrar>());
             serviceCollection.AddSingleton<IDataImporterRegistrar>(provider => provider.GetService<DataImporterRegistrar>());
+
+            serviceCollection.AddSingleton<ImportReporterRegistrar>();
+            serviceCollection.AddSingleton<IImportReporterFactory>(provider => provider.GetService<ImportReporterRegistrar>());
+            serviceCollection.AddSingleton<IImportReporterRegistrar>(provider => provider.GetService<ImportReporterRegistrar>());
+
+            serviceCollection.AddTransient<DefaultDataReporter>();
+            serviceCollection.AddTransient<CsvDataReporter>();
+
             serviceCollection.AddTransient<IDataImportProcessManager, DataImportProcessManager>();
 
             serviceCollection.AddTransient<IBackgroundJobExecutor, BackgroundJobExecutor>();
@@ -65,6 +75,14 @@ namespace VirtoCommerce.ImportModule.Web
                     ModuleId = ModuleInfo.Id,
                     Name = x
                 }).ToArray());
+
+            var reporterRegistrar = appBuilder.ApplicationServices.GetService<IImportReporterRegistrar>();
+
+            reporterRegistrar.Register<DefaultDataReporter>(() => appBuilder.ApplicationServices
+                .GetService<DefaultDataReporter>());
+
+            reporterRegistrar.Register<CsvDataReporter>(() => appBuilder.ApplicationServices
+                .GetService<CsvDataReporter>());
 
             // Ensure that any pending migrations are applied
             using (var serviceScope = appBuilder.ApplicationServices.CreateScope())
