@@ -1,13 +1,11 @@
 using System;
 using System.Linq;
-using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Services;
-using VirtoCommerce.ImportModule.Data;
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.ImportModule.Data.Services;
@@ -49,7 +47,7 @@ namespace VirtoCommerce.ImportModule.Web
 
             serviceCollection.AddTransient<IBackgroundJobExecutor, BackgroundJobExecutor>();
 
-            serviceCollection.AddMediatR(typeof(Anchor));
+ 
         }
 
         public void PostInitialize(IApplicationBuilder appBuilder)
