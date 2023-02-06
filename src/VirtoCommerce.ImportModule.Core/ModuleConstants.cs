@@ -56,7 +56,8 @@ namespace VirtoCommerce.ImportModule.Core
                     Name = "Import.DefaultImportReporter",
                     GroupName = "Import",
                     ValueType = SettingValueType.ShortText,
-                    DefaultValue = "DefaultDataReporter"
+                    DefaultValue = "DefaultDataReporter",
+                    AllowedValues = new object[] { "DefaultDataReporter", "CsvDataReporter" }
                 };
 
                 public static IEnumerable<SettingDescriptor> AllSettings
