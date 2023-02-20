@@ -7,7 +7,7 @@ using VirtoCommerce.Platform.Core.Common;
 
 namespace VirtoCommerce.ImportModule.Data.Services;
 
-public class ImportRemainingEstimatorRegistar : IImportRemainingEstimatorRegistar, IImportRemainingEstimatorFactory
+public class ImportRemainingEstimatorRegistrar : IImportRemainingEstimatorRegistrar, IImportRemainingEstimatorFactory
 {
     private readonly IServiceProvider _serviceProvider;
     
@@ -19,7 +19,7 @@ public class ImportRemainingEstimatorRegistar : IImportRemainingEstimatorRegista
         }
     }
 
-    public ImportRemainingEstimatorRegistar(IServiceProvider serviceProvider)
+    public ImportRemainingEstimatorRegistrar(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }

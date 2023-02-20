@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Settings;
@@ -10,12 +11,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
 {
     public class DataImportProcessManager : IDataImportProcessManager
     {
-        private readonly int _maxErrorsCountThreshold;
-        private readonly string _remainingEstimator;
-        private readonly string _defaultImportReporter;
         private readonly IDataImporterFactory _dataImporterFactory;
         private readonly IImportRemainingEstimatorFactory _importRemainingEstimatorFactory;
         private readonly IImportReporterFactory _importReporterFactory;
+        private readonly ISettingsManager _settingsManager;
 
         public DataImportProcessManager(
             IDataImporterFactory dataImporterFactory,
@@ -26,23 +25,23 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _dataImporterFactory = dataImporterFactory;
             _importRemainingEstimatorFactory = importRemainingEstimatorFactory;
             _importReporterFactory = importReporterFactory;
-            _maxErrorsCountThreshold = settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.MaxErrorsCountThreshold.Name, 50).Result;
-            _remainingEstimator =
-                settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.RemainingEstimator.Name, nameof(DefaultRemainingEstimator)).Result;
-            _defaultImportReporter =
-                settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.DefaultImportReporter.Name, nameof(DefaultDataReporter)).Result;
+            _settingsManager = settingsManager;
         }
 
         public async Task ImportAsync(ImportProfile importProfile, Action<ImportProgressInfo> progressCallback, CancellationToken token)
         {
+            var maxErrorsCountThreshold = await _settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.MaxErrorsCountThreshold.Name, 50);
+
             // Create importer
             var dataImporter = _dataImporterFactory.Create(importProfile.DataImporterType);
 
             // Create remaining estimator
-            var importRemainingEstimator = _importRemainingEstimatorFactory.Create(_remainingEstimator);
+            var remainingEstimatorType = await _settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.RemainingEstimator.Name, nameof(DefaultRemainingEstimator));
+            var importRemainingEstimator = _importRemainingEstimatorFactory.Create(remainingEstimatorType);
 
             // Create reporter
-            var importReporterType = !string.IsNullOrEmpty(importProfile.ImportReporterType) ? importProfile.ImportReporterType : _defaultImportReporter;
+            var defaultImportReporterType = await _settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.DefaultImportReporter.Name, nameof(DefaultDataReporter));
+            var importReporterType = !string.IsNullOrEmpty(importProfile.ImportReporterType) ? importProfile.ImportReporterType : defaultImportReporterType;
             using var importReporter = _importReporterFactory.Create(importReporterType);
             importReporter.SetContext(importProfile);
 
@@ -60,7 +59,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 errorsCount++;
                 importProgress.Errors.Add(info.ToString());
                 errorsToSave.Add(info);
-                if (errorsCount == _maxErrorsCountThreshold)
+                if (errorsCount == maxErrorsCountThreshold)
                 {
                     importProgress.Errors.Add("The import process has been canceled because it exceeds the configured maximum errors limit");
                 }
@@ -115,7 +114,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                 progressCallback(importProgress);
 
-            } while (reader.HasMoreResults && errorsCount < _maxErrorsCountThreshold);
+            } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
             
             var errorReportResult = await importReporter.SaveErrorsAsync(errorsToSave);
 

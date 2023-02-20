@@ -45,9 +45,9 @@ namespace VirtoCommerce.ImportModule.Web
             serviceCollection.AddSingleton<IDataImporterFactory>(provider => provider.GetService<DataImporterRegistrar>());
             serviceCollection.AddSingleton<IDataImporterRegistrar>(provider => provider.GetService<DataImporterRegistrar>());
 
-            serviceCollection.AddSingleton<ImportRemainingEstimatorRegistar>();
-            serviceCollection.AddSingleton<IImportRemainingEstimatorFactory>(provider => provider.GetService<ImportRemainingEstimatorRegistar>());
-            serviceCollection.AddSingleton<IImportRemainingEstimatorRegistar>(provider => provider.GetService<ImportRemainingEstimatorRegistar>());
+            serviceCollection.AddSingleton<ImportRemainingEstimatorRegistrar>();
+            serviceCollection.AddSingleton<IImportRemainingEstimatorFactory>(provider => provider.GetService<ImportRemainingEstimatorRegistrar>());
+            serviceCollection.AddSingleton<IImportRemainingEstimatorRegistrar>(provider => provider.GetService<ImportRemainingEstimatorRegistrar>());
 
             serviceCollection.AddTransient<DefaultRemainingEstimator>();
             serviceCollection.AddTransient<LinearRegressionRemainingEstimator>();
@@ -86,7 +86,7 @@ namespace VirtoCommerce.ImportModule.Web
 
 
             // Register remaining estimators
-            var remainingEstimatorRegistrar = appBuilder.ApplicationServices.GetService<IImportRemainingEstimatorRegistar>();
+            var remainingEstimatorRegistrar = appBuilder.ApplicationServices.GetService<IImportRemainingEstimatorRegistrar>();
 
             remainingEstimatorRegistrar.Register<DefaultRemainingEstimator>(() => appBuilder.ApplicationServices
                 .GetService<DefaultRemainingEstimator>());
