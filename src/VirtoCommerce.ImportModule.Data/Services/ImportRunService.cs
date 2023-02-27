@@ -79,7 +79,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             void progressInfoCallback(ImportProgressInfo progressInfo)
             {
-
+                importPushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
+                importPushNotification.EstimatedRemaining = progressInfo.EstimatedRemaining;
                 importPushNotification.Finished = progressInfo.Finished;
                 importPushNotification.ProcessedCount = progressInfo.ProcessedCount;
                 importPushNotification.TotalCount = progressInfo.TotalCount;

@@ -5,6 +5,8 @@ namespace VirtoCommerce.ImportModule.Core.Models
 {
     public class ImportProgressInfo
     {
+        public bool EstimatingRemaining { get; set; }
+        public TimeSpan? EstimatedRemaining { get; set; }
         public DateTime? Finished { get; set; }
         public string Description { get; set; }
         public int ProcessedCount { get; set; }

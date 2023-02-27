@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using VirtoCommerce.ImportModule.Core;
+using VirtoCommerce.ImportSampleModule.Web.Importers;
 using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportSampleModule.Tests.Functional.Shared
@@ -10,9 +12,17 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Functional.Shared
     {
         public IEnumerable<SettingDescriptor> AllRegisteredSettings => throw new NotImplementedException();
 
+        public IEnumerable<ObjectSettingEntry> AllSettings => new List<ObjectSettingEntry>
+        {
+            new(ModuleConstants.Settings.General.MaxErrorsCountThreshold) { Value = 1 },
+            new(ModuleConstants.Settings.General.DefaultImportReporter) { Value = nameof(TestDataReporter) },
+            new(ModuleConstants.Settings.General.RemainingEstimator) { Value = nameof(TestRemainingEstimator) }
+        };
+
         public Task<ObjectSettingEntry> GetObjectSettingAsync(string name, string objectType = null, string objectId = null)
         {
-            return Task.FromResult(new ObjectSettingEntry(ModuleConstants.Settings.General.MaxErrorsCountThreshold));
+            var setting = AllSettings.FirstOrDefault(x => x.Name == name);
+            return Task.FromResult(setting);
         }
 
         public Task<IEnumerable<ObjectSettingEntry>> GetObjectSettingsAsync(IEnumerable<string> names, string objectType = null, string objectId = null)

@@ -24,7 +24,7 @@ namespace VirtoCommerce.ImportModule.Core
         {
             public static class General
             {
-                public static SettingDescriptor MaxErrorsCountThreshold { get; } = new SettingDescriptor
+                public static SettingDescriptor MaxErrorsCountThreshold { get; } = new()
                 {
                     Name = "Import.MaxErrorsCountThreshold",
                     ValueType = SettingValueType.PositiveInteger,
@@ -33,7 +33,7 @@ namespace VirtoCommerce.ImportModule.Core
                     DefaultValue = "50"
                 };
 
-                public static SettingDescriptor ImportLimitOfLines { get; } = new SettingDescriptor
+                public static SettingDescriptor ImportLimitOfLines { get; } = new()
                 {
                     Name = "Import.LimitOfLines",
                     GroupName = "Import",
@@ -42,7 +42,7 @@ namespace VirtoCommerce.ImportModule.Core
                     DefaultValue = 10000
                 };
 
-                public static SettingDescriptor ImportFileMaxSize { get; } = new SettingDescriptor
+                public static SettingDescriptor ImportFileMaxSize { get; } = new()
                 {
                     Name = "Import.FileMaxSize",
                     GroupName = "Import",
@@ -51,13 +51,20 @@ namespace VirtoCommerce.ImportModule.Core
                     DefaultValue = 1 // MB
                 };
 
-                public static SettingDescriptor DefaultImportReporter { get; } = new SettingDescriptor
+                public static SettingDescriptor DefaultImportReporter { get; } = new()
                 {
                     Name = "Import.DefaultImportReporter",
                     GroupName = "Import",
                     ValueType = SettingValueType.ShortText,
                     DefaultValue = "DefaultDataReporter",
                     AllowedValues = new object[] { "DefaultDataReporter", "CsvDataReporter" }
+                };
+
+                public static SettingDescriptor RemainingEstimator { get; } = new()
+                {
+                    Name = "Import.RemainingEstimator",
+                    GroupName = "Import",
+                    ValueType = SettingValueType.ShortText
                 };
 
                 public static IEnumerable<SettingDescriptor> AllSettings
@@ -67,6 +74,7 @@ namespace VirtoCommerce.ImportModule.Core
                         yield return MaxErrorsCountThreshold;
                         yield return ImportLimitOfLines;
                         yield return ImportFileMaxSize;
+                        yield return RemainingEstimator;
                         yield return DefaultImportReporter;
                     }
                 }
