@@ -41,6 +41,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          
+      - name: Setup global.json
+        uses: "DamianReeves/write-file-action@master"
+        with:
+          path: global.json
+          write-mode: overwrite
+          contents: |
+            { "sdk": { "version": "6.0.405" } }
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
