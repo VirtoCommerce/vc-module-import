@@ -30,8 +30,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         {
             // Arrange
             Mock<IDataImportProcessManager> _dataImportManager = new();
-            var importJob = new ImportJob(_dataImportManager.Object, _pushNotificationManager.Object,
-                _importProfileCrudService.Object, _importRunHistoryCrudService.Object);
+            var importJob = new ImportJob(null);
 
             // Act
             await importJob.ImportBackgroundAsync(profile, importPushNotifaction, new JobCancellationToken(false), null);
@@ -46,8 +45,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         {
             // Arrange
             var _dataImportManager = TestHepler.GetDataImportProcessManager();
-            var importJob = new ImportJob(_dataImportManager, _pushNotificationManager.Object,
-                _importProfileCrudService.Object, _importRunHistoryCrudService.Object);
+            var importJob = new ImportJob(null);
 
             // Act
             try
