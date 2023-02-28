@@ -14,7 +14,7 @@
       "RemainingEstimator": {
         "title": "Remaining estimator",
         "description": "Algorithm to estimate the remaining time of the import"
-      }
+      },
       "DefaultImportReporter": {
         "title": "Default import reporter",
         "description": "Default reporter for import"
