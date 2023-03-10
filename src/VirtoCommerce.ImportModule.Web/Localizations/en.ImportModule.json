@@ -1,4 +1,10 @@
 {
+  "notificationTypes": {
+    "ImportCompletedEmailNotification": {
+      "displayName": "Notification on import complete",
+      "description": "The customer will get an email notification when an import has been completed."
+    }
+  },
   "settings": {
     "Import": {
       "Csv": {

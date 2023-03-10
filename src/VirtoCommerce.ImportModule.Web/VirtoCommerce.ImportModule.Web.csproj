@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem" Version="3.209.0" />
     <PackageReference Include="VirtoCommerce.Platform.Security" Version="3.243.0" />
   </ItemGroup>
 
@@ -19,6 +20,14 @@
     <ProjectReference Include="..\VirtoCommerce.ImportModule.CsvHelper\VirtoCommerce.ImportModule.CsvHelper.csproj" />
     <ProjectReference Include="..\VirtoCommerce.ImportModule.Data\VirtoCommerce.ImportModule.Data.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <NotificationTemplates Include="NotificationTemplates\**" />
+  </ItemGroup>
+  <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+    <Copy SourceFiles="@(NotificationTemplates)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
+  </Target>
+
   <ItemGroup>
     <None Update="module.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
