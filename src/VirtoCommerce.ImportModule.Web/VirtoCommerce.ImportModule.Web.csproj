@@ -11,8 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem" Version="3.209.0" />
-    <PackageReference Include="VirtoCommerce.Platform.Security" Version="3.243.0" />
+    <PackageReference Include="VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem" Version="3.215.0" />
   </ItemGroup>
 
   <ItemGroup>
