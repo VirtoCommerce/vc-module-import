@@ -110,7 +110,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         public async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken)
         {
-            var profile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
+
             var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
             async Task ProgressInfoCallback(ImportProgressInfo progressInfo)
             {
@@ -156,8 +156,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                 importRunHistory.Finish(pushNotification);
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
-                
-                await _importProfileCrudService.SaveChangesAsync(new[] { profile });
 
                 var user = await _userManager.FindByNameAsync(pushNotification.Creator);
                 var member = await _memberService.GetByIdAsync(user.MemberId);

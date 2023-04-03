@@ -94,6 +94,15 @@ namespace VirtoCommerce.ImportModule.Data.Models
 
         public virtual void Patch(ImportRunHistoryEntity target)
         {
+            target.ModifiedBy = ModifiedBy;
+            target.ModifiedDate = ModifiedDate;
+
+            target.Finished = Finished;
+            target.TotalCount = TotalCount;
+            target.ProcessedCount = ProcessedCount;
+            target.ErrorsCount = ErrorsCount;
+            target.Errors = Errors;
+            target.ReportUrl = ReportUrl;
         }
     }
 }
