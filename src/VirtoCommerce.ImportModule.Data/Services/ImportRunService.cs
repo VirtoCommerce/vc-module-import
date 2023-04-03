@@ -129,11 +129,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 _pushNotificationManager.Send(pushNotification);
 
                 importRunHistory.UpdateProgress(pushNotification);
-                await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
+                //Uncomment when needed
+                //await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
             }
             try
             {
-                importProfile.LastRun = await _importRunHistoryCrudService.GetLastRun(importProfile.UserId, importProfile.Id);               
+           
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
 
                 await _dataImportManager.ImportAsync(importProfile, ProgressInfoCallback, cancellationToken);

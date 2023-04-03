@@ -21,8 +21,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public string ImportReportUrl { get; set; }
         public string ImportReporterType { get; set; }
         public int PreviewObjectCount { get; set; } = 10;
-
-        public ImportRunHistory LastRun { get; set; }
+   
         public virtual void Update(ImportProfile importProfile)
         {
             Name = importProfile.Name;
