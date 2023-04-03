@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
+using VirtoCommerce.NotificationsModule.Core.Model;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -35,14 +36,26 @@ namespace VirtoCommerce.ImportModule.Core.Models
             result.ProfileName = profile.Name;
             result.JobId = notification.JobId;
             result.Executed = notification.Created;
-            result.Finished = notification.Finished;
-            result.TotalCount = notification.TotalCount;
-            result.ProcessedCount = notification.ProcessedCount;
-            result.ErrorsCount = notification.ErrorCount;
-            result.Errors = notification.Errors;
-            result.ReportUrl = notification.ReportUrl;
-
             return result;
+        }
+
+        public virtual void UpdateProgress(ImportPushNotification notification)
+        {
+            TotalCount = notification.TotalCount;
+            ProcessedCount = notification.ProcessedCount;
+            ErrorsCount = notification.ErrorCount;
+            Errors = notification.Errors;
+            ReportUrl = notification.ReportUrl;
+        }
+
+        public virtual void Finish(ImportPushNotification notification)
+        {
+            Finished = notification.Finished ?? DateTime.UtcNow;
+            TotalCount = notification.TotalCount;
+            ProcessedCount = notification.ProcessedCount;
+            ErrorsCount = notification.ErrorCount;
+            Errors = notification.Errors;
+            ReportUrl = notification.ReportUrl;
         }
 
         public object Clone()

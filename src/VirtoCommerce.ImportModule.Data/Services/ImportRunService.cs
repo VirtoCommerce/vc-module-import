@@ -110,27 +110,32 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         public async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken)
         {
-            void ProgressInfoCallback(ImportProgressInfo progressInfo)
+            var profile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
+            var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
+            async Task ProgressInfoCallback(ImportProgressInfo progressInfo)
             {
                 pushNotification.Title = progressInfo.Description;
 
                 pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
                 pushNotification.EstimatedRemaining = progressInfo.EstimatedRemaining;
-                
+
                 pushNotification.ProcessedCount = progressInfo.ProcessedCount;
                 pushNotification.Finished = progressInfo.Finished;
                 pushNotification.TotalCount = progressInfo.TotalCount;
-                
+
                 pushNotification.Errors = progressInfo.Errors;
                 pushNotification.ReportUrl = progressInfo.ReportUrl;
 
                 _pushNotificationManager.Send(pushNotification);
+
+                importRunHistory.UpdateProgress(pushNotification);
+                await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
             }
-
-            var profile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
-
             try
             {
+                importProfile.LastRun = await _importRunHistoryCrudService.GetLastRun(importProfile.UserId, importProfile.Id);               
+                await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
+
                 await _dataImportManager.ImportAsync(importProfile, ProgressInfoCallback, cancellationToken);
             }
             catch (JobAbortedException)
@@ -148,8 +153,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 pushNotification.Finished = DateTime.UtcNow;
                 
                 await _pushNotificationManager.SendAsync(pushNotification);
-                
-                var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
+
+                importRunHistory.Finish(pushNotification);
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
                 
                 await _importProfileCrudService.SaveChangesAsync(new[] { profile });

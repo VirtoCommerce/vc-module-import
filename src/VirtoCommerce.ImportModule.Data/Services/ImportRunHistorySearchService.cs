@@ -23,7 +23,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         }
         protected override IQueryable<ImportRunHistoryEntity> BuildQuery(IRepository repository, SearchImportRunHistoryCriteria criteria)
         {
-            var query = ((IImportRepository)repository).ImportRunHistorys;
+            var query = ((IImportRepository)repository).ImportRunHistories;
 
             if (!string.IsNullOrEmpty(criteria.UserId))
             {

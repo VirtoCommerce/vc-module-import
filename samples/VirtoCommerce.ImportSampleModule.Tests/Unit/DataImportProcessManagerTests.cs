@@ -28,7 +28,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
             ImportProgressInfo progress = null;
 
             // Act
-            await sut.ImportAsync(profile, (x) => progress = x, new CancellationToken());
+            await sut.ImportAsync(profile, (x) => { progress = x; return Task.CompletedTask; }, new CancellationToken());
 
             // Assertion
             progress.Should().NotBeNull();
@@ -55,7 +55,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
             ImportProgressInfo progress = null;
 
             // Act
-            await sut.ImportAsync(profile, (x) => progress = x, new CancellationToken());
+            await sut.ImportAsync(profile, (x) => { progress = x; return Task.CompletedTask; }, new CancellationToken());
 
             // Assertion
             progress.TotalCount.Should().Be((int)TestSettings.TotalCount.DefaultValue);
@@ -103,7 +103,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
             // Act
             try
             {
-                await sut.ImportAsync(profile, (x) => progress = x, new CancellationToken(true));
+                await sut.ImportAsync(profile, (x) => { progress = x; return Task.CompletedTask; }, new CancellationToken(true));
             }
 
             // Assertion

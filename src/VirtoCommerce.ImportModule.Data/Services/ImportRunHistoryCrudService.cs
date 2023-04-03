@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Models;
@@ -16,6 +17,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
     public class ImportRunHistoryCrudService : CrudService<ImportRunHistory, ImportRunHistoryEntity,
          GenericChangedEntryEvent<ImportRunHistory>, GenericChangedEntryEvent<ImportRunHistory>>, IImportRunHistoryCrudService
     {
+        private readonly Func<IImportRepository> _crudService;
         public ImportRunHistoryCrudService(
             Func<IImportRepository> repositoryFactory,
             IPlatformMemoryCache platformMemoryCache,
@@ -23,6 +25,16 @@ namespace VirtoCommerce.ImportModule.Data.Services
             )
             : base(repositoryFactory, platformMemoryCache, eventPublisher)
         {
+            _crudService = repositoryFactory;
+        }
+
+        public async Task<ImportRunHistory> GetLastRun(string userId, string profileId)
+        {
+            using (var rep = _crudService())
+            {
+                var result = await rep.ImportRunHistories.OrderByDescending(x => x.CreatedDate).Where(x => x.UserId == userId && x.ProfileId == profileId).FirstOrDefaultAsync();
+                return result?.ToModel(new ImportRunHistory());
+            }
         }
 
         protected override async Task<IEnumerable<ImportRunHistoryEntity>> LoadEntities(IRepository repository, IEnumerable<string> ids, string responseGroup)

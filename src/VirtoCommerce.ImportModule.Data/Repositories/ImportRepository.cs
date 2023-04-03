@@ -16,7 +16,7 @@ namespace VirtoCommerce.ImportModule.Data.Repositories
         }
 
         public IQueryable<ImportProfileEntity> ImportProfiles => DbContext.Set<ImportProfileEntity>();
-        public IQueryable<ImportRunHistoryEntity> ImportRunHistorys => DbContext.Set<ImportRunHistoryEntity>();
+        public IQueryable<ImportRunHistoryEntity> ImportRunHistories => DbContext.Set<ImportRunHistoryEntity>();
 
         public async Task<ImportProfileEntity[]> GetImportProfileByIds(string[] ids, string responseGroup = null)
         {
@@ -35,7 +35,7 @@ namespace VirtoCommerce.ImportModule.Data.Repositories
 
             if (!ids.IsNullOrEmpty())
             {
-                result = await ImportRunHistorys.Where(x => ids.Contains(x.Id)).ToArrayAsync();
+                result = await ImportRunHistories.Where(x => ids.Contains(x.Id)).ToArrayAsync();
             }
             return result;
         }

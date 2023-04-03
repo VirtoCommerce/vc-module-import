@@ -8,7 +8,7 @@ namespace VirtoCommerce.ImportModule.Data.Repositories
     public interface IImportRepository : IRepository
     {
         IQueryable<ImportProfileEntity> ImportProfiles { get; }
-        IQueryable<ImportRunHistoryEntity> ImportRunHistorys { get; }
+        IQueryable<ImportRunHistoryEntity> ImportRunHistories { get; }
 
         Task<ImportProfileEntity[]> GetImportProfileByIds(string[] ids, string responseGroup = null);
         Task<ImportRunHistoryEntity[]> GetImportRunHistoryByIds(string[] ids, string responseGroup = null);

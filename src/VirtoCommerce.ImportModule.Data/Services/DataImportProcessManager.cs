@@ -27,7 +27,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _settingsManager = settingsManager;
         }
 
-        public async Task ImportAsync(ImportProfile importProfile, Action<ImportProgressInfo> progressCallback, CancellationToken token)
+        public async Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken token)
         {
             var maxErrorsCountThreshold = await _settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.MaxErrorsCountThreshold.Name, 50);
 
@@ -62,7 +62,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 {
                     importProgress.Errors.Add("The import process has been canceled because it exceeds the configured maximum errors limit");
                 }
-                progressCallback(importProgress);
+                progressCallback(importProgress).GetAwaiter().GetResult();
             }
 
             // Import context
@@ -74,7 +74,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             importRemainingEstimator.Start(context);
 
-            progressCallback(importProgress);
+            await progressCallback(importProgress);
 
             // Reading & writing
             using var reader = dataImporter.OpenReader(context);
@@ -82,7 +82,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             // Calculate total count
             importProgress.Description = "Evaluating total records counts";
-            progressCallback(importProgress);
+            await progressCallback(importProgress);
             importProgress.TotalCount = await reader.GetTotalCountAsync(context);
 
             token.ThrowIfCancellationRequested();
@@ -90,7 +90,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             // Start import
             importProgress.Description = "Import in progress";
 
-            progressCallback(importProgress);
+            await progressCallback(importProgress);
 
             do
             {
@@ -111,7 +111,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 importRemainingEstimator.Update(context);
                 importRemainingEstimator.Estimate(context);
 
-                progressCallback(importProgress);
+                await progressCallback(importProgress);
 
             } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
             
@@ -123,8 +123,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
             importProgress.Description = "Import has been finished";
             importProgress.Finished = DateTime.UtcNow;
             importProgress.ReportUrl = errorReportResult;
-            
-            progressCallback(importProgress);
+
+            await progressCallback(importProgress);
         }
     }
 }
