@@ -159,12 +159,18 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
 
                 var user = await _userManager.FindByNameAsync(pushNotification.Creator);
-                var member = await _memberService.GetByIdAsync(user.MemberId);
-                var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
-                emailNotification.To = user.Email;
-                emailNotification.ImportRunHistory = importRunHistory;
-                emailNotification.Member = member;
-                await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
+                if (user != null)
+                {
+                    var member = await _memberService.GetByIdAsync(user.MemberId);
+                    var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
+                    emailNotification.To = user.Email;
+                    emailNotification.ImportRunHistory = importRunHistory;
+                    if (user.MemberId != null)
+                    {
+                        emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
+                    }
+                    await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
+                }
             }
 
             return pushNotification;
