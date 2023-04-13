@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
-using VirtoCommerce.NotificationsModule.Core.Model;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -21,6 +20,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public int ProcessedCount { get; set; }
         public int ErrorsCount { get; set; }
         public ICollection<string> Errors { get; set; }
+        public string FileUrl { get; set; }
         public string ReportUrl { get; set; }
 
         public string TypeName => nameof(ImportRunHistory);
@@ -36,6 +36,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
             result.ProfileName = profile.Name;
             result.JobId = notification.JobId;
             result.Executed = notification.Created;
+            result.FileUrl = profile.ImportFileUrl;
             return result;
         }
 
