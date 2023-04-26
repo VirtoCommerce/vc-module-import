@@ -41,6 +41,18 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             _needReadRaw = needReadRaw;
         }
 
+        public CsvDataReader(Stream stream, ImportContext context, CsvConfiguration csvConfiguration, bool needReadRaw = false)
+        {
+            CsvConfiguration = MergeWithDefaultConfig(csvConfiguration, context);
+
+            _stream = stream;
+            _csvReader = new CsvReader(new StreamReader(_stream), CsvConfiguration);
+            _csvReader.Context.RegisterClassMap<TCsvClassMap>();
+
+            _pageSize = Convert.ToInt32(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == CsvSettings.PageSize.Name)?.Value ?? 50);
+            _needReadRaw = needReadRaw;
+        }
+
         public async Task<int> GetTotalCountAsync(ImportContext context)
         {
             if (_totalCount.HasValue)
@@ -170,6 +182,19 @@ namespace VirtoCommerce.ImportModule.CsvHelper
         {
             _csvReader.Dispose();
             _stream?.Dispose();
+        }
+
+        private CsvConfiguration MergeWithDefaultConfig(CsvConfiguration csvConfiguration, ImportContext context)
+        {
+            var defaultCsvConfiguration = GetConfiguration(context);
+            var result = csvConfiguration;
+            result.Delimiter = result.Delimiter ?? defaultCsvConfiguration.Delimiter;
+            result.PrepareHeaderForMatch = result.PrepareHeaderForMatch ?? defaultCsvConfiguration.PrepareHeaderForMatch;
+            result.BadDataFound = result.BadDataFound ?? defaultCsvConfiguration.BadDataFound;
+            result.ReadingExceptionOccurred = result.ReadingExceptionOccurred ?? defaultCsvConfiguration.ReadingExceptionOccurred;
+            result.MissingFieldFound = result.MissingFieldFound ?? defaultCsvConfiguration.MissingFieldFound;
+
+            return result;
         }
     }
 }
