@@ -126,7 +126,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                     var result = args.Header.ToLower();
                     return result;
                 },
-                Mode = CsvMode.NoEscape,
+                Mode = CsvMode.RFC4180,
                 BadDataFound = args =>
                 {
                     var errorInfo = new ErrorInfo
