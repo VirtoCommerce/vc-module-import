@@ -15,7 +15,9 @@ namespace VirtoCommerce.ImportModule.Core.Services
         IAuthorizationRequirement AuthorizationRequirement { get; set; }
 
         IImportDataReader OpenReader(ImportContext context);
+        Task<IImportDataReader> OpenReaderAsync(ImportContext context) => Task.FromResult(OpenReader(context));
         IImportDataWriter OpenWriter(ImportContext context);
+        Task<IImportDataWriter> OpenWriterAsync(ImportContext context) => Task.FromResult(OpenWriter(context));
         Task<ValidationResult> ValidateAsync(ImportContext context);
     }
 }

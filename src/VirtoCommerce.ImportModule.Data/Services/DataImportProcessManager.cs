@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Settings;
@@ -14,17 +15,20 @@ namespace VirtoCommerce.ImportModule.Data.Services
         private readonly IImportRemainingEstimatorFactory _importRemainingEstimatorFactory;
         private readonly IImportReporterFactory _importReporterFactory;
         private readonly ISettingsManager _settingsManager;
+        private readonly ILogger _logger;
 
         public DataImportProcessManager(
             IDataImporterFactory dataImporterFactory,
             IImportRemainingEstimatorFactory importRemainingEstimatorFactory,
             IImportReporterFactory importReporterFactory,
-            ISettingsManager settingsManager)
+            ISettingsManager settingsManager,
+            ILoggerFactory logger)
         {
             _dataImporterFactory = dataImporterFactory;
             _importRemainingEstimatorFactory = importRemainingEstimatorFactory;
             _importReporterFactory = importReporterFactory;
             _settingsManager = settingsManager;
+            _logger = logger.CreateLogger<DataImportProcessManager>();
         }
 
         public async Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken token)
@@ -57,10 +61,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
             {
                 errorsCount++;
                 importProgress.Errors.Add(info.ToString());
+                _logger.LogTrace(info.ToString());
                 errorsToSave.Add(info);
                 if (errorsCount == maxErrorsCountThreshold)
                 {
                     importProgress.Errors.Add("The import process has been canceled because it exceeds the configured maximum errors limit");
+                    _logger.LogTrace("The import process has been canceled because it exceeds the configured maximum errors limit");
                 }
                 progressCallback(importProgress).GetAwaiter().GetResult();
             }
@@ -77,8 +83,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
             await progressCallback(importProgress);
 
             // Reading & writing
-            using var reader = dataImporter.OpenReader(context);
-            using var writer = dataImporter.OpenWriter(context);
+            using var reader = await dataImporter.OpenReaderAsync(context);
+            using var writer = await dataImporter.OpenWriterAsync(context);
 
             // Calculate total count
             importProgress.Description = "Evaluating total records counts";
@@ -114,7 +120,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 await progressCallback(importProgress);
 
             } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
-            
+
             var errorReportResult = await importReporter.SaveErrorsAsync(errorsToSave);
 
             importRemainingEstimator.Stop(context);
@@ -123,6 +129,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             importProgress.Description = "Import has been finished";
             importProgress.Finished = DateTime.UtcNow;
             importProgress.ReportUrl = errorReportResult;
+            context.CompleteCallback();
 
             await progressCallback(importProgress);
         }
