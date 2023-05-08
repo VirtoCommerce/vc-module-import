@@ -134,7 +134,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             try
             {
-           
+
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
 
                 await _dataImportManager.ImportAsync(importProfile, ProgressInfoCallback, cancellationToken);
@@ -152,7 +152,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             finally
             {
                 pushNotification.Finished = DateTime.UtcNow;
-                
+
                 await _pushNotificationManager.SendAsync(pushNotification);
 
                 importRunHistory.Finish(pushNotification);
@@ -161,7 +161,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 var user = await _userManager.FindByNameAsync(pushNotification.Creator);
                 if (user != null)
                 {
-                    var member = await _memberService.GetByIdAsync(user.MemberId);
                     var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
                     emailNotification.To = user.Email;
                     emailNotification.ImportRunHistory = importRunHistory;
