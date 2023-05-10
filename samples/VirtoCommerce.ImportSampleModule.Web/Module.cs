@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VirtoCommerce.CatalogModule.Core.Model;
 using VirtoCommerce.CatalogModule.Core.Model.Search;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.ImportModule.CsvHelper.Services;
 using VirtoCommerce.ImportSampleModule.Web.Importers;
 using VirtoCommerce.ImportSampleModule.Web.Search;
 using VirtoCommerce.Platform.Core.Common;
@@ -25,6 +27,11 @@ namespace VirtoCommerce.ImportSampleModule.Web
             serviceCollection.AddTransient<ShopifyProductImporter>();
 
             AbstractTypeFactory<ProductSearchCriteria>.OverrideType<ProductSearchCriteria, ExtendedProductSearchCriteria>();
+
+            serviceCollection.AddSingleton<CsvProductClassMap>();
+            serviceCollection.AddSingleton<ClassMapRegistrar<CsvProductClassMap, CatalogProduct>>();
+            serviceCollection.AddSingleton<IClassMapFactory<CsvProductClassMap>>(provider => provider.GetService<ClassMapRegistrar<CsvProductClassMap, CatalogProduct>>());
+            serviceCollection.AddSingleton<IClassMapRegistrar<CsvProductClassMap, CatalogProduct>>(provider => provider.GetService<ClassMapRegistrar<CsvProductClassMap, CatalogProduct>>());
         }
 
         public void PostInitialize(IApplicationBuilder appBuilder)
