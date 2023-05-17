@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 using VirtoCommerce.ImportModule.Data.Services;
 using VirtoCommerce.ImportSampleModule.Tests.Functional.Shared;
 using VirtoCommerce.ImportSampleModule.Web.Importers;
@@ -14,7 +16,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests
             services.AddTransient<ISettingsManager, SettingsManagerStub>();
 
             var provider = services.BuildServiceProvider();
-            
+
             var dataImporterRegistrar = new DataImporterRegistrar(provider);
             dataImporterRegistrar.Register<TestImporter>(() => new TestImporter());
 
@@ -25,7 +27,12 @@ namespace VirtoCommerce.ImportSampleModule.Tests
             importReporterRegistrar.Register<TestDataReporter>(() => new TestDataReporter());
 
             var settingsManager = provider.GetService<ISettingsManager>();
-            var result = new DataImportProcessManager(dataImporterRegistrar, importRemainingEstimatorRegistrar, importReporterRegistrar, settingsManager);
+
+            Mock<ILogger> _loggerMock = new();
+            Mock<ILoggerFactory> _loggerFactoryMock = new();
+            _loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(() => _loggerMock.Object);
+
+            var result = new DataImportProcessManager(dataImporterRegistrar, importRemainingEstimatorRegistrar, importReporterRegistrar, settingsManager, _loggerFactoryMock.Object);
             return result;
         }
 
