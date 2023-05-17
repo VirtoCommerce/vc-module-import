@@ -147,7 +147,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                 {
                     var errorInfo = new ErrorInfo
                     {
-                        ErrorMessage = "This row has either an unclosed quote or missed column",
+                        ErrorMessage = $"Headers with names {string.Join(", ", args.HeaderNames)} not found",
                         ErrorCode = "MissingFieldFound",
                         ErrorLine = args.Context.Parser.Row,
                         RawHeader = string.Join(args.Context.Parser.Delimiter, args.Context.Reader.HeaderRecord),
