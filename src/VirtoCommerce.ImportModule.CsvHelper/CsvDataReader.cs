@@ -127,18 +127,19 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                     return result;
                 },
                 Mode = CsvMode.RFC4180,
-                BadDataFound = args =>
-                {
-                    var errorInfo = new ErrorInfo
-                    {
-                        ErrorMessage = $"Bad entry found at field {args.Field}",
-                        ErrorCode = "BadData",
-                        ErrorLine = args.Context.Parser.Row,
-                        RawHeader = string.Join(args.Context.Parser.Delimiter, args.Context.Reader.HeaderRecord),
-                        RawData = args.Context.Parser.RawRecord,
-                    };
-                    context.ErrorCallback(errorInfo);
-                }
+                //TODO: Temporary disable since it cause false positive errors on CsvMapping when access to csv cell by name in custom mapping converters  args.Row["Name"] 
+                //BadDataFound = args =>
+                //{
+                //    var errorInfo = new ErrorInfo
+                //    {
+                //        ErrorMessage = $"Bad entry found at field {args.Field}",
+                //        ErrorCode = "BadData",
+                //        ErrorLine = args.Context.Parser.Row,
+                //        RawHeader = string.Join(args.Context.Parser.Delimiter, args.Context.Reader.HeaderRecord),
+                //        RawData = args.Context.Parser.RawRecord,
+                //    };
+                //    context.ErrorCallback(errorInfo);
+                //}
             };
 
             if (context.ErrorCallback != null)
