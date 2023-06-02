@@ -127,7 +127,8 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                     return result;
                 },
                 Mode = CsvMode.RFC4180,
-                //TODO: Temporary disable since it cause false positive errors on CsvMapping when access to csv cell by name in custom mapping converters  args.Row["Name"] 
+                BadDataFound = null,
+                //TODO: Temporary disable since it cause false positive errors on CsvMapping when access to csv cell by name in custom mapping converters  args.Row["Name"]
                 //BadDataFound = args =>
                 //{
                 //    var errorInfo = new ErrorInfo
