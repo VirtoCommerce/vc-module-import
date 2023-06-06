@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Humanizer;
 using Microsoft.Extensions.Logging;
+using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Settings;
@@ -53,21 +56,20 @@ namespace VirtoCommerce.ImportModule.Data.Services
             {
                 Description = "Import has been started"
             };
-
+            var fixedSizeErrorsQueue = new FixedSizeQueue<ErrorInfo>(50);
             // Import errors
             var errorsCount = 0;
-            var errorsToSave = new List<ErrorInfo>();
             void ErrorCallback(ErrorInfo info)
             {
                 errorsCount++;
-                importProgress.Errors.Add(info.ToString());
-                _logger.LogTrace(info.ToString());
-                errorsToSave.Add(info);
+                fixedSizeErrorsQueue.Add(info);
+                _logger.LogError(info.ToString());
                 if (errorsCount == maxErrorsCountThreshold)
                 {
                     importProgress.Errors.Add("The import process has been canceled because it exceeds the configured maximum errors limit");
-                    _logger.LogTrace("The import process has been canceled because it exceeds the configured maximum errors limit");
+                    _logger.LogError("The import process has been canceled because it exceeds the configured maximum errors limit");
                 }
+                importProgress.Errors = fixedSizeErrorsQueue.GetTopValues().Select(x => x.ToString()).ToArray();
                 progressCallback(importProgress).GetAwaiter().GetResult();
             }
 
@@ -121,7 +123,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
 
-            var errorReportResult = await importReporter.SaveErrorsAsync(errorsToSave);
+            var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
 
             importRemainingEstimator.Stop(context);
 

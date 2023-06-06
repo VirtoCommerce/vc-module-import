@@ -89,25 +89,38 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 
             for (var i = 0; i < _pageSize && HasMoreResults; i++)
             {
-                HasMoreResults = await _csvReader.ReadAsync();
-                if (HasMoreResults)
+                try
                 {
-                    var record = _csvReader.GetRecord<TCsvImportable>();
-                    if (!_needReadRaw)
+                    HasMoreResults = await _csvReader.ReadAsync();
+                    if (HasMoreResults)
                     {
-                        result.Add(record);
-                    }
-                    else
-                    {
-                        var rawRecord = _csvReader.Parser.RawRecord.TrimEnd('\r', '\n');
-                        var row = _csvReader.Parser.Row;
-
-                        result.Add(new CsvImportRecord<TCsvImportable>
+                        var record = _csvReader.GetRecord<TCsvImportable>();
+                        if (!_needReadRaw)
                         {
-                            Row = row,
-                            RawHeader = _headerRaw,
-                            RawRecord = rawRecord,
-                            Record = record
+                            result.Add(record);
+                        }
+                        else
+                        {
+                            var rawRecord = _csvReader.Parser.RawRecord.TrimEnd('\r', '\n');
+                            var row = _csvReader.Parser.Row;
+
+                            result.Add(new CsvImportRecord<TCsvImportable>
+                            {
+                                Row = row,
+                                RawHeader = _headerRaw,
+                                RawRecord = rawRecord,
+                                Record = record
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (context.ErrorCallback != null)
+                    {
+                        context.ErrorCallback(new ErrorInfo
+                        {
+                            ErrorMessage = ex.Message
                         });
                     }
                 }
@@ -127,6 +140,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                     return result;
                 },
                 Mode = CsvMode.RFC4180,
+                BadDataFound = null,
                 //TODO: Temporary disable since it cause false positive errors on CsvMapping when access to csv cell by name in custom mapping converters  args.Row["Name"] 
                 //BadDataFound = args =>
                 //{
