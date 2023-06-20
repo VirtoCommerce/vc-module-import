@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Humanizer;
 using Microsoft.Extensions.Logging;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
@@ -131,7 +129,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             importProgress.Description = "Import has been finished";
             importProgress.Finished = DateTime.UtcNow;
             importProgress.ReportUrl = errorReportResult;
-            context.CompleteCallback();
+            await context.CompleteCallback();
 
             await progressCallback(importProgress);
         }

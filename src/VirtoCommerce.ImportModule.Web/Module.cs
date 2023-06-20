@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.ImportModule.Core;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Notifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.CsvHelper;
@@ -14,6 +15,7 @@ using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.ImportModule.Data.Services;
 using VirtoCommerce.NotificationsModule.Core.Services;
 using VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem;
+using VirtoCommerce.Platform.Core.JsonConverters;
 using VirtoCommerce.Platform.Core.Modularity;
 using VirtoCommerce.Platform.Core.Security;
 using VirtoCommerce.Platform.Core.Settings;
@@ -110,6 +112,8 @@ namespace VirtoCommerce.ImportModule.Web
             var notificationRegistrar = appBuilder.ApplicationServices.GetService<INotificationRegistrar>();
             var defaultTemplatesDirectory = Path.Combine(ModuleInfo.FullPhysicalPath, "NotificationTemplates");
             notificationRegistrar.RegisterNotification<ImportCompletedEmailNotification>().WithTemplatesFromPath(defaultTemplatesDirectory);
+
+            PolymorphJsonConverter.RegisterTypeForDiscriminator(typeof(ImportProfile), nameof(ImportProfile.ProfileType));
 
             // Ensure that any pending migrations are applied
             using (var serviceScope = appBuilder.ApplicationServices.CreateScope())

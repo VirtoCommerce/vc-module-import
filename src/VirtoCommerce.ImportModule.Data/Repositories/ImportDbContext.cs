@@ -30,6 +30,9 @@ namespace VirtoCommerce.ImportModule.Data.Repositories
             modelBuilder.Entity<ImportRunHistoryEntity>().Property(x => x.Id).HasMaxLength(128).ValueGeneratedOnAdd();
             modelBuilder.Entity<ImportRunHistoryEntity>().Property(x => x.Errors)
             .HasConversion(y => JsonConvert.SerializeObject(y), y => JsonConvert.DeserializeObject<ICollection<string>>(y));
+            modelBuilder.Entity<ImportRunHistoryEntity>().HasIndex(x => x.ProfileId);
+            modelBuilder.Entity<ImportRunHistoryEntity>().HasIndex(x => x.UserId);
+            modelBuilder.Entity<ImportRunHistoryEntity>().HasIndex(x => x.JobId);
             #endregion
         }
     }

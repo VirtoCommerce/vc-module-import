@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -8,6 +9,12 @@ namespace VirtoCommerce.ImportModule.Core.Models
 {
     public class ImportProfile : AuditableEntity, ICloneable, IHasSettings
     {
+        public ImportProfile()
+        {
+            ProfileType = nameof(ImportProfile);
+            Settings = new List<ObjectSettingEntry>();
+        }
+
         public string Name { get; set; }
         public string DataImporterType { get; set; }
 
@@ -16,12 +23,15 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public ICollection<ObjectSettingEntry> Settings { get; set; }
         public string TypeName => nameof(ImportProfile);
+        public string ProfileType { get; set; }
 
         public string ImportFileUrl { get; set; }
         public string ImportReportUrl { get; set; }
         public string ImportReporterType { get; set; }
         public int PreviewObjectCount { get; set; } = 10;
+        [Obsolete("Use OnImportCompletedAsync")]
         public Action OnImportCompleted { get; set; } = () => { };
+        public Func<Task> OnImportCompletedAsync { get; set; } = async () => { };
 
         public virtual void Update(ImportProfile importProfile)
         {

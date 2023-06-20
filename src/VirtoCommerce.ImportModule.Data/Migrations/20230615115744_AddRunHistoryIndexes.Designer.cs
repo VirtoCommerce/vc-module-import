@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VirtoCommerce.ImportModule.Data.Repositories;
 
@@ -11,9 +12,10 @@ using VirtoCommerce.ImportModule.Data.Repositories;
 namespace VirtoCommerce.ImportModule.Data.Migrations
 {
     [DbContext(typeof(ImportDbContext))]
-    partial class ImportDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230615115744_AddRunHistoryIndexes")]
+    partial class AddRunHistoryIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
