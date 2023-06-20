@@ -36,5 +36,10 @@ namespace VirtoCommerce.ImportModule.Core.Models
             result.Settings = Settings?.Select(x => x.Clone()).OfType<ObjectSettingEntry>().ToList();
             return result;
         }
+
+        public override string ToString()
+        {
+            return $"{Name}:{DataImporterType}:{UserName}:{ImportFileUrl}:{ImportReportUrl}";
+        }
     }
 }
