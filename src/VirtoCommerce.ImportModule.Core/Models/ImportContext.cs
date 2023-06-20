@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace VirtoCommerce.ImportModule.Core.Models
 {
@@ -7,12 +8,12 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public ImportContext(ImportProfile importProfile)
         {
             ImportProfile = importProfile;
-            CompleteCallback = importProfile.OnImportCompleted;
+            CompleteCallback = importProfile.OnImportCompletedAsync;
         }
 
         public ImportProfile ImportProfile { get; private set; }
         public ImportProgressInfo ProgressInfo { get; set; }
         public Action<ErrorInfo> ErrorCallback { get; set; }
-        public Action CompleteCallback { get; set; }
+        public Func<Task> CompleteCallback { get; set; }
     }
 }
