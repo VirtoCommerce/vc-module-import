@@ -8,6 +8,12 @@ namespace VirtoCommerce.ImportModule.Core.Models
 {
     public class ImportProfile : AuditableEntity, ICloneable, IHasSettings
     {
+        public ImportProfile()
+        {
+            ProfileType = nameof(ImportProfile);
+            Settings = new List<ObjectSettingEntry>();
+        }
+
         public string Name { get; set; }
         public string DataImporterType { get; set; }
 
@@ -16,6 +22,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public ICollection<ObjectSettingEntry> Settings { get; set; }
         public string TypeName => nameof(ImportProfile);
+        public string ProfileType { get; set; }
 
         public string ImportFileUrl { get; set; }
         public string ImportReportUrl { get; set; }

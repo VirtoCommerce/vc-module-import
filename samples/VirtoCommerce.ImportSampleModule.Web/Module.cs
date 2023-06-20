@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.CatalogModule.Core.Model.Search;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportSampleModule.Web.Importers;
+using VirtoCommerce.ImportSampleModule.Web.Models;
 using VirtoCommerce.ImportSampleModule.Web.Search;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Modularity;
@@ -48,6 +50,8 @@ namespace VirtoCommerce.ImportSampleModule.Web
             importerRegistrar.Register<ShopifyProductImporter>(() => appBuilder.ApplicationServices
                 .GetService<ShopifyProductImporter>())
                 .WithSettings(ShopifyProductSettings.AllSettings);
+
+            AbstractTypeFactory<ImportProfile>.RegisterType<MyCustomImportProfile>();
         }
 
         public void Uninstall()
