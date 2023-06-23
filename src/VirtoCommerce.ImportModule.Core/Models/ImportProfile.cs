@@ -39,7 +39,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public override string ToString()
         {
-            return $"{Name}:{DataImporterType}:{UserName}:{ImportFileUrl}:{ImportReportUrl}";
+            return $"{UserId}";
         }
     }
 }
