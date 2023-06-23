@@ -39,7 +39,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public override string ToString()
         {
-            return $"{UserId}";
+            return UserId;
         }
     }
 }
