@@ -17,6 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\VirtoCommerce.ImportModule.Core\VirtoCommerce.ImportModule.Core.csproj" />
     <ProjectReference Include="..\VirtoCommerce.ImportModule.CsvHelper\VirtoCommerce.ImportModule.CsvHelper.csproj" />
+    <ProjectReference Include="..\VirtoCommerce.ImportModule.Data.MySql\VirtoCommerce.ImportModule.Data.MySql.csproj" />
+    <ProjectReference Include="..\VirtoCommerce.ImportModule.Data.PostgreSql\VirtoCommerce.ImportModule.Data.PostgreSql.csproj" />
+    <ProjectReference Include="..\VirtoCommerce.ImportModule.Data.SqlServer\VirtoCommerce.ImportModule.Data.SqlServer.csproj" />
     <ProjectReference Include="..\VirtoCommerce.ImportModule.Data\VirtoCommerce.ImportModule.Data.csproj" />
   </ItemGroup>
 

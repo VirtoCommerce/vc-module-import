@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace VirtoCommerce.ImportModule.Data.Migrations
+namespace VirtoCommerce.ImportModule.Data.SqlServer.Migrations
 {
     public partial class AddErrorReport : Migration
     {
