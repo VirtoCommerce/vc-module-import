@@ -9,11 +9,11 @@ using VirtoCommerce.ImportModule.Data.Repositories;
 
 #nullable disable
 
-namespace VirtoCommerce.ImportModule.Data.Migrations
+namespace VirtoCommerce.ImportModule.Data.SqlServer.Migrations
 {
     [DbContext(typeof(ImportDbContext))]
-    [Migration("20230412143004_AddImportFileUrl")]
-    partial class AddImportFileUrl
+    [Migration("20230615115744_AddRunHistoryIndexes")]
+    partial class AddRunHistoryIndexes
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -138,6 +138,12 @@ namespace VirtoCommerce.ImportModule.Data.Migrations
                         .HasColumnType("nvarchar(128)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("JobId");
+
+                    b.HasIndex("ProfileId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ImportRunHistory", (string)null);
                 });

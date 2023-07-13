@@ -11,8 +11,11 @@ using VirtoCommerce.ImportModule.Core.Notifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.CsvHelper;
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
+using VirtoCommerce.ImportModule.Data.MySql;
+using VirtoCommerce.ImportModule.Data.PostgreSql;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.ImportModule.Data.SqlServer;
 using VirtoCommerce.NotificationsModule.Core.Services;
 using VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem;
 using VirtoCommerce.Platform.Core.JsonConverters;
@@ -30,11 +33,24 @@ namespace VirtoCommerce.ImportModule.Web
 
         public void Initialize(IServiceCollection serviceCollection)
         {
-            // database initialization
-            serviceCollection.AddDbContext<ImportDbContext>((provider, options) =>
+            // Database initialization
+            serviceCollection.AddDbContext<ImportDbContext>((_, options) =>
             {
-                var configuration = provider.GetRequiredService<IConfiguration>();
-                options.UseSqlServer(configuration.GetConnectionString(ModuleInfo.Id) ?? configuration.GetConnectionString("VirtoCommerce"));
+                var databaseProvider = Configuration.GetValue("DatabaseProvider", "SqlServer");
+                var connectionString = Configuration.GetConnectionString(ModuleInfo.Id) ?? Configuration.GetConnectionString("VirtoCommerce");
+
+                switch (databaseProvider)
+                {
+                    case "MySql":
+                        options.UseMySqlDatabase(connectionString);
+                        break;
+                    case "PostgreSql":
+                        options.UsePostgreSqlDatabase(connectionString);
+                        break;
+                    default:
+                        options.UseSqlServerDatabase(connectionString);
+                        break;
+                }
             });
 
             serviceCollection.AddTransient<IImportRepository, ImportRepository>();
