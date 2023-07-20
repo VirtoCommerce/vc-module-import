@@ -1,4 +1,6 @@
-# Overview
+# Virto Commerce Import Module
+
+[![CI status](https://github.com/VirtoCommerce/vc-module-import/workflows/Module%20CI/badge.svg?branch=dev)](https://github.com/VirtoCommerce/vc-module-import/actions?query=workflow%3A"Module+CI") 
 
 Provides flexible functionality for writing your own Importers
 
