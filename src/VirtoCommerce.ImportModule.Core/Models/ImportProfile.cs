@@ -28,9 +28,6 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public string ImportReportUrl { get; set; }
         public string ImportReporterType { get; set; }
         public int PreviewObjectCount { get; set; } = 10;
-        //[Obsolete("Use OnImportCompletedAsync")]
-        //public Action OnImportCompleted { get; set; } = () => { };
-        //public Func<Task> OnImportCompletedAsync { get; set; } = async () => { };
 
         public virtual void Update(ImportProfile importProfile)
         {

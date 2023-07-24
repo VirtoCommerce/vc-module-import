@@ -19,5 +19,6 @@ namespace VirtoCommerce.ImportModule.Core.Services
         IImportDataWriter OpenWriter(ImportContext context);
         Task<IImportDataWriter> OpenWriterAsync(ImportContext context) => Task.FromResult(OpenWriter(context));
         Task<ValidationResult> ValidateAsync(ImportContext context);
+        Task OnImportCompletedAsync() { return Task.CompletedTask; }
     }
 }
