@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Domain;
@@ -29,7 +30,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
         public int ProcessedCount { get; set; }
         public int ErrorsCount { get; set; }
 
-        public ICollection<string> Errors { get; set; }
+        public string Errors { get; set; }
 
         [StringLength(2048)]
         public string FileUrl { get; set; }
@@ -61,7 +62,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             TotalCount = model.TotalCount;
             ProcessedCount = model.ProcessedCount;
             ErrorsCount = model.ErrorsCount;
-            Errors = model.Errors;
+            Errors = JsonConvert.SerializeObject(model.Errors);
             FileUrl = model.FileUrl;
             ReportUrl = model.ReportUrl;
 
@@ -90,7 +91,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             model.TotalCount = TotalCount;
             model.ProcessedCount = ProcessedCount;
             model.ErrorsCount = ErrorsCount;
-            model.Errors = Errors;
+            model.Errors = JsonConvert.DeserializeObject<ICollection<string>>(Errors);
             model.FileUrl = FileUrl;
             model.ReportUrl = ReportUrl;
 
