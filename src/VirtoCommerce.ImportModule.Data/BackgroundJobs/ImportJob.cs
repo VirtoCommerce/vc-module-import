@@ -17,7 +17,7 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
         }
 
         [AutomaticRetry(Attempts = 0)]
-        [DisableConcurrentExecutionWithParameters(60)]
+        [DisableConcurrentExecutionForImportProfile(60)]
         public async Task ImportBackgroundAsync(ImportProfile importProfile, ImportPushNotification pushNotification, IJobCancellationToken token, PerformContext context)
         {
             pushNotification.JobId = context?.BackgroundJob.Id;

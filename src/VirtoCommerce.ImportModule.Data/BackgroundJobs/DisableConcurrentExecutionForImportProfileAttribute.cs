@@ -1,15 +1,17 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using Hangfire.Common;
 using Hangfire.Server;
+using VirtoCommerce.ImportModule.Core.Models;
 
 namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
 {
-    public class DisableConcurrentExecutionWithParametersAttribute : JobFilterAttribute, IServerFilter
+    public class DisableConcurrentExecutionForImportProfileAttribute : JobFilterAttribute, IServerFilter
     {
         private readonly int _timeoutInSeconds;
 
-        public DisableConcurrentExecutionWithParametersAttribute(int timeoutInSeconds)
+        public DisableConcurrentExecutionForImportProfileAttribute(int timeoutInSeconds)
         {
             if (timeoutInSeconds < 0)
                 throw new ArgumentException("Timeout argument value should be greater that zero.");
@@ -19,11 +21,11 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
 
         public void OnPerforming(PerformingContext filterContext)
         {
-            var resource = GetResource(filterContext.BackgroundJob.Job);
+            var fingerprint = GetFingerprint(filterContext.BackgroundJob.Job);
 
             var timeout = TimeSpan.FromSeconds(_timeoutInSeconds);
 
-            var distributedLock = filterContext.Connection.AcquireDistributedLock(resource, timeout);
+            var distributedLock = filterContext.Connection.AcquireDistributedLock(fingerprint, timeout);
             filterContext.Items["DistributedLock"] = distributedLock;
         }
 
@@ -41,22 +43,15 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
         private static string GetFingerprint(Job job)
         {
             var parameters = string.Empty;
-            if (job?.Args != null)
+            var importProfile = job.Args.OfType<ImportProfile>().FirstOrDefault();
+            if (importProfile == null)
             {
-                parameters = string.Join(".", job.Args);
+                throw new OperationCanceledException("ImportProfile must presents as argument of job function");
             }
-            if (job?.Type == null || job.Method == null)
-            {
-                return string.Empty;
-            }
-            var payload = $"{job.Type.FullName}.{job.Method.Name}.{parameters}";
+            var payload = $"{job.Type.FullName}.{job.Method.Name}.{importProfile.Id}.{importProfile.DataImporterType}.{importProfile.UserId}";
             var hash = SHA256.Create().ComputeHash(System.Text.Encoding.UTF8.GetBytes(payload));
             var fingerprint = Convert.ToBase64String(hash);
             return fingerprint;
-        }
-        private static string GetResource(Job job)
-        {
-            return GetFingerprint(job);
         }
     }
 }
