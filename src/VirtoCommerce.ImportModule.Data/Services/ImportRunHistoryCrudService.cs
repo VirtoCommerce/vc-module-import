@@ -37,9 +37,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
-        protected override async Task<IEnumerable<ImportRunHistoryEntity>> LoadEntities(IRepository repository, IEnumerable<string> ids, string responseGroup)
+        protected override async Task<IList<ImportRunHistoryEntity>> LoadEntities(IRepository repository, IList<string> ids, string responseGroup)
         {
-            return await ((IImportRepository)repository).GetImportRunHistoryByIds(ids.ToArray(), responseGroup);
+            var result = await ((IImportRepository)repository).GetImportRunHistoryByIds(ids.ToArray(), responseGroup);
+            return result?.ToList();
         }
 
     }
