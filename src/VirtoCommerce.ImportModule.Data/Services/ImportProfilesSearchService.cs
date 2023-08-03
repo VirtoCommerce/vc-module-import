@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Options;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Services;
@@ -8,6 +9,7 @@ using VirtoCommerce.ImportModule.Data.Models;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.Platform.Core.Caching;
 using VirtoCommerce.Platform.Core.Common;
+using VirtoCommerce.Platform.Core.GenericCrud;
 using VirtoCommerce.Platform.Data.GenericCrud;
 
 namespace VirtoCommerce.ImportModule.Data.Services
@@ -17,8 +19,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
         public ImportProfilesSearchService(
             Func<IImportRepository> repositoryFactory,
             IPlatformMemoryCache platformMemoryCache,
-            IImportProfileCrudService crudService)
-            : base(repositoryFactory, platformMemoryCache, crudService)
+            IImportProfileCrudService crudService,
+            IOptions<CrudOptions> crudOptions)
+            : base(repositoryFactory, platformMemoryCache, crudService, crudOptions)
         {
         }
         protected override IQueryable<ImportProfileEntity> BuildQuery(IRepository repository, SearchImportProfilesCriteria criteria)
