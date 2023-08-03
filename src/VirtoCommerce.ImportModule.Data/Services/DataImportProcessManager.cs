@@ -129,7 +129,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             importProgress.Description = "Import has been finished";
             importProgress.Finished = DateTime.UtcNow;
             importProgress.ReportUrl = errorReportResult;
-            await dataImporter.OnImportCompletedAsync();
+            await dataImporter.OnImportCompletedAsync(context);
 
             await progressCallback(importProgress);
         }
