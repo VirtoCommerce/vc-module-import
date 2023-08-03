@@ -74,17 +74,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         public ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile, ImportPushNotification pushNotification)
         {
-            var monitoringApi = JobStorage.Current.GetMonitoringApi();
-            var processingSellerJob = monitoringApi.ProcessingJobs(0, int.MaxValue).Select(x => x.Value.Job)
-               .Where(x => x.Type == typeof(ImportJob))
-               .Select(x => x.Args.OfType<ImportProfile>())
-               .Select(x => x.Any(y => y.UserId == importProfile.UserId))
-               .FirstOrDefault();
-
-            if (processingSellerJob)
-            {
-                throw new OperationCanceledException("Concurrent execution is limited");
-            }
             var jobId = _backgroundJobExecutor.Enqueue<ImportJob>(x => x.ImportBackgroundAsync(importProfile, pushNotification, JobCancellationToken.Null, null));
 
             pushNotification.JobId = jobId;

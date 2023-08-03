@@ -33,5 +33,10 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         {
             return Task.FromResult(new ValidationResult());
         }
+
+        public async Task OnImportCompletedAsync()
+        {
+            //do nothing
+        }
     }
 }

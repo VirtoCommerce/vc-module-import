@@ -32,12 +32,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _importersRegistry = importersRegistry;
         }
 
-        protected override async Task<IEnumerable<ImportProfileEntity>> LoadEntities(IRepository repository, IEnumerable<string> ids, string responseGroup)
+        protected override async Task<IList<ImportProfileEntity>> LoadEntities(IRepository repository, IList<string> ids, string responseGroup)
         {
-            return await ((IImportRepository)repository).GetImportProfileByIds(ids.ToArray(), responseGroup);
+            var result = await ((IImportRepository)repository).GetImportProfileByIds(ids.ToArray(), responseGroup);
+            return result?.ToList();
         }
 
-        protected override Task AfterDeleteAsync(IEnumerable<ImportProfile> models, IEnumerable<GenericChangedEntry<ImportProfile>> changedEntries)
+        protected override Task AfterDeleteAsync(IList<ImportProfile> models, IList<GenericChangedEntry<ImportProfile>> changedEntries)
         {
             return _settingsManager.DeepRemoveSettingsAsync(models);
         }
@@ -53,7 +54,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return model;
         }
 
-        protected override async Task AfterSaveChangesAsync(IEnumerable<ImportProfile> models, IEnumerable<GenericChangedEntry<ImportProfile>> changedEntries)
+        protected override async Task AfterSaveChangesAsync(IList<ImportProfile> models, IList<GenericChangedEntry<ImportProfile>> changedEntries)
         {
             await _settingsManager.DeepSaveSettingsAsync(models);
         }
