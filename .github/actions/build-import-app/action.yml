@@ -1,0 +1,42 @@
+# v2.0.0
+name: Build Import App
+
+inputs:
+  githubToken:
+    description: "GitHub Token"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set Import App ref
+      shell: bash
+      run: |
+        if [ '${{ github.ref }}' = 'refs/heads/master' ]; then
+          echo "REF=master" >> $GITHUB_ENV
+        else
+          echo "REF=dev" >> $GITHUB_ENV
+        fi;
+
+    - name: Checkout Import App
+      uses: actions/checkout@v3
+      with:
+        repository: "VirtoCommerce/vc-module-import"
+        token: ${{ inputs.githubToken }}
+        path: "src/VirtoCommerce.ImportModule.Web/import-app"
+        ref: ${{ env.REF }}
+
+    - name: Install dependencies for Import App
+      shell: bash
+      working-directory: "src/VirtoCommerce.ImportModule.Web/import-app"
+      run: yarn
+
+    - name: Build Import App
+      shell: bash
+      working-directory: "src/VirtoCommerce.ImportModule.Web/import-app"
+      run: yarn build
+
+    - name: Copy Import App artifacts
+      shell: bash
+      run: cp -r "src/VirtoCommerce.ImportModule.Web/import-app/dist" "src/VirtoCommerce.ImportModule.Web/Content/import-app"
+

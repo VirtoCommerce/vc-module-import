@@ -92,6 +92,11 @@ jobs:
         with:
           versionSuffix: ${{ env.VERSION_SUFFIX }}
 
+      - name: Build Import App
+        uses: ./.github/actions/build-import-app
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+
       - name: Build
         run: vc-build Compile
 
