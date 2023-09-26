@@ -8,7 +8,9 @@ using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.ImportModule.Data.Authorization;
 using VirtoCommerce.ImportModule.Data.Validators;
+using VirtoCommerce.ImportModule.Web.Authorization;
 using VirtoCommerce.Platform.Core.Common;
 using ModuleConstants = VirtoCommerce.ImportModule.Core.ModuleConstants;
 
@@ -159,9 +161,20 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("profiles/search")]
-        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<SearchImportProfilesResult>> SearchImportProfiles([FromBody] SearchImportProfilesCriteria criteria)
         {
+            var authorizationInfo = new AuthorizationInfo();
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, authorizationInfo, new ImportAuthorizationRequirement(ModuleConstants.Security.Permissions.Access));
+            if (!authorizationResult.Succeeded)
+            {
+                return Unauthorized();
+            }
+
+            if (authorizationInfo != null && authorizationInfo.IsSeller && !string.IsNullOrEmpty(authorizationInfo.SellerId))
+            {
+                criteria.UserId = authorizationInfo.SellerId;
+            }
+
             var result = await _importProfilesSearchService.SearchAsync(criteria);
 
             return Ok(result);
@@ -185,9 +198,20 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("profiles/execution/history/search")]
-        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<SearchImportRunHistoryResult>> SearchImportRunHistory([FromBody] SearchImportRunHistoryCriteria criteria)
         {
+            var authorizationInfo = new AuthorizationInfo();
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, authorizationInfo, new ImportAuthorizationRequirement(ModuleConstants.Security.Permissions.Access));
+            if (!authorizationResult.Succeeded)
+            {
+                return Unauthorized();
+            }
+
+            if (authorizationInfo != null && authorizationInfo.IsSeller && !string.IsNullOrEmpty(authorizationInfo.SellerId))
+            {
+                criteria.UserId = authorizationInfo.SellerId;
+            }
+
             var result = await _importRunHistorySearchService.SearchAsync(criteria);
 
             return Ok(result);

@@ -1,4 +1,11 @@
 {
+  "import": {
+    "widgets": {
+      "seller-import": {
+        "title": "Import App"
+      }
+    }
+  },
   "notificationTypes": {
     "ImportCompletedEmailNotification": {
       "displayName": "Notification on import complete",
