@@ -36,7 +36,3 @@ runs:
       working-directory: "src/VirtoCommerce.ImportModule.Web/import-app"
       run: yarn build
 
-    - name: Copy Import App artifacts
-      shell: bash
-      run: cp -r "src/VirtoCommerce.ImportModule.Web/import-app/dist" "src/VirtoCommerce.ImportModule.Web/Content/import-app"
-
