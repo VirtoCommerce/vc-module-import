@@ -30,6 +30,12 @@
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="@(NotificationTemplates)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
   </Target>
+  <ItemGroup>
+    <Compile Remove="import-app\**" />
+    <Content Remove="import-app\**" />
+    <EmbeddedResource Remove="import-app\**" />
+    <None Remove="import-app\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="module.manifest">

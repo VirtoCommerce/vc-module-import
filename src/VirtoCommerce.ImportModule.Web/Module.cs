@@ -149,7 +149,7 @@ namespace VirtoCommerce.ImportModule.Web
             }
 
             // import-app
-            var vendorPortalAppPath = Path.Combine(ModuleInfo.FullPhysicalPath, "Content", "import-app");
+            var vendorPortalAppPath = Path.Combine(ModuleInfo.FullPhysicalPath, "import-app", "dist");
             if (Directory.Exists(vendorPortalAppPath))
             {
                 appBuilder.UseDefaultFiles(new DefaultFilesOptions()
