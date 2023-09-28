@@ -125,13 +125,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Add link to PR
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: VirtoCommerce/vc-github-actions/publish-artifact-link@master
-        with:
-          artifactUrl: ${{ steps.blobRelease.outputs.packageUrl }}
-          downloadComment: 'Artifact URL:'
-
       - name: Publish Github Release
         if: ${{ github.ref == 'refs/heads/master' }}
         id: githubRelease
