@@ -1792,19 +1792,19 @@
     "@typescript-eslint/types" "5.62.0"
     eslint-visitor-keys "^3.3.0"
 
-"@vc-shell/api-client-generator@^1.0.97":
-  version "1.0.97"
-  resolved "https://registry.yarnpkg.com/@vc-shell/api-client-generator/-/api-client-generator-1.0.97.tgz#1b6dc8ccf0eb05b28c7e3b047e2b2e46c83a31db"
-  integrity sha512-LAKQOCSeWDUdiLHzBQccBh+vGOY0jgSJ3tZfnvu1R+U3FnXzasY2SUwsSLSynvB/CiJ8Tg65aa3nlu/S+FeMew==
+"@vc-shell/api-client-generator@^1.0.101":
+  version "1.0.101"
+  resolved "https://registry.yarnpkg.com/@vc-shell/api-client-generator/-/api-client-generator-1.0.101.tgz#1210226809374106e7e9ae7b89b1bf945ee91b4a"
+  integrity sha512-Rem+Ey0FROujffTfl1CZXdVQhWakqCxzEkGBcNIT40npFnJ7ivJXoes0Uo3wZW8lJJrIH+M6fc5zAYGiTjAVpw==
   dependencies:
     chalk "^2.4.2"
     nswag "^13.19.0"
     vite "^4.3.9"
 
-"@vc-shell/config-generator@^1.0.97":
-  version "1.0.97"
-  resolved "https://registry.yarnpkg.com/@vc-shell/config-generator/-/config-generator-1.0.97.tgz#d21d7d8959ccddb574cc4a3ab5bcaf38333b52cc"
-  integrity sha512-lVpFrZBmAIoHMaI+OYeckCPwavoMJpqQsBFbEloQ8yUm6VtuzrGlG5dssbE5ayPsspuzXyyRY2qyEf0BR2NFDA==
+"@vc-shell/config-generator@^1.0.101":
+  version "1.0.101"
+  resolved "https://registry.yarnpkg.com/@vc-shell/config-generator/-/config-generator-1.0.101.tgz#aba0c5b8fa2bb5d6f4a9d43c0750139fc8329c15"
+  integrity sha512-Bs3u+thZy2Rs2vwpnXagZ228SmVvug9JrCuqxg0bBUBdprrstD5ftebickuW89NE93giHNCdIl1AlBYs6+bgRQ==
   dependencies:
     "@vitejs/plugin-vue" "^4.2.3"
     vite "^4.3.9"
@@ -1812,41 +1812,10 @@
     vite-plugin-mkcert "^1.15.0"
     vue "^3.3.4"
 
-"@vc-shell/framework@^1.0.100":
-  version "1.0.100"
-  resolved "https://registry.yarnpkg.com/@vc-shell/framework/-/framework-1.0.100.tgz#9bd8ee0cb949eb676147a07b331886e549ff4194"
-  integrity sha512-O9okipu7srinTm6V8kvctdmOtzjycuoNFp2HkCywQWqsNDUuljiUttM4osRkCigahjUcsZIVmnYZYVVjI3Ap7A==
-  dependencies:
-    "@floating-ui/vue" "^1.0.0"
-    "@microsoft/signalr" "^7.0.5"
-    "@vee-validate/i18n" "^4.9.3"
-    "@vee-validate/rules" "^4.7.3"
-    "@vueup/vue-quill" "^1.2.0"
-    "@vueuse/components" "^10.1.2"
-    "@vueuse/core" "^10.1.2"
-    "@vueuse/integrations" "^10.1.2"
-    buffer-esm "^1.2.0"
-    client-oauth2 "^4.3.3"
-    moment "^2.29.4"
-    normalize.css "^8.0.1"
-    querystring-es3 "^0.2.1"
-    quill "^1.3.7"
-    quill-image-uploader "^1.3.0"
-    swiper "^6.8.4"
-    url-pattern "^1.0.3"
-    vee-validate "^4.9.3"
-    vue "^3.3.4"
-    vue-currency-input "~2.5.1"
-    vue-i18n "^9.2.2"
-    vue-router "^4.2.1"
-    vue3-ace-editor "^2.2.2"
-    vue3-touch-events "^4.1.2"
-    whatwg-fetch "^3.6.2"
-
-"@vc-shell/framework@^1.0.97":
-  version "1.0.97"
-  resolved "https://registry.yarnpkg.com/@vc-shell/framework/-/framework-1.0.97.tgz#8a52c2aeb52028026fdbf690988a5cb55f14ec7c"
-  integrity sha512-4qanep39tNtdKTTsRA2MiuTxH8hSfV6E6Ahw57Gc8Tn7mR0BAeWiJp2pc/rIza1hwKGZgRISnZawPVKZ4idxTA==
+"@vc-shell/framework@^1.0.101":
+  version "1.0.101"
+  resolved "https://registry.yarnpkg.com/@vc-shell/framework/-/framework-1.0.101.tgz#86f3c55dada30410d93f2f8e7db1482f7f411e66"
+  integrity sha512-ABp/6Tvty/K5haKr1Kva8pYCsDuJVSDleIOtFKVXgn2gEfaqZmiJJnSUs7k+SFnY0OQKH4DRlIxKV5UxPoekcw==
   dependencies:
     "@floating-ui/vue" "^1.0.0"
     "@microsoft/signalr" "^7.0.5"
@@ -1875,11 +1844,11 @@
     whatwg-fetch "^3.6.2"
 
 "@vc-shell/import-module@^1.0.101":
-  version "1.0.100"
-  resolved "https://registry.yarnpkg.com/@vc-shell/import-module/-/import-module-1.0.100.tgz#b20b363ec4761b1f2812aada8cc44f0f8891acf4"
-  integrity sha512-RWFJXTNuWP76GoE2RTvDmySmPoiABkg+nXdSKMfnhHyxiuKvNV4kwOxsthIHSH2jmBAgS5AoUycK8vx8a0rCKg==
+  version "1.0.101"
+  resolved "https://registry.yarnpkg.com/@vc-shell/import-module/-/import-module-1.0.101.tgz#e960671e6bbb500b95b5b055eb1faf2dbe9892f4"
+  integrity sha512-6etzGKAGaoMpP2HY1fwdwz1sJHQNkQVQWuLGw5DFBiUp8pKFcjeOF4AEOQg4NdbuhwRJdjGnGLwWd0y4Kr9t5g==
   dependencies:
-    "@vc-shell/framework" "^1.0.100"
+    "@vc-shell/framework" "^1.0.101"
     vue "^3.3.4"
     vue-router "^4.2.1"
 
