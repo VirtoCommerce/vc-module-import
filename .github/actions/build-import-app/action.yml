@@ -6,10 +6,6 @@ inputs:
     description: "GitHub Token"
     required: true
 
-defaults:
-  run:
-    working-directory: /home/runner/work/vc-module-import/vc-module-import/src/VirtoCommerce.ImportModule.Web/import-app
-
 runs:
   using: composite
 
@@ -33,6 +29,7 @@ runs:
 
     - name: Install dependencies for Import App
       shell: bash
+      working-directory: /home/runner/work/vc-module-import/vc-module-import/src/VirtoCommerce.ImportModule.Web/import-app
       run: |
         pwd
         ls -l
@@ -40,5 +37,6 @@ runs:
 
     - name: Build Import App
       shell: bash
+      working-directory: /home/runner/work/vc-module-import/vc-module-import/src/VirtoCommerce.ImportModule.Web/import-app
       run: yarn build
 
