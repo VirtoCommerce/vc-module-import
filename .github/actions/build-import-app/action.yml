@@ -34,7 +34,8 @@ runs:
     - name: Install dependencies for Import App
       shell: bash
       run: |
-        ls
+        pwd
+        ls -l
         yarn
 
     - name: Build Import App
