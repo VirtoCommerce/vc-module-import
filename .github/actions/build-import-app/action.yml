@@ -6,13 +6,13 @@ inputs:
     description: "GitHub Token"
     required: true
 
+defaults:
+  run:
+    working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      
 runs:
   using: composite
   
-  defaults:
-    run:
-      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
-      
   steps:
     - name: Set Import App ref
       shell: bash
