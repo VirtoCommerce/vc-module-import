@@ -33,6 +33,7 @@ runs:
       run: |
         pwd
         ls -l
+        echo ${{ github.workspace }}
         cd ./src/VirtoCommerce.ImportModule.Web/import-app && yarn
 
     - name: Build Import App
