@@ -30,13 +30,11 @@ runs:
       shell: bash
       working-directory: ""
       run: |
-          cd ./src/VirtoCommerce.ImportModule.Web/import-app
-          yarn
+          cd ./src/VirtoCommerce.ImportModule.Web/import-app && yarn
 
     - name: Build Import App
       shell: bash
       working-directory: ""
       run: |
-          cd ./src/VirtoCommerce.ImportModule.Web/import-app
-          yarn build
+          cd ./src/VirtoCommerce.ImportModule.Web/import-app && yarn build
 
