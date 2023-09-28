@@ -33,10 +33,10 @@ runs:
       run: |
         pwd
         ls -l
-        yarn
+        cd src/VirtoCommerce.ImportModule.Web/import-app && yarn
 
     - name: Build Import App
       shell: bash
       working-directory: /home/runner/work/vc-module-import/vc-module-import/src/VirtoCommerce.ImportModule.Web/import-app
-      run: yarn build
+      run: cd src/VirtoCommerce.ImportModule.Web/import-app && yarn build
 
