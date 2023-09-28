@@ -29,14 +29,14 @@ runs:
 
     - name: Install dependencies for Import App
       shell: bash
-      working-directory: /home/runner/work/vc-module-import/vc-module-import/src/VirtoCommerce.ImportModule.Web/import-app
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
       run: |
         pwd
         ls -l
-        cd src/VirtoCommerce.ImportModule.Web/import-app && yarn
+        cd ./src/VirtoCommerce.ImportModule.Web/import-app && yarn
 
     - name: Build Import App
       shell: bash
-      working-directory: /home/runner/work/vc-module-import/vc-module-import/src/VirtoCommerce.ImportModule.Web/import-app
-      run: cd src/VirtoCommerce.ImportModule.Web/import-app && yarn build
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      run: cd ./src/VirtoCommerce.ImportModule.Web/import-app && yarn build
 
