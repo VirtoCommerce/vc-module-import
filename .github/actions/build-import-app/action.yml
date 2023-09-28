@@ -30,7 +30,7 @@ runs:
       shell: bash
       working-directory: "./src/VirtoCommerce.ImportModule.Web/import-app"
       run: |
-          echo ls
+          ls
           yarn
 
     - name: Build Import App
