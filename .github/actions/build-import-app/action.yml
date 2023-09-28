@@ -23,16 +23,16 @@ runs:
       with:
         repository: "VirtoCommerce/vc-module-import"
         token: ${{ inputs.githubToken }}
-        path: "./../../../src/VirtoCommerce.ImportModule.Web/import-app"
+        path: "./src/VirtoCommerce.ImportModule.Web/import-app"
         ref: ${{ env.REF }}
 
     - name: Install dependencies for Import App
       shell: bash
-      working-directory: "./../../../src/VirtoCommerce.ImportModule.Web/import-app"
+      working-directory: "./src/VirtoCommerce.ImportModule.Web/import-app"
       run: yarn
 
     - name: Build Import App
       shell: bash
-      working-directory: "./../../../src/VirtoCommerce.ImportModule.Web/import-app"
+      working-directory: "./src/VirtoCommerce.ImportModule.Web/import-app"
       run: yarn build
 
