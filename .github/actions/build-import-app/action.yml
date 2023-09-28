@@ -8,7 +8,7 @@ inputs:
 
 defaults:
   run:
-    working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+    working-directory: /home/runner/work/vc-module-import/vc-module-import/src/VirtoCommerce.ImportModule.Web/import-app
 
 runs:
   using: composite
