@@ -214,13 +214,6 @@ async function customizationHandler() {
   } else if (!uiSettings.value.title) {
     applySettings({ title: undefined });
   }
-
-  // if (!uiSettings.value.logo) {
-  //   applySettings({ logo: logoImage });
-  // }
-  // if (!uiSettings.value.title) {
-  //   applySettings({ title: undefined });
-  // }
 }
 </script>
 

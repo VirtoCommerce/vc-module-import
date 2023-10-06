@@ -170,9 +170,9 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 return Unauthorized();
             }
 
-            if (authorizationInfo != null && authorizationInfo.IsSeller && !string.IsNullOrEmpty(authorizationInfo.SellerId))
+            if (authorizationInfo != null && !string.IsNullOrEmpty(authorizationInfo.OrganizationId))
             {
-                criteria.UserId = authorizationInfo.SellerId;
+                criteria.UserId = authorizationInfo.OrganizationId;
             }
 
             var result = await _importProfilesSearchService.SearchAsync(criteria);
@@ -207,9 +207,9 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 return Unauthorized();
             }
 
-            if (authorizationInfo != null && authorizationInfo.IsSeller && !string.IsNullOrEmpty(authorizationInfo.SellerId))
+            if (authorizationInfo != null && !string.IsNullOrEmpty(authorizationInfo.OrganizationId))
             {
-                criteria.UserId = authorizationInfo.SellerId;
+                criteria.UserId = authorizationInfo.OrganizationId;
             }
 
             var result = await _importRunHistorySearchService.SearchAsync(criteria);

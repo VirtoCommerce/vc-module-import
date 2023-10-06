@@ -46,8 +46,7 @@ namespace VirtoCommerce.ImportModule.Web.Authorization
 
                     if (context.Resource != null && context.Resource is AuthorizationInfo authorizationInfo)
                     {
-                        authorizationInfo.SellerId = organization.Id;
-                        authorizationInfo.IsSeller = true;
+                        authorizationInfo.OrganizationId = organization.Id;
                     }
                     context.Succeed(requirement);
                 }

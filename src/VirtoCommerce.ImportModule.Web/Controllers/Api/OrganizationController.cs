@@ -36,9 +36,9 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 return Unauthorized();
             }
 
-            if (string.IsNullOrEmpty(organizationId) && authorizationInfo.IsSeller)
+            if (string.IsNullOrEmpty(organizationId))
             {
-                organizationId = authorizationInfo.SellerId;
+                organizationId = authorizationInfo.OrganizationId;
             }
             if (!string.IsNullOrEmpty(organizationId))
             {
