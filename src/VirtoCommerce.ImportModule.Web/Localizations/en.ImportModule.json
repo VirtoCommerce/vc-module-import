@@ -1,9 +1,6 @@
 {
   "import": {
     "widgets": {
-      "seller-import": {
-        "title": "Import App"
-      }
     }
   },
   "notificationTypes": {

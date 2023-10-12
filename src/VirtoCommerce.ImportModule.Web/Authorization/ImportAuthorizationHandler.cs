@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using VirtoCommerce.CustomerModule.Core.Services;
@@ -23,38 +22,14 @@ namespace VirtoCommerce.ImportModule.Web.Authorization
         {
             await base.HandleRequirementAsync(context, requirement);
 
-            var roles = context.User.ResolveRoles();
-            if (roles != null && roles.Any())
-            {
-                if (roles.Contains("Marketplace Operator"))
-                {
-                    if (context.Resource != null && context.Resource is AuthorizationInfo authorizationInfo)
-                    {
-                        authorizationInfo.IsOperator = true;
-                    }
-                    context.Succeed(requirement);
-                }
-                else if (roles.Contains("Vendor Owner") || roles.Contains("Vendor Admin") || roles.Contains("Vendor Agent"))
-                {
-                    var organization = await context.User.ResolveOrganization(_memberResolver);
+            var organization = await context.User.ResolveOrganization(_memberResolver);
 
-                    if (organization == null)
-                    {
-                        context.Fail(new AuthorizationFailureReason(this, "Organization doesn't exist"));
-                        return;
-                    }
-
-                    if (context.Resource != null && context.Resource is AuthorizationInfo authorizationInfo)
-                    {
-                        authorizationInfo.OrganizationId = organization.Id;
-                    }
-                    context.Succeed(requirement);
-                }
-            }
-            else
+            if (organization != null && context.Resource != null && context.Resource is AuthorizationInfo authorizationInfo)
             {
-                context.Fail(new AuthorizationFailureReason(this, "User has no role"));
+                authorizationInfo.OrganizationId = organization.Id;
             }
+            context.Succeed(requirement);
+
         }
     }
 }

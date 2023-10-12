@@ -172,7 +172,7 @@ const toolbarItems = computed(() =>
       options: {
         avatar: avatarImage,
         name: user.value?.userName,
-        role: user.value?.isAdministrator ? "Administrator" : "Seller account",
+        role: user.value?.isAdministrator ? "Administrator" : "User account",
         menuItems: [],
       },
       isVisible: isDesktop.value,
