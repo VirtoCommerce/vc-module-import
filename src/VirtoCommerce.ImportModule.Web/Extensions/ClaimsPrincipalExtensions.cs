@@ -12,11 +12,14 @@ namespace VirtoCommerce.ImportModule.Web.Extensions
         public static async Task<Member> ResolveOrganization(this ClaimsPrincipal claimsPrincipal, IMemberResolver memberResolver)
         {
             var memberId = claimsPrincipal.GetValue("memberId");
-            var member = await memberResolver.ResolveMemberByIdAsync(memberId);
-            if (member is Employee employee && employee.Organizations.Any())
+            if (!string.IsNullOrEmpty(memberId))
             {
-                var organization = await memberResolver.ResolveMemberByIdAsync(employee.Organizations.FirstOrDefault());
-                return organization;
+                var member = await memberResolver.ResolveMemberByIdAsync(memberId);
+                if (member is Employee employee && employee.Organizations.Any())
+                {
+                    var organization = await memberResolver.ResolveMemberByIdAsync(employee.Organizations.FirstOrDefault());
+                    return organization;
+                }
             }
 
             return null;
