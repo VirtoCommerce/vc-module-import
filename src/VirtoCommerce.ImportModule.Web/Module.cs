@@ -1,10 +1,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Notifications;
@@ -16,6 +19,7 @@ using VirtoCommerce.ImportModule.Data.PostgreSql;
 using VirtoCommerce.ImportModule.Data.Repositories;
 using VirtoCommerce.ImportModule.Data.Services;
 using VirtoCommerce.ImportModule.Data.SqlServer;
+using VirtoCommerce.ImportModule.Web.Authorization;
 using VirtoCommerce.NotificationsModule.Core.Services;
 using VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem;
 using VirtoCommerce.Platform.Core.JsonConverters;
@@ -84,6 +88,9 @@ namespace VirtoCommerce.ImportModule.Web
             serviceCollection.AddTransient<IDataImportProcessManager, DataImportProcessManager>();
 
             serviceCollection.AddTransient<IBackgroundJobExecutor, BackgroundJobExecutor>();
+
+            serviceCollection.AddTransient<IAuthorizationHandler, ImportAuthorizationHandler>();
+
         }
 
         public void PostInitialize(IApplicationBuilder appBuilder)
@@ -140,6 +147,22 @@ namespace VirtoCommerce.ImportModule.Web
                     dbContext.Database.Migrate();
                 }
             }
+
+            // import-app
+            var importAppPath = Path.Combine(ModuleInfo.FullPhysicalPath, "import-app", "dist");
+            if (Directory.Exists(importAppPath))
+            {
+                appBuilder.UseDefaultFiles(new DefaultFilesOptions()
+                {
+                    FileProvider = new PhysicalFileProvider(importAppPath),
+                    RequestPath = new PathString($"/apps/import-app")
+                });
+                appBuilder.UseStaticFiles(new StaticFileOptions()
+                {
+                    FileProvider = new PhysicalFileProvider(importAppPath),
+                    RequestPath = new PathString($"/apps/import-app")
+                });
+            };
         }
 
         public void Uninstall()
