@@ -31,7 +31,7 @@
     <app id="import-app">
       <title>Import App</title>
       <iconUrl>/apps/import-app/img/icons/favicon-32x32.png</iconUrl>
-      <contentPath>/</contentPath>
+      <contentPath>import-app\dist</contentPath>
     </app>
   </apps>
 </module>
