@@ -22,6 +22,13 @@ To access the Import App, the user must be authorized with permission _import:ac
 
 > ***Note:*** _If the Import App was launched from the VC Platform environment, then the user will have access to work profiles and import history for the groups to which he is a member with the Vendor Admin role. If necessary, the developer has the opportunity to grant the administrator access to the Import App group of another user_
 
+![Import App workspace](media/06-import-app-workspace.png)
+
+When starting the Import App, the following tools are available to the user:
+
+1. List of profiles that can be used for import. If necessary, the user can create a new profile based on the Importers available in his application. When selecting an element from the list, the user has the opportunity to start importing with the selected profile.
+1. Import run history - displays a list of import operations. When selecting an element from the list, the user receives detailed information about this launch.
+
 
 
 
