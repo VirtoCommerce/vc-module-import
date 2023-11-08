@@ -1,4 +1,4 @@
-# Main Concept
+# Import Framework Main Concept
 
 This article explains the architecture and behavior of Virto Commerce Import Framework, which allows you to easily import your data, such as product information, customers, categories, and much more, into the Virto Commerce platform.
 
@@ -36,11 +36,11 @@ As you can clearly see, VC Data Import is based on three main objects:
     -   _Settings_, which provides settings that can be used to configure _ImportProfile_ linked to the importer in question.
         
 
-# Additional development information.
+## Additional development information.
 
 To create a Custom Importer, the developer needs to define their own DataReader and DataWriter, and define Settings and Validation rules, if necessary. Currently, as a help, the Module provides the ability to use the CSV Reader as part of the [VirtoCommerce.ImportModule.CsvHelper](https://www.nuget.org/packages/VirtoCommerce.ImportModule.CsvHelper) package, but does not restrict the developer from writing their own Readers for any data sources.
 
-> ***Note:*** *As an example, the process of implementing a Custom Importer using CsvHelper is detailed [here](03-building-custom-importer.md).*
+> ***Note:*** *As an example, the process of implementing a Custom Importer using CsvHelper is detailed [here](04-building-custom-importer.md).*
 
 
 The following Module services are also available for developers, which can be used in the UI:
