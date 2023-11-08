@@ -1,19 +1,28 @@
-# Virto Commerce Import Module
+# Virto Commerce Import Module and Virto Commerce Import App
 
 [![CI status](https://github.com/VirtoCommerce/vc-module-import/workflows/Module%20CI/badge.svg?branch=dev)](https://github.com/VirtoCommerce/vc-module-import/actions?query=workflow%3A"Module+CI") 
 
-Provides flexible functionality for writing your own Importers
+Virto Commerce Import App is an application that allows the user to import data from external sources, flexibly configure loading parameters, create and use their own adapters for different data sources.
+
+Implements two main ideas:
+
+1. Virto Commerce Import App is a built-in application, which allows you to use it without any additional settings - just install the Import Module, and import capabilities will appear in your Virto working environment. Implements seamless authorization when switching between applications.
+1. Provides the developer with a full-fledged Import Framework for implementing data adapters (out-of-the-box it contains a pre-implemented importer from CSV)
+
 
 ## Key Features
 
+1. All-in-one Virto custom-app
 1. Simple to use
 1. Pre-realized CSV reader with extendable mapping
+1. Import-on-demand for Operator user
 
 ## Documentation
 
-1. [Main Concept](/docs/01-main-concept.md)
-1. [Additional development information](/docs/02-additional-development-information.md)
-1. [How to build custom Importer](/docs/03-building-custom-importer.md)
+1. [Introduction](/docs/01-introduction.md)
+1. [Module and Import App architecture](/docs/02-architecture.md)
+1. [Import Framework main concept](/docs/03-import-framework-main-concept.md)
+1. [How to build custom Importer](/docs/04-building-custom-importer.md)
 
 ## References
 
