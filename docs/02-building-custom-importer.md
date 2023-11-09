@@ -216,6 +216,6 @@ Line 11: Adding necessary authorization permissions.
 
 You can choose either of the following options to run your newly created data importer:
 
--   Directly from UI as _ImportProfile_ that has an assigned _CsvProductImageImporter_ (TBA)
+-   Directly from UI as _ImportProfile_ that has an assigned _CsvProductImageImporter_ (more information about UI [here](03-import-app.md))
     
 -   Using code (TBA)

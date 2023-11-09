@@ -19,10 +19,9 @@ Implements two main ideas:
 
 ## Documentation
 
-1. [Introduction](/docs/01-introduction.md)
-1. [Module and Import App architecture](/docs/02-architecture.md)
-1. [Import Framework main concept](/docs/03-import-framework-main-concept.md)
-1. [How to build custom Importer](/docs/04-building-custom-importer.md)
+1. [Import Framework main concept](/docs/01-import-framework-main-concept.md)
+1. [How to build custom Importer](/docs/02-building-custom-importer.md)
+1. [Import App](/docs/03-import-app.md)
 
 ## References
 
