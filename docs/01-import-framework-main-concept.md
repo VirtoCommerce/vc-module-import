@@ -42,8 +42,7 @@ To create a Custom Importer, the developer needs to define their own DataReader 
 
 > ***Note:*** *As an example, the process of implementing a Custom Importer using CsvHelper is detailed [here](02-building-custom-importer.md).*
 
-
-The following Module services are also available for developers, which can be used in the UI:
+The following Module services are also available for developers, which can be used in the [UI](03-import-app.md#user-interface-and-work-scenarios):
 
 -   `IImportRunService` is the main service for managing the execution of the import process. The service provides access to methods for previewing (_PreviewAsync_), launching an import (_RunImportAsync_), and creating a similar import task in the form of a BackgroundJob (_RunImportBackgroundJob_).
 
@@ -52,22 +51,6 @@ The following Module services are also available for developers, which can be us
 -   Services `IImportProfileCrudService` and `IImportRunHistoryCrudService` - provide facilities for CRUD operations on _ImportProfiles_ and _ImportRunHistory_.
 
 For developers, the possibility of extending authorization for newly created Importers is available. The `DataImporterBuilder` has _WithAuthorizationReqirement_ and _WithAuthorizationPermission_ methods to set custom permissions if necessary.
-
-## Module folder structure
-
-```text
-├─ docs                                      // module documentation
-├─ samples                                   // helpful to start develop your own Importers
-├─ src                                       // the main codebase of project
-│  ├─ VirtoCommerce.ImportModule.Core        // core models and definitions
-│  ├─ VirtoCommerce.ImportModule.CsvHelper   // import realisation for CSV format. Can be used like sample in development
-│  ├─ VirtoCommerce.ImportModule.Data        // main services and models to work with data
-│  ├─ VirtoCommerce.ImportModule.Data.***    // data proveder-oriented adapters (supports MySql, PostgreSql and SqlServer)
-│  ├─ VirtoCommerce.ImportModule.Web         // controllers and frontend part of project
-│  │  ├─import-app                           // source code of Import App
-│  │  ├─...
-├─ tests                                     // unit and functional tests
-```
 
 ## Import App
 
@@ -117,4 +100,6 @@ $ yarn serve
 ```bash
 $ yarn bump patch/minor/major
 ```
+## Using Import App
 
+More information about using Import App, it's UI and main work scenarios [here](03-import-app.md)
