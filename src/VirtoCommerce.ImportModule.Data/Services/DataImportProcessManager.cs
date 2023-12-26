@@ -98,40 +98,46 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             await progressCallback(importProgress);
 
-            do
+            try
             {
-                token.ThrowIfCancellationRequested();
+                do
+                {
+                    token.ThrowIfCancellationRequested();
 
-                // Read items
-                var items = await reader.ReadNextPageAsync(context);
+                    // Read items
+                    var items = await reader.ReadNextPageAsync(context);
 
-                token.ThrowIfCancellationRequested();
+                    token.ThrowIfCancellationRequested();
 
-                // Write items
-                await writer.WriteAsync(items, context);
+                    // Write items
+                    await writer.WriteAsync(items, context);
 
-                // Update processed count
-                importProgress.ProcessedCount += items.Length;
+                    // Update processed count
+                    importProgress.ProcessedCount += items.Length;
 
-                // Update remaining estimation
-                importRemainingEstimator.Update(context);
-                importRemainingEstimator.Estimate(context);
+                    // Update remaining estimation
+                    importRemainingEstimator.Update(context);
+                    importRemainingEstimator.Estimate(context);
+
+                    await progressCallback(importProgress);
+
+                } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
+            }
+            finally
+            {
+                var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
+
+                importRemainingEstimator.Stop(context);
+
+                // Import finished
+                importProgress.Description = "Import has been finished";
+                importProgress.Finished = DateTime.UtcNow;
+                importProgress.ReportUrl = errorReportResult;
 
                 await progressCallback(importProgress);
 
-            } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
-
-            var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
-
-            importRemainingEstimator.Stop(context);
-
-            // Import finished
-            importProgress.Description = "Import has been finished";
-            importProgress.Finished = DateTime.UtcNow;
-            importProgress.ReportUrl = errorReportResult;
-            await dataImporter.OnImportCompletedAsync(context);
-
-            await progressCallback(importProgress);
+                await dataImporter.OnImportCompletedAsync(context);
+            }
         }
     }
 }
