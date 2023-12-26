@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.Platform.Core.Exceptions;
 using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Data.Services
@@ -123,6 +124,14 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                 } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
             }
+            catch (Exception ex)
+            {
+                context.ErrorCallback?.Invoke(new ErrorInfo
+                {
+                    ErrorMessage = ex.ExpandExceptionMessage(),
+                });
+                throw;
+            }
             finally
             {
                 var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
@@ -134,9 +143,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 importProgress.Finished = DateTime.UtcNow;
                 importProgress.ReportUrl = errorReportResult;
 
-                await progressCallback(importProgress);
-
                 await dataImporter.OnImportCompletedAsync(context);
+
+                await progressCallback(importProgress);
             }
         }
     }
