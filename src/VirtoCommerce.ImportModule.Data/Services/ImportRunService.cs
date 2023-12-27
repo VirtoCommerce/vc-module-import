@@ -66,7 +66,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var pushNotification = new ImportPushNotification(_userNameResolver.GetCurrentUserName())
             {
                 ProfileId = importProfile.Id,
-                ProfileName = importProfile.Name
+                ProfileName = importProfile.Name,
             };
 
             return RunImportBackgroundJob(importProfile, pushNotification);
@@ -91,7 +91,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var pushNotification = new ImportPushNotification(_userNameResolver.GetCurrentUserName())
             {
                 ProfileId = importProfile.Id,
-                ProfileName = importProfile.Name
+                ProfileName = importProfile.Name,
             };
 
             return await RunImportAsync(importProfile, pushNotification, cancellationToken);
@@ -99,8 +99,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         public async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken)
         {
-
             var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
+
             async Task ProgressInfoCallback(ImportProgressInfo progressInfo)
             {
                 pushNotification.Title = progressInfo.Description;
@@ -115,12 +115,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 pushNotification.Errors = progressInfo.Errors;
                 pushNotification.ReportUrl = progressInfo.ReportUrl;
 
-                _pushNotificationManager.Send(pushNotification);
+                await _pushNotificationManager.SendAsync(pushNotification);
 
                 importRunHistory.UpdateProgress(pushNotification);
                 //Uncomment when needed
                 //await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
             }
+
             try
             {
 
@@ -153,7 +154,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
                     emailNotification.To = user.Email;
                     emailNotification.ImportRunHistory = importRunHistory;
-                    if (user.MemberId != null)
+                    if (!string.IsNullOrEmpty(user.MemberId))
                     {
                         emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
                     }
@@ -174,7 +175,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var validationResult = await importer.ValidateAsync(context);
             try
             {
-                using var reader = importer.OpenReader(context);
+                using var reader = await importer.OpenReaderAsync(context);
 
                 var records = new List<object>();
 

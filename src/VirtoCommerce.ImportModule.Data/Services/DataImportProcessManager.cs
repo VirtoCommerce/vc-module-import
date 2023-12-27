@@ -35,17 +35,17 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         public async Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken token)
         {
-            var maxErrorsCountThreshold = await _settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.MaxErrorsCountThreshold.Name, 50);
+            var maxErrorsCountThreshold = await _settingsManager.GetValueAsync<int>(Core.ModuleConstants.Settings.General.MaxErrorsCountThreshold);
 
             // Create importer
             var dataImporter = _dataImporterFactory.Create(importProfile.DataImporterType);
 
             // Create remaining estimator
-            var remainingEstimatorType = await _settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.RemainingEstimator.Name, nameof(DefaultRemainingEstimator));
+            var remainingEstimatorType = await _settingsManager.GetValueAsync<string>(Core.ModuleConstants.Settings.General.RemainingEstimator);
             var importRemainingEstimator = _importRemainingEstimatorFactory.Create(remainingEstimatorType);
 
             // Create reporter
-            var defaultImportReporterType = await _settingsManager.GetValueAsync(Core.ModuleConstants.Settings.General.DefaultImportReporter.Name, nameof(DefaultDataReporter));
+            var defaultImportReporterType = await _settingsManager.GetValueAsync<string>(Core.ModuleConstants.Settings.General.DefaultImportReporter);
             var importReporterType = !string.IsNullOrEmpty(importProfile.ImportReporterType) ? importProfile.ImportReporterType : defaultImportReporterType;
             using var importReporter = _importReporterFactory.Create(importReporterType);
             importReporter.SetContext(importProfile);
@@ -53,8 +53,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
             // Import progress
             var importProgress = new ImportProgressInfo
             {
-                Description = "Import has been started"
+                Description = "Import has been started",
             };
+
             var fixedSizeErrorsQueue = new FixedSizeQueue<ErrorInfo>(50);
             // Import errors
             var errorsCount = 0;
@@ -76,7 +77,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var context = new ImportContext(importProfile)
             {
                 ProgressInfo = importProgress,
-                ErrorCallback = ErrorCallback
+                ErrorCallback = ErrorCallback,
             };
 
             importRemainingEstimator.Start(context);
@@ -128,6 +129,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             {
                 context.ErrorCallback?.Invoke(new ErrorInfo
                 {
+                    ErrorLine = context.ProgressInfo?.ProcessedCount,
                     ErrorMessage = ex.ExpandExceptionMessage(),
                 });
                 throw;
