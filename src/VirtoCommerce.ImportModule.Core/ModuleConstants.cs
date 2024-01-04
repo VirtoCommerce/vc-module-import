@@ -64,7 +64,8 @@ namespace VirtoCommerce.ImportModule.Core
                 {
                     Name = "Import.RemainingEstimator",
                     GroupName = "Import",
-                    ValueType = SettingValueType.ShortText
+                    ValueType = SettingValueType.ShortText,
+                    DefaultValue = "DefaultRemainingEstimator",
                 };
 
                 public static IEnumerable<SettingDescriptor> AllSettings
