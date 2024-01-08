@@ -338,3 +338,4 @@ ASALocalRun/
 
 # Webpack output
 dist/
+.history

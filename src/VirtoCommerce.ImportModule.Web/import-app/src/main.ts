@@ -1,5 +1,5 @@
-import VirtoShellFramework, { notification } from "@vc-shell/framework";
-import ImportModule from "@vc-shell/import-module";
+import VirtoShellFramework, { notification, useUser } from "@vc-shell/framework";
+import * as modules from "@vcmp/import-module";
 import { createApp } from "vue";
 import { router } from "./router";
 import * as locales from "./locales";
@@ -11,18 +11,36 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import "roboto-fontface/css/roboto/roboto-fontface.css";
 import "@vc-shell/framework/dist/index.css";
 
-const app = createApp(RouterView).use(VirtoShellFramework).use(ImportModule, { router }).use(router);
+async function startApp() {
+  const { loadUser } = useUser();
+  await loadUser();
 
-Object.entries(locales).forEach(([key, message]) => {
-  app.config.globalProperties.$mergeLocaleMessage(key, message);
-});
+  const app = createApp(RouterView);
 
-app.provide("platformUrl", import.meta.env.APP_PLATFORM_URL);
-
-app.config.errorHandler = (err) => {
-  notification.error(err.toString(), {
-    timeout: 5000,
+  app.use(VirtoShellFramework, {
+    router,
+    platformUrl: import.meta.env.APP_PLATFORM_URL,
   });
-};
 
-app.mount("#app");
+  Object.values(modules.default).forEach((module) => {
+    app.use(module.default, { router });
+  });
+
+  app.use(router);
+
+  Object.entries(locales).forEach(([key, message]) => {
+    app.config.globalProperties.$mergeLocaleMessage(key, message);
+  });
+
+  // Global error handler
+  app.config.errorHandler = (err: unknown) => {
+    notification.error((err as Error).toString(), {
+      timeout: 5000,
+    });
+  };
+
+  await router.isReady();
+  app.mount("#app");
+}
+
+startApp();

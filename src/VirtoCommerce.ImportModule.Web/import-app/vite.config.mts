@@ -1,10 +1,12 @@
 import { getApplicationConfiguration } from "@vc-shell/config-generator";
 import { VitePWA } from "vite-plugin-pwa";
-import { splitVendorChunkPlugin } from "vite";
-
-const mode = process.env.APP_ENV as string;
 
 export default getApplicationConfiguration({
+  resolve: {
+    alias: {
+      "@vcmp/import-module": "src/modules/index.ts",
+    },
+  },
   plugins: [
     VitePWA({
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
@@ -39,9 +41,5 @@ export default getApplicationConfiguration({
         ],
       },
     }),
-    splitVendorChunkPlugin(),
   ],
-  optimizeDeps: {
-    include: mode === "development" ? ["ace-builds", "client-oauth2", "quill-delta", "quill", "url-pattern"] : [],
-  },
 });

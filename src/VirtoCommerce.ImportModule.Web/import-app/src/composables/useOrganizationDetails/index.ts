@@ -1,7 +1,7 @@
 import { computed, ComputedRef, ref, Ref } from "vue";
 import { OrganizationInfo, OrganizationClient } from "../../api_client/import";
 
-const organizationDetails: Ref<OrganizationInfo> = ref();
+const organizationDetails = ref() as Ref<OrganizationInfo>;
 const organizationClient = new OrganizationClient();
 
 interface IUseOrganizationDetails {

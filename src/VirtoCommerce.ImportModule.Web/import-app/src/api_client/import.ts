@@ -7,6 +7,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
+// @ts-nocheck
 
 export class AuthApiBase {
   authToken = "";
@@ -23,7 +24,7 @@ export class AuthApiBase {
 
   protected transformOptions(options: any): Promise<any> {
     if (this.authToken) {
-      options.headers['authorization'] =  `Bearer ${this.authToken}`;
+      options.headers["authorization"] = `Bearer ${this.authToken}`;
     }
     return Promise.resolve(options);
   }
@@ -1189,31 +1190,23 @@ export interface IImportRunHistory {
 
 export class ObjectSettingEntry implements IObjectSettingEntry {
     readonly itHasValues?: boolean;
-    /** Setting may belong to any object in system */
     objectId?: string | undefined;
     objectType?: string | undefined;
-    /** Flag indicates the this setting is read only and can't be changed */
     isReadOnly?: boolean;
     value?: any | undefined;
     id?: string | undefined;
-    /** The flag indicates that you need to restart the application to apply this setting changes. */
     restartRequired?: boolean;
-    /** The module id which setting belong to */
     moduleId?: string | undefined;
-    /** Setting group name */
     groupName?: string | undefined;
-    /** Setting name */
     name?: string | undefined;
-    /** Display setting name */
     displayName?: string | undefined;
     isRequired?: boolean;
-    /** Flag indicates that this setting doesn't need to be displayed on the UI */
     isHidden?: boolean;
     valueType?: ObjectSettingEntryValueType;
     allowedValues?: any[] | undefined;
     defaultValue?: any | undefined;
-    /** The flag indicates what current setting is just editable dictionary and hasn't any concrete value */
     isDictionary?: boolean;
+    isLocalizable?: boolean;
 
     constructor(data?: IObjectSettingEntry) {
         if (data) {
@@ -1247,6 +1240,7 @@ export class ObjectSettingEntry implements IObjectSettingEntry {
             }
             this.defaultValue = _data["defaultValue"];
             this.isDictionary = _data["isDictionary"];
+            this.isLocalizable = _data["isLocalizable"];
         }
     }
 
@@ -1280,37 +1274,30 @@ export class ObjectSettingEntry implements IObjectSettingEntry {
         }
         data["defaultValue"] = this.defaultValue;
         data["isDictionary"] = this.isDictionary;
+        data["isLocalizable"] = this.isLocalizable;
         return data;
     }
 }
 
 export interface IObjectSettingEntry {
     itHasValues?: boolean;
-    /** Setting may belong to any object in system */
     objectId?: string | undefined;
     objectType?: string | undefined;
-    /** Flag indicates the this setting is read only and can't be changed */
     isReadOnly?: boolean;
     value?: any | undefined;
     id?: string | undefined;
-    /** The flag indicates that you need to restart the application to apply this setting changes. */
     restartRequired?: boolean;
-    /** The module id which setting belong to */
     moduleId?: string | undefined;
-    /** Setting group name */
     groupName?: string | undefined;
-    /** Setting name */
     name?: string | undefined;
-    /** Display setting name */
     displayName?: string | undefined;
     isRequired?: boolean;
-    /** Flag indicates that this setting doesn't need to be displayed on the UI */
     isHidden?: boolean;
     valueType?: ObjectSettingEntryValueType;
     allowedValues?: any[] | undefined;
     defaultValue?: any | undefined;
-    /** The flag indicates what current setting is just editable dictionary and hasn't any concrete value */
     isDictionary?: boolean;
+    isLocalizable?: boolean;
 }
 
 export class OrganizationInfo implements IOrganizationInfo {
@@ -1362,15 +1349,11 @@ export class SearchImportProfilesCriteria implements ISearchImportProfilesCriter
     userName?: string | undefined;
     name?: string | undefined;
     responseGroup?: string | undefined;
-    /** Search object type */
     objectType?: string | undefined;
     objectTypes?: string[] | undefined;
     objectIds?: string[] | undefined;
-    /** Search phrase */
     keyword?: string | undefined;
-    /** Property is left for backward compatibility */
     searchPhrase?: string | undefined;
-    /** Search phrase language */
     languageCode?: string | undefined;
     sort?: string | undefined;
     readonly sortInfos?: SortInfo[] | undefined;
@@ -1461,15 +1444,11 @@ export interface ISearchImportProfilesCriteria {
     userName?: string | undefined;
     name?: string | undefined;
     responseGroup?: string | undefined;
-    /** Search object type */
     objectType?: string | undefined;
     objectTypes?: string[] | undefined;
     objectIds?: string[] | undefined;
-    /** Search phrase */
     keyword?: string | undefined;
-    /** Property is left for backward compatibility */
     searchPhrase?: string | undefined;
-    /** Search phrase language */
     languageCode?: string | undefined;
     sort?: string | undefined;
     sortInfos?: SortInfo[] | undefined;
@@ -1531,15 +1510,11 @@ export class SearchImportRunHistoryCriteria implements ISearchImportRunHistoryCr
     profileId?: string | undefined;
     jobId?: string | undefined;
     responseGroup?: string | undefined;
-    /** Search object type */
     objectType?: string | undefined;
     objectTypes?: string[] | undefined;
     objectIds?: string[] | undefined;
-    /** Search phrase */
     keyword?: string | undefined;
-    /** Property is left for backward compatibility */
     searchPhrase?: string | undefined;
-    /** Search phrase language */
     languageCode?: string | undefined;
     sort?: string | undefined;
     readonly sortInfos?: SortInfo[] | undefined;
@@ -1633,15 +1608,11 @@ export interface ISearchImportRunHistoryCriteria {
     profileId?: string | undefined;
     jobId?: string | undefined;
     responseGroup?: string | undefined;
-    /** Search object type */
     objectType?: string | undefined;
     objectTypes?: string[] | undefined;
     objectIds?: string[] | undefined;
-    /** Search phrase */
     keyword?: string | undefined;
-    /** Property is left for backward compatibility */
     searchPhrase?: string | undefined;
-    /** Search phrase language */
     languageCode?: string | undefined;
     sort?: string | undefined;
     sortInfos?: SortInfo[] | undefined;
@@ -1697,27 +1668,20 @@ export interface ISearchImportRunHistoryResult {
     results?: ImportRunHistory[] | undefined;
 }
 
-/** Represent setting meta description */
 export class SettingDescriptor implements ISettingDescriptor {
     id?: string | undefined;
-    /** The flag indicates that you need to restart the application to apply this setting changes. */
     restartRequired?: boolean;
-    /** The module id which setting belong to */
     moduleId?: string | undefined;
-    /** Setting group name */
     groupName?: string | undefined;
-    /** Setting name */
     name?: string | undefined;
-    /** Display setting name */
     displayName?: string | undefined;
     isRequired?: boolean;
-    /** Flag indicates that this setting doesn't need to be displayed on the UI */
     isHidden?: boolean;
     valueType?: SettingDescriptorValueType;
     allowedValues?: any[] | undefined;
     defaultValue?: any | undefined;
-    /** The flag indicates what current setting is just editable dictionary and hasn't any concrete value */
     isDictionary?: boolean;
+    isLocalizable?: boolean;
 
     constructor(data?: ISettingDescriptor) {
         if (data) {
@@ -1746,6 +1710,7 @@ export class SettingDescriptor implements ISettingDescriptor {
             }
             this.defaultValue = _data["defaultValue"];
             this.isDictionary = _data["isDictionary"];
+            this.isLocalizable = _data["isLocalizable"];
         }
     }
 
@@ -1774,31 +1739,25 @@ export class SettingDescriptor implements ISettingDescriptor {
         }
         data["defaultValue"] = this.defaultValue;
         data["isDictionary"] = this.isDictionary;
+        data["isLocalizable"] = this.isLocalizable;
         return data;
     }
 }
 
-/** Represent setting meta description */
 export interface ISettingDescriptor {
     id?: string | undefined;
-    /** The flag indicates that you need to restart the application to apply this setting changes. */
     restartRequired?: boolean;
-    /** The module id which setting belong to */
     moduleId?: string | undefined;
-    /** Setting group name */
     groupName?: string | undefined;
-    /** Setting name */
     name?: string | undefined;
-    /** Display setting name */
     displayName?: string | undefined;
     isRequired?: boolean;
-    /** Flag indicates that this setting doesn't need to be displayed on the UI */
     isHidden?: boolean;
     valueType?: SettingDescriptorValueType;
     allowedValues?: any[] | undefined;
     defaultValue?: any | undefined;
-    /** The flag indicates what current setting is just editable dictionary and hasn't any concrete value */
     isDictionary?: boolean;
+    isLocalizable?: boolean;
 }
 
 export enum SettingValueType {
