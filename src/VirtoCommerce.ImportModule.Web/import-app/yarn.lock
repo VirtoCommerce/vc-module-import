@@ -2653,11 +2653,6 @@ __metadata:
 "@virtocommerce/import-app@workspace:src/modules":
   version: 0.0.0-use.local
   resolution: "@virtocommerce/import-app@workspace:src/modules"
-  dependencies:
-    autoprefixer: "npm:^10.4.16"
-    postcss: "npm:^8.4.33"
-    tailwindcss: "npm:^3.4.1"
-    vite: "npm:4.5.0"
   languageName: unknown
   linkType: soft
 
@@ -7326,7 +7321,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.23, postcss@npm:^8.4.27, postcss@npm:^8.4.32, postcss@npm:^8.4.33":
+"postcss@npm:^8.4.23, postcss@npm:^8.4.27, postcss@npm:^8.4.32":
   version: 8.4.33
   resolution: "postcss@npm:8.4.33"
   dependencies:
@@ -8432,7 +8427,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:^3.4.0, tailwindcss@npm:^3.4.1":
+"tailwindcss@npm:^3.4.0":
   version: 3.4.1
   resolution: "tailwindcss@npm:3.4.1"
   dependencies:
@@ -9115,46 +9110,6 @@ __metadata:
     workbox-build: ^7.0.0
     workbox-window: ^7.0.0
   checksum: 4dc3764f074e523dbb620399d4c83637b3219be3fe9cb3dd18664eaa8a39c6aa8c639d83f14127876cae4c0cdb1c7ded7910c26546c38b066f4514e4b58d4849
-  languageName: node
-  linkType: hard
-
-"vite@npm:4.5.0":
-  version: 4.5.0
-  resolution: "vite@npm:4.5.0"
-  dependencies:
-    esbuild: "npm:^0.18.10"
-    fsevents: "npm:~2.3.2"
-    postcss: "npm:^8.4.27"
-    rollup: "npm:^3.27.1"
-  peerDependencies:
-    "@types/node": ">= 14"
-    less: "*"
-    lightningcss: ^1.21.0
-    sass: "*"
-    stylus: "*"
-    sugarss: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-    less:
-      optional: true
-    lightningcss:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: b262ea4880ba7de8a77b0a665c771561ae3cb7f0d6c5b90e65298039755192550bf90cb96a2910d564506e2d499aa20e9becd330b835c34d414249083ac6e40c
   languageName: node
   linkType: hard
 
