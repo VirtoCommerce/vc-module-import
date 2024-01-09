@@ -1,5 +1,5 @@
 import VirtoShellFramework, { notification, useUser } from "@vc-shell/framework";
-import * as modules from "@vcmp/import-module";
+import * as modules from "@virtocommerce/import-app";
 import { createApp } from "vue";
 import { router } from "./router";
 import * as locales from "./locales";

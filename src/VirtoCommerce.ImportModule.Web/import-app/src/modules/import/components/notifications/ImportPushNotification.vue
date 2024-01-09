@@ -19,7 +19,7 @@
 
 <script lang="ts" setup>
 import { useBladeNavigation, NotificationTemplate } from "@vc-shell/framework";
-import { ImportPushNotification } from "@vcmp/import-module-api";
+import { ImportPushNotification } from "@virtocommerce/import-app-api";
 import { computed } from "vue";
 
 export interface Props {

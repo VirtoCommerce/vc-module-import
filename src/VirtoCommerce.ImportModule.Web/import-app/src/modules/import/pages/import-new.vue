@@ -268,7 +268,7 @@ import {
 } from "@vc-shell/framework";
 import { UserPermissions } from "./../types";
 import useImport, { ExtProfile } from "../composables/useImport";
-import { ImportDataPreview, ImportPushNotification } from "@vcmp/import-module-api";
+import { ImportDataPreview, ImportPushNotification } from "@virtocommerce/import-app-api";
 import ImportPopup from "../components/ImportPopup.vue";
 import ImportUploadStatus from "../components/ImportUploadStatus.vue";
 import ImportStatus from "../components/ImportStatus.vue";

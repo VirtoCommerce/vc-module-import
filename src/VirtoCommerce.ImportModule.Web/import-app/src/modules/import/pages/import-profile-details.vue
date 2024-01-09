@@ -120,7 +120,7 @@ import {
   useBeforeUnload,
 } from "@vc-shell/framework";
 import useImport from "../composables/useImport";
-import { IDataImporter, ObjectSettingEntry } from "@vcmp/import-module-api";
+import { IDataImporter, ObjectSettingEntry } from "@virtocommerce/import-app-api";
 import { useIsFormValid, Field, useForm, useIsFormDirty } from "vee-validate";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteLeave } from "vue-router";

@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { IImportRunHistory } from "@vcmp/import-module-api";
+import { IImportRunHistory } from "@virtocommerce/import-app-api";
 import { camelToSnake } from "@vc-shell/framework";
 
 export interface Props {

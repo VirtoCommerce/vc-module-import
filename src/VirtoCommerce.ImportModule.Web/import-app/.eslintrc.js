@@ -15,7 +15,8 @@ module.exports = {
   ],
   parser: "vue-eslint-parser",
   parserOptions: {
-    node: true,
+    sourceType: "module",
+    ecmaVersion: 2022,
   },
   settings: {
     "import/parsers": {

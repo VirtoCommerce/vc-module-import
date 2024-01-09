@@ -1,5 +1,5 @@
 {
-  "name": "@vcmp/import-module-api",
+  "name": "@virtocommerce/import-app-api",
   "version": "1.0.142",
   "type": "module",
   "types": "./import.d.ts",
@@ -12,5 +12,5 @@
   "devDependencies": {
     "typescript": "5.3.3"
   },
-  "packageManager": "yarn@3.6.4"
+  "packageManager": "yarn@4.0.2"
 }

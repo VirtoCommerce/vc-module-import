@@ -14,7 +14,7 @@ import {
   SearchImportRunHistoryResult,
   OrganizationInfo,
   OrganizationClient,
-} from "@vcmp/import-module-api";
+} from "@virtocommerce/import-app-api";
 import { IObjectSettingEntry, useNotifications, useUser } from "@vc-shell/framework";
 import * as _ from "lodash-es";
 import { useRoute } from "vue-router";

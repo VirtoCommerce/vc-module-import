@@ -102,7 +102,7 @@ import {
   useBladeNavigation,
 } from "@vc-shell/framework";
 import useImport from "../composables/useImport";
-import { ImportRunHistory } from "@vcmp/import-module-api";
+import { ImportRunHistory } from "@virtocommerce/import-app-api";
 import ImportStatus from "../components/ImportStatus.vue";
 import { UserPermissions } from "./../types";
 import { useI18n } from "vue-i18n";

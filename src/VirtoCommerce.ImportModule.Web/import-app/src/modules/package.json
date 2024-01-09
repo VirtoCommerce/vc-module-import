@@ -1,5 +1,5 @@
 {
-  "name": "@vcmp/import-module",
+  "name": "@virtocommerce/import-app",
   "version": "1.0.142",
   "type": "module",
   "main": "./dist/index.mjs",

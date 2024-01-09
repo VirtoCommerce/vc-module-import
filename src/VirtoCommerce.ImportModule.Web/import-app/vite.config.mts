@@ -4,7 +4,7 @@ import { VitePWA } from "vite-plugin-pwa";
 export default getApplicationConfiguration({
   resolve: {
     alias: {
-      "@vcmp/import-module": "src/modules/index.ts",
+      "@virtocommerce/import-app": "src/modules/index.ts",
     },
   },
   plugins: [
