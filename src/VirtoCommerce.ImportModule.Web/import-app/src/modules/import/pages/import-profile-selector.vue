@@ -10,14 +10,14 @@
   >
     <VcContainer class="import">
       <!-- Import profile widgets-->
-      <div v-loading="profilesLoading || loading">
+      <div v-loading="profilesLoading">
         <VcSlider
           v-if="importProfiles && importProfiles.length > 0"
           class="tw-p-3"
           navigation
           overflow
           :slides="importProfiles"
-          :loading="loading"
+          :loading="profilesLoading"
         >
           <template #default="{ slide }">
             <div class="tw-relative">
