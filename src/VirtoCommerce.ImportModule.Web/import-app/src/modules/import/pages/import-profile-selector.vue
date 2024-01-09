@@ -10,13 +10,12 @@
   >
     <VcContainer class="import">
       <!-- Import profile widgets-->
-      <div
-        v-if="importProfiles && importProfiles.length"
-        class="tw-p-3"
-      >
+      <div v-loading="profilesLoading || loading">
         <VcSlider
-          :navigation="true"
-          :overflow="true"
+          v-if="importProfiles && importProfiles.length > 0"
+          class="tw-p-3"
+          navigation
+          overflow
           :slides="importProfiles"
           :loading="loading"
         >
@@ -44,12 +43,8 @@
             </div>
           </template>
         </VcSlider>
+        <div v-else></div>
       </div>
-      <div
-        v-else
-        v-loading="loading"
-        class="tw-my-4"
-      ></div>
       <VcCard
         :header="$t('IMPORT.PAGES.LAST_EXECUTIONS')"
         class="import__archive tw-m-3"
@@ -153,6 +148,7 @@ const {
   currentPage,
   fetchImportHistory,
   fetchImportProfiles,
+  profilesLoading,
 } = useImport();
 const bladeWidth = ref(50);
 const selectedProfileId = ref();

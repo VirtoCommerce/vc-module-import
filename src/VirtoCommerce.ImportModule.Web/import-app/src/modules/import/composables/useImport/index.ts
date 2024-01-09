@@ -52,6 +52,7 @@ export interface ISearchProfile extends ISearchImportRunHistoryCriteria {
 
 interface IUseImport {
   readonly loading: Ref<boolean>;
+  readonly profilesLoading: Ref<boolean>;
   readonly uploadedFile: Ref<IUploadedFile | undefined>;
   readonly importStatus: Ref<IImportStatus | undefined>;
   readonly isValid: Ref<boolean>;
@@ -71,8 +72,8 @@ interface IUseImport {
   startImport(extProfile?: ExtProfile): Promise<void>;
   cancelImport(): Promise<void>;
   clearImport(): void;
-  fetchImportHistory(query?: ISearchImportRunHistoryCriteria): void;
-  fetchImportProfiles(): void;
+  fetchImportHistory(query?: ISearchImportRunHistoryCriteria): Promise<void>;
+  fetchImportProfiles(): Promise<void>;
   loadImportProfile(args: { id: string }): Promise<void>;
   createImportProfile(details: ImportProfile): Promise<void>;
   updateImportProfile(details: ImportProfile): Promise<void>;
@@ -86,6 +87,7 @@ export default (): IUseImport => {
   const { user } = useUser();
   const route = useRoute();
   const loading = ref(false);
+  const profilesLoading = ref(false);
   const uploadedFile = ref<IUploadedFile>();
   const historySearchResult = ref<SearchImportRunHistoryResult>();
   const profileSearchResult = ref<ISearchProfile>();
@@ -141,10 +143,10 @@ export default (): IUseImport => {
   );
 
   async function fetchImportHistory(query?: ISearchImportRunHistoryCriteria) {
-    const importUserId = await GetSellerId();
     const client = await getApiClient();
     try {
       loading.value = true;
+      const importUserId = await GetSellerId();
       const historyQuery = new SearchImportRunHistoryCriteria({
         ...(query || {}),
         take: 15,
@@ -166,14 +168,14 @@ export default (): IUseImport => {
   }
 
   function updateStatus(notification: INotificationHistory) {
-    const pushNotifcation = notification as ImportPushNotification;
+    const pushNotification = notification as ImportPushNotification;
     importStatus.value = {
       notification: notification,
       jobId: notification.jobId,
       inProgress: !notification.finished,
       progress: ((notification.processedCount as number) / (notification.totalCount as number)) * 100 || 0,
-      estimatingRemaining: pushNotifcation.estimatingRemaining,
-      estimatedRemaining: pushNotifcation.estimatedRemaining,
+      estimatingRemaining: pushNotification.estimatingRemaining,
+      estimatedRemaining: pushNotification.estimatedRemaining,
     };
   }
 
@@ -204,18 +206,19 @@ export default (): IUseImport => {
   }
 
   async function fetchImportProfiles() {
-    const importUserId = await GetSellerId();
+
     const client = await getApiClient();
 
     try {
-      loading.value = true;
+      profilesLoading.value = true;
+      const importUserId = await GetSellerId();
       const profileQuery = new SearchImportProfilesCriteria({ userId: importUserId });
       profileSearchResult.value = (await client.searchImportProfiles(profileQuery)) as ISearchProfile;
     } catch (e) {
       console.error(e);
       throw e;
     } finally {
-      loading.value = false;
+      profilesLoading.value = false;
     }
   }
 
@@ -410,6 +413,7 @@ export default (): IUseImport => {
 
   return {
     loading: computed(() => loading.value),
+    profilesLoading: computed(() => profilesLoading.value),
     uploadedFile: computed(() => uploadedFile.value),
     importStatus: computed(() => importStatus.value),
     isValid: computed(() => !!(profile.value.importer && uploadedFile.value)),

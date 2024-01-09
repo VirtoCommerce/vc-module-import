@@ -16,7 +16,8 @@
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint --fix --cache '**/*.{ts,vue}'",
     "lint-staged": "lint-staged",
-    "generate:api-client": "cross-env api-client-generator --APP_PLATFORM_MODULES='[Import]' --APP_API_CLIENT_DIRECTORY=./src/api_client/"
+    "generate:api-client": "cross-env api-client-generator --APP_PLATFORM_MODULES='[Import]' --APP_API_CLIENT_DIRECTORY=./src/api_client/",
+    "release": "tsx scripts/release.ts"
   },
   "workspaces": [
     "src/api_client",
@@ -28,6 +29,7 @@
     "@laynezh/vite-plugin-lib-assets": "^0.5.13",
     "@rollup/plugin-typescript": "^11.1.5",
     "@types/lodash-es": "^4.17.12",
+    "@types/node": "^20.10.5",
     "@typescript-eslint/eslint-plugin": "^6.16.0",
     "@typescript-eslint/parser": "^6.16.0",
     "@vc-shell/api-client-generator": "^1.0.140",
