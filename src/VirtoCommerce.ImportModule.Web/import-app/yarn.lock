@@ -2801,36 +2801,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vc-shell/api-client-generator@npm:^1.0.140":
-  version: 1.0.140
-  resolution: "@vc-shell/api-client-generator@npm:1.0.140"
+"@vc-shell/api-client-generator@npm:^1.0.142":
+  version: 1.0.142
+  resolution: "@vc-shell/api-client-generator@npm:1.0.142"
   dependencies:
     chalk: "npm:^2.4.2"
     nswag: "npm:^13.20.0"
-    vite: "npm:^4.5.0"
+    vite: "npm:^5.0.11"
     vite-plugin-dts: "npm:^3.6.4"
   bin:
     api-client-generator: ./dist/api-client-generator.js
-  checksum: 8d8093bdb5a87180dc9c7131ef3d8545183ef33ab7981228a7508eb062bc85720d1ad633152995cc2b86e3f1c49d9d219048934107982a4b4ba9bb132ba191c7
+  checksum: 1067ad80e02076123be414006286b20e09f6647fa4136d2abc4bdcaab836e7ae99beff4bf914b8c87e351973f7fb46ef001f74ea6d870528da42ae27759dbc48
   languageName: node
   linkType: hard
 
-"@vc-shell/config-generator@npm:^1.0.140":
-  version: 1.0.140
-  resolution: "@vc-shell/config-generator@npm:1.0.140"
+"@vc-shell/config-generator@npm:^1.0.142":
+  version: 1.0.142
+  resolution: "@vc-shell/config-generator@npm:1.0.142"
   dependencies:
-    "@vitejs/plugin-vue": "npm:^4.6.2"
-    vite: "npm:^4.5.0"
+    "@vitejs/plugin-vue": "npm:^5.0.3"
+    vite: "npm:^5.0.11"
     vite-plugin-checker: "npm:^0.6.2"
     vite-plugin-mkcert: "npm:^1.17.1"
     vue: "npm:^3.4.7"
-  checksum: 3dfa50b383705b55ceb3e464e003a04e76bae502755c4d811a2df1d408451629399b6d0a805dc8e4b56d316dc18913a79268d3d156f123bb8d59bf5a1cd6b080
+  checksum: fbde262c9cf18b787d379bb96244b4edecfa9c7d4dfeb9961aae4e61d1cf6fe06bdc2d4dcd95663107bdd52c64746094960dcb9960e51fb4cf76c10e703964bc
   languageName: node
   linkType: hard
 
-"@vc-shell/framework@npm:^1.0.140":
-  version: 1.0.140
-  resolution: "@vc-shell/framework@npm:1.0.140"
+"@vc-shell/framework@npm:^1.0.142":
+  version: 1.0.142
+  resolution: "@vc-shell/framework@npm:1.0.142"
   dependencies:
     "@floating-ui/vue": "npm:^1.0.2"
     "@microsoft/signalr": "npm:^8.0.0"
@@ -2854,27 +2854,27 @@ __metadata:
     vue-router: "npm:^4.2.5"
     vue3-ace-editor: "npm:^2.2.4"
     whatwg-fetch: "npm:^3.6.19"
-  checksum: cb283bc296b2f607b23dd8d2d512764ceae4b7c2b8cc39f8773ef7846c691acac0a1de1da2e145aea5185abed0b71b5e8ead6d7775594901c35009963c1b37d4
+  checksum: a6b3976ee7f5f61f847b039e589054d681d16ad1a7d0f870058078dd2023192455081a11f9eb44b883534a7a374bc95442e4355428646c11da9a706c2302d6c9
   languageName: node
   linkType: hard
 
-"@vc-shell/release-config@npm:^1.0.140":
-  version: 1.0.140
-  resolution: "@vc-shell/release-config@npm:1.0.140"
+"@vc-shell/release-config@npm:^1.0.142":
+  version: 1.0.142
+  resolution: "@vc-shell/release-config@npm:1.0.142"
   dependencies:
     chalk: "npm:^2.4.2"
     mri: "npm:^1.2.0"
     prompts: "npm:^2.4.2"
     semver: "npm:^7.5.4"
-    vite: "npm:^4.5.0"
-  checksum: c9709989b2f40fa8c5d239d9387ec084525b284fe1696d3022159a7585d79789291341ee1313b3e6d29dcc432dd00e950de31739d47560859b9e6fbb8a202cf1
+    vite: "npm:^5.0.11"
+  checksum: b3ac8cd8bf9d101c8616ea4e0e6a5fd9995d7cdce20e0296ba9ea5536e743b0f97ac5a3c282050d9c5e4e66537bb741f3a9451da17b0b061f1f7b7f859d9fcd2
   languageName: node
   linkType: hard
 
-"@vc-shell/ts-config@npm:^1.0.140":
-  version: 1.0.140
-  resolution: "@vc-shell/ts-config@npm:1.0.140"
-  checksum: 0953771724a15c1c6e936587a2639eaf548f176a27c224c7207d60aa75a2a14b4fc349051b0c8b8d585623b8b66a31cfc52e82bdb3215b3735a96566ff276ad8
+"@vc-shell/ts-config@npm:^1.0.142":
+  version: 1.0.142
+  resolution: "@vc-shell/ts-config@npm:1.0.142"
+  checksum: 70f0029b0d82e748a8f4ab4dda588ff864949e8796e189566c2a46256dba6dd990229402093a1bce8fe6cedb1c43eb87f8dc6fcb9a2bd68316013b9c09513083
   languageName: node
   linkType: hard
 
@@ -2907,16 +2907,6 @@ __metadata:
   resolution: "@virtocommerce/import-app@workspace:src/modules"
   languageName: unknown
   linkType: soft
-
-"@vitejs/plugin-vue@npm:^4.6.2":
-  version: 4.6.2
-  resolution: "@vitejs/plugin-vue@npm:4.6.2"
-  peerDependencies:
-    vite: ^4.0.0 || ^5.0.0
-    vue: ^3.2.25
-  checksum: 7102f6804347744d14d20b8fa339d4ef28bfd3d4859a5edde8fef0686c52d26b2372d7ef342b71caa51d5908f6cb6dd831b338644fa5457076790b2e2e3aab9e
-  languageName: node
-  linkType: hard
 
 "@vitejs/plugin-vue@npm:^5.0.3":
   version: 5.0.3
@@ -4595,83 +4585,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.18.10, esbuild@npm:~0.18.20":
-  version: 0.18.20
-  resolution: "esbuild@npm:0.18.20"
-  dependencies:
-    "@esbuild/android-arm": "npm:0.18.20"
-    "@esbuild/android-arm64": "npm:0.18.20"
-    "@esbuild/android-x64": "npm:0.18.20"
-    "@esbuild/darwin-arm64": "npm:0.18.20"
-    "@esbuild/darwin-x64": "npm:0.18.20"
-    "@esbuild/freebsd-arm64": "npm:0.18.20"
-    "@esbuild/freebsd-x64": "npm:0.18.20"
-    "@esbuild/linux-arm": "npm:0.18.20"
-    "@esbuild/linux-arm64": "npm:0.18.20"
-    "@esbuild/linux-ia32": "npm:0.18.20"
-    "@esbuild/linux-loong64": "npm:0.18.20"
-    "@esbuild/linux-mips64el": "npm:0.18.20"
-    "@esbuild/linux-ppc64": "npm:0.18.20"
-    "@esbuild/linux-riscv64": "npm:0.18.20"
-    "@esbuild/linux-s390x": "npm:0.18.20"
-    "@esbuild/linux-x64": "npm:0.18.20"
-    "@esbuild/netbsd-x64": "npm:0.18.20"
-    "@esbuild/openbsd-x64": "npm:0.18.20"
-    "@esbuild/sunos-x64": "npm:0.18.20"
-    "@esbuild/win32-arm64": "npm:0.18.20"
-    "@esbuild/win32-ia32": "npm:0.18.20"
-    "@esbuild/win32-x64": "npm:0.18.20"
-  dependenciesMeta:
-    "@esbuild/android-arm":
-      optional: true
-    "@esbuild/android-arm64":
-      optional: true
-    "@esbuild/android-x64":
-      optional: true
-    "@esbuild/darwin-arm64":
-      optional: true
-    "@esbuild/darwin-x64":
-      optional: true
-    "@esbuild/freebsd-arm64":
-      optional: true
-    "@esbuild/freebsd-x64":
-      optional: true
-    "@esbuild/linux-arm":
-      optional: true
-    "@esbuild/linux-arm64":
-      optional: true
-    "@esbuild/linux-ia32":
-      optional: true
-    "@esbuild/linux-loong64":
-      optional: true
-    "@esbuild/linux-mips64el":
-      optional: true
-    "@esbuild/linux-ppc64":
-      optional: true
-    "@esbuild/linux-riscv64":
-      optional: true
-    "@esbuild/linux-s390x":
-      optional: true
-    "@esbuild/linux-x64":
-      optional: true
-    "@esbuild/netbsd-x64":
-      optional: true
-    "@esbuild/openbsd-x64":
-      optional: true
-    "@esbuild/sunos-x64":
-      optional: true
-    "@esbuild/win32-arm64":
-      optional: true
-    "@esbuild/win32-ia32":
-      optional: true
-    "@esbuild/win32-x64":
-      optional: true
-  bin:
-    esbuild: bin/esbuild
-  checksum: 1f723ec71c3aa196473bf3298316eedc3f62d523924652dfeb60701b609792f918fc60db84b420d1d8ba9bfa7d69de2fc1d3157ba47c028bdae5d507a26a3c64
-  languageName: node
-  linkType: hard
-
 "esbuild@npm:^0.19.3":
   version: 0.19.11
   resolution: "esbuild@npm:0.19.11"
@@ -4749,6 +4662,83 @@ __metadata:
   bin:
     esbuild: bin/esbuild
   checksum: a40b3858c29618c8c893389372f469245a6b2d1319782af75d33d8ba5dcadfe181fcc935f8e1a907be667946384950a4cf482ebe1e79c99c932d2b8eb35a09d0
+  languageName: node
+  linkType: hard
+
+"esbuild@npm:~0.18.20":
+  version: 0.18.20
+  resolution: "esbuild@npm:0.18.20"
+  dependencies:
+    "@esbuild/android-arm": "npm:0.18.20"
+    "@esbuild/android-arm64": "npm:0.18.20"
+    "@esbuild/android-x64": "npm:0.18.20"
+    "@esbuild/darwin-arm64": "npm:0.18.20"
+    "@esbuild/darwin-x64": "npm:0.18.20"
+    "@esbuild/freebsd-arm64": "npm:0.18.20"
+    "@esbuild/freebsd-x64": "npm:0.18.20"
+    "@esbuild/linux-arm": "npm:0.18.20"
+    "@esbuild/linux-arm64": "npm:0.18.20"
+    "@esbuild/linux-ia32": "npm:0.18.20"
+    "@esbuild/linux-loong64": "npm:0.18.20"
+    "@esbuild/linux-mips64el": "npm:0.18.20"
+    "@esbuild/linux-ppc64": "npm:0.18.20"
+    "@esbuild/linux-riscv64": "npm:0.18.20"
+    "@esbuild/linux-s390x": "npm:0.18.20"
+    "@esbuild/linux-x64": "npm:0.18.20"
+    "@esbuild/netbsd-x64": "npm:0.18.20"
+    "@esbuild/openbsd-x64": "npm:0.18.20"
+    "@esbuild/sunos-x64": "npm:0.18.20"
+    "@esbuild/win32-arm64": "npm:0.18.20"
+    "@esbuild/win32-ia32": "npm:0.18.20"
+    "@esbuild/win32-x64": "npm:0.18.20"
+  dependenciesMeta:
+    "@esbuild/android-arm":
+      optional: true
+    "@esbuild/android-arm64":
+      optional: true
+    "@esbuild/android-x64":
+      optional: true
+    "@esbuild/darwin-arm64":
+      optional: true
+    "@esbuild/darwin-x64":
+      optional: true
+    "@esbuild/freebsd-arm64":
+      optional: true
+    "@esbuild/freebsd-x64":
+      optional: true
+    "@esbuild/linux-arm":
+      optional: true
+    "@esbuild/linux-arm64":
+      optional: true
+    "@esbuild/linux-ia32":
+      optional: true
+    "@esbuild/linux-loong64":
+      optional: true
+    "@esbuild/linux-mips64el":
+      optional: true
+    "@esbuild/linux-ppc64":
+      optional: true
+    "@esbuild/linux-riscv64":
+      optional: true
+    "@esbuild/linux-s390x":
+      optional: true
+    "@esbuild/linux-x64":
+      optional: true
+    "@esbuild/netbsd-x64":
+      optional: true
+    "@esbuild/openbsd-x64":
+      optional: true
+    "@esbuild/sunos-x64":
+      optional: true
+    "@esbuild/win32-arm64":
+      optional: true
+    "@esbuild/win32-ia32":
+      optional: true
+    "@esbuild/win32-x64":
+      optional: true
+  bin:
+    esbuild: bin/esbuild
+  checksum: 1f723ec71c3aa196473bf3298316eedc3f62d523924652dfeb60701b609792f918fc60db84b420d1d8ba9bfa7d69de2fc1d3157ba47c028bdae5d507a26a3c64
   languageName: node
   linkType: hard
 
@@ -5832,11 +5822,11 @@ __metadata:
     "@types/node": "npm:^20.10.5"
     "@typescript-eslint/eslint-plugin": "npm:^6.16.0"
     "@typescript-eslint/parser": "npm:^6.16.0"
-    "@vc-shell/api-client-generator": "npm:^1.0.140"
-    "@vc-shell/config-generator": "npm:^1.0.140"
-    "@vc-shell/framework": "npm:^1.0.140"
-    "@vc-shell/release-config": "npm:^1.0.140"
-    "@vc-shell/ts-config": "npm:^1.0.140"
+    "@vc-shell/api-client-generator": "npm:^1.0.142"
+    "@vc-shell/config-generator": "npm:^1.0.142"
+    "@vc-shell/framework": "npm:^1.0.142"
+    "@vc-shell/release-config": "npm:^1.0.142"
+    "@vc-shell/ts-config": "npm:^1.0.142"
     "@vitejs/plugin-vue": "npm:^5.0.3"
     "@vue/eslint-config-prettier": "npm:^9.0.0"
     "@vue/eslint-config-typescript": "npm:^12.0.0"
@@ -7663,7 +7653,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.23, postcss@npm:^8.4.27, postcss@npm:^8.4.32":
+"postcss@npm:^8.4.23, postcss@npm:^8.4.32":
   version: 8.4.33
   resolution: "postcss@npm:8.4.33"
   dependencies:
@@ -8174,20 +8164,6 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: df087b701304432f30922bbee5f534ab189aa6938bd383b5686c03147e0d00cd1789ea10a462361326ce6b6ebe448ce272ad3f3cc40b82eeb3157df12f33663c
-  languageName: node
-  linkType: hard
-
-"rollup@npm:^3.27.1":
-  version: 3.29.4
-  resolution: "rollup@npm:3.29.4"
-  dependencies:
-    fsevents: "npm:~2.3.2"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    rollup: dist/bin/rollup
-  checksum: 9e39d54e23731a4c4067e9c02910cdf7479a0f9a7584796e2dc6efaa34bb1e5e015c062c87d1e64d96038baca76cefd47681ff22604fae5827147f54123dc6d0
   languageName: node
   linkType: hard
 
@@ -9506,46 +9482,6 @@ __metadata:
     workbox-build: ^7.0.0
     workbox-window: ^7.0.0
   checksum: 4dc3764f074e523dbb620399d4c83637b3219be3fe9cb3dd18664eaa8a39c6aa8c639d83f14127876cae4c0cdb1c7ded7910c26546c38b066f4514e4b58d4849
-  languageName: node
-  linkType: hard
-
-"vite@npm:^4.5.0":
-  version: 4.5.1
-  resolution: "vite@npm:4.5.1"
-  dependencies:
-    esbuild: "npm:^0.18.10"
-    fsevents: "npm:~2.3.2"
-    postcss: "npm:^8.4.27"
-    rollup: "npm:^3.27.1"
-  peerDependencies:
-    "@types/node": ">= 14"
-    less: "*"
-    lightningcss: ^1.21.0
-    sass: "*"
-    stylus: "*"
-    sugarss: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-    less:
-      optional: true
-    lightningcss:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 2ea9c030a5718ca0adaaa0ecc54402a725cff59131cf80bc84d0237f59c98168803ee59d23e697b98b1184be3af6c6edc2e81517f769c62159f11531b3341a4e
   languageName: node
   linkType: hard
 
