@@ -1,10 +1,11 @@
 import { getApplicationConfiguration } from "@vc-shell/config-generator";
+import { resolve } from "node:path";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default getApplicationConfiguration({
   resolve: {
     alias: {
-      "@virtocommerce/import-app": "src/modules/index.ts",
+      "@virtocommerce/import-app": resolve("src/modules/index.ts"),
     },
   },
   plugins: [
