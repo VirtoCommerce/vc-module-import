@@ -91,7 +91,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             model.TotalCount = TotalCount;
             model.ProcessedCount = ProcessedCount;
             model.ErrorsCount = ErrorsCount;
-            model.Errors = JsonConvert.DeserializeObject<ICollection<string>>(Errors);
+            model.Errors = JsonConvert.DeserializeObject<ICollection<string>>(Errors ?? "[]");
             model.FileUrl = FileUrl;
             model.ReportUrl = ReportUrl;
 

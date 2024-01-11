@@ -1,0 +1,44 @@
+# v2.0.0
+name: Build Import App
+
+inputs:
+  githubToken:
+    description: "GitHub Token"
+    required: true
+  npmToken:
+    description: "NPM Token"
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+
+    - name: Install dependencies for Import App
+      shell: bash
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      run: yarn
+
+    - name: Build Import Module
+      shell: bash
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      run: yarn bootstrap
+
+    - name: Add auth token
+      shell: bash
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      run: |
+        yarn config set --json npmRegistries '{ "//registry.npmjs.org": { "npmAuthToken": "'"${NPM_TOKEN}"'" } }'
+      env:
+        NPM_TOKEN: ${{ inputs.npmToken }}
+
+    - name: Publish Import module
+      shell: bash
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      run: yarn run publish || true
+
+    - name: Build Import App
+      shell: bash
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      run: yarn build
+

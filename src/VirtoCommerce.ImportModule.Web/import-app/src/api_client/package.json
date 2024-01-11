@@ -1,0 +1,16 @@
+{
+  "name": "@virtocommerce/import-app-api",
+  "version": "1.0.147",
+  "type": "module",
+  "types": "./import.d.ts",
+  "exports": {
+    ".": "./import.ts"
+  },
+  "scripts": {
+    "generate-types": "tsc --emitDeclarationOnly --declaration"
+  },
+  "devDependencies": {
+    "typescript": "5.3.3"
+  },
+  "packageManager": "yarn@4.0.2"
+}

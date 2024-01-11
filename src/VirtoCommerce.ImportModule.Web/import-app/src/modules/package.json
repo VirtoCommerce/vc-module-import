@@ -1,0 +1,26 @@
+{
+  "name": "@virtocommerce/import-app",
+  "version": "1.0.147",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/types/index.d.ts",
+  "./dist/index.css": "./dist/style.css",
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./dist/style.css": "./dist/style.css"
+  },
+  "scripts": {
+    "publish": "npm publish"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

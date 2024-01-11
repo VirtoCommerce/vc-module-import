@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
     <PackageReference Include="VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem" Version="3.215.0" />
   </ItemGroup>
 
@@ -25,15 +26,28 @@
 
   <ItemGroup>
     <NotificationTemplates Include="NotificationTemplates\**" />
+    <ImportApp Include="import-app\dist\**" />
   </ItemGroup>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="@(NotificationTemplates)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
+    <Copy SourceFiles="@(ImportApp)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
   </Target>
+  <ItemGroup>
+    <Compile Remove="import-app\**" />
+    <Content Remove="import-app\**" />
+    <EmbeddedResource Remove="import-app\**" />
+    <None Remove="import-app\**" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <None Update="module.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Scripts\widgets\" />
   </ItemGroup>
 
 </Project>

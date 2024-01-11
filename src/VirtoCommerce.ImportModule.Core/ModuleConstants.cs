@@ -30,7 +30,7 @@ namespace VirtoCommerce.ImportModule.Core
                     ValueType = SettingValueType.PositiveInteger,
                     GroupName = "Import",
                     IsDictionary = false,
-                    DefaultValue = "50"
+                    DefaultValue = 50,
                 };
 
                 public static SettingDescriptor ImportLimitOfLines { get; } = new()
@@ -39,7 +39,7 @@ namespace VirtoCommerce.ImportModule.Core
                     GroupName = "Import",
                     ValueType = SettingValueType.PositiveInteger,
                     IsHidden = true,
-                    DefaultValue = 10000
+                    DefaultValue = 10000,
                 };
 
                 public static SettingDescriptor ImportFileMaxSize { get; } = new()
@@ -48,7 +48,7 @@ namespace VirtoCommerce.ImportModule.Core
                     GroupName = "Import",
                     ValueType = SettingValueType.PositiveInteger,
                     IsHidden = true,
-                    DefaultValue = 1 // MB
+                    DefaultValue = 1, // MB
                 };
 
                 public static SettingDescriptor DefaultImportReporter { get; } = new()
@@ -57,14 +57,15 @@ namespace VirtoCommerce.ImportModule.Core
                     GroupName = "Import",
                     ValueType = SettingValueType.ShortText,
                     DefaultValue = "DefaultDataReporter",
-                    AllowedValues = new object[] { "DefaultDataReporter", "CsvDataReporter" }
+                    AllowedValues = new object[] { "DefaultDataReporter", "CsvDataReporter" },
                 };
 
                 public static SettingDescriptor RemainingEstimator { get; } = new()
                 {
                     Name = "Import.RemainingEstimator",
                     GroupName = "Import",
-                    ValueType = SettingValueType.ShortText
+                    ValueType = SettingValueType.ShortText,
+                    DefaultValue = "DefaultRemainingEstimator",
                 };
 
                 public static IEnumerable<SettingDescriptor> AllSettings

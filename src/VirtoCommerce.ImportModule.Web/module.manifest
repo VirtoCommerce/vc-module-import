@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <module>
   <id>VirtoCommerce.Import</id>
-  <version>3.400.0</version>
+  <version>3.401.0</version>
   <version-tag></version-tag>
   <platformVersion>3.400.0</platformVersion>
   <dependencies>
@@ -27,4 +27,11 @@
   <copyright>Copyright © 2023 VirtoCommerce. All rights reserved</copyright>
   <tags>extension module</tags>
   <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
+  <apps>
+    <app id="import-app">
+      <title>Import App</title>
+      <iconUrl>/apps/import-app/img/icons/favicon-32x32.png</iconUrl>
+      <contentPath>import-app/dist</contentPath>
+    </app>
+  </apps>
 </module>

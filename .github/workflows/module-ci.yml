@@ -1,4 +1,4 @@
-# v3.200.30
+# v3.200.35
 name: Module CI
 
 on:
@@ -92,6 +92,12 @@ jobs:
         with:
           versionSuffix: ${{ env.VERSION_SUFFIX }}
 
+      - name: Build Import App
+        uses: ./.github/actions/build-import-app
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          npmToken: ${{ secrets.NPM_TOKEN }}
+
       - name: Build
         run: vc-build Compile
 
@@ -119,13 +125,6 @@ jobs:
           branchName: ${{ github.head_ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Add link to PR
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: VirtoCommerce/vc-github-actions/publish-artifact-link@master
-        with:
-          artifactUrl: ${{ steps.blobRelease.outputs.packageUrl }}
-          downloadComment: 'Artifact URL:'
 
       - name: Publish Github Release
         if: ${{ github.ref == 'refs/heads/master' }}
@@ -188,7 +187,7 @@ jobs:
   deploy-cloud:
     if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/dev') }}
     needs: ci
-    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@v3.200.30
+    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@v3.200.35
     with:
       releaseSource: module
       moduleId: ${{ needs.ci.outputs.moduleId }}
