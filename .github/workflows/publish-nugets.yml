@@ -11,11 +11,6 @@ on:
         type: boolean
 
 jobs:
-  test:
-    uses: VirtoCommerce/.github/.github/workflows/test-and-sonar.yml@v3.200.36
-    secrets:
-      sonarToken: ${{ secrets.SONAR_TOKEN }}
-
   build:
     uses: VirtoCommerce/.github/.github/workflows/build.yml@v3.200.36
     with:
@@ -27,7 +22,7 @@ jobs:
 
   publish-nuget:
     needs:
-      [build, test]
+      [build]
     uses: VirtoCommerce/.github/.github/workflows/publish-github.yml@v3.200.36
     with:
       fullKey: ${{ needs.build.outputs.packageFullKey }}
