@@ -163,28 +163,28 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         public async Task Import_product_with_properties_properties_metadata_resoved()
         {
             // Arrange
-            var propertyValue = new PropertyValue()
+            var propertyValue = new PropertyValue
             {
                 PropertyName = "Dictionary",
             };
             var allCategoryProperties = new Property[]
             {
-                new Property()
+                new()
                 {
                     Name = "Dictionary",
                     Dictionary = true,
                     ValueType = PropertyValueType.ShortText,
                 }
             };
-            _propDictItemSearchService.Setup(a => a.SearchAsync(It.IsAny<PropertyDictionaryItemSearchCriteria>())).ReturnsAsync(new PropertyDictionaryItemSearchResult()
+            _propDictItemSearchService.Setup(a => a.SearchAsync(It.IsAny<PropertyDictionaryItemSearchCriteria>(), It.IsAny<bool>())).ReturnsAsync(new PropertyDictionaryItemSearchResult
             {
-                Results = new PropertyDictionaryItem[]
+                Results = new[]
                 {
-                    new PropertyDictionaryItem()
+                    new PropertyDictionaryItem
                     {
-                        Alias = "AliasTest"
-                    }
-                }
+                        Alias = "AliasTest",
+                    },
+                },
             });
 
             // Act
@@ -197,7 +197,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
 
         private static object[] GetProducts()
         {
-            return new object[] { new CatalogProduct()
+            return new object[] { new CatalogProduct
             {
                 CategoryId = "TestCategoryId",
                 OuterId = "TestOuterId",

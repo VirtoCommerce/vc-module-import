@@ -32,7 +32,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             }
             _reportUrl = importProfile.ImportReportUrl;
 
-            _delimiter = importProfile.Settings.GetSettingValue(CsvSettings.Delimiter.Name, (string)CsvSettings.Delimiter.DefaultValue);
+            _delimiter = importProfile.Settings.GetValue<string>(CsvSettings.Delimiter);
         }
 
         public async Task<string> SaveErrorsAsync(List<ErrorInfo> errorsToSave)

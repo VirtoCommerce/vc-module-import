@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -12,17 +12,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="8.0.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-    <PackageReference Include="Moq" Version="4.18.1" />
-    <PackageReference Include="VirtoCommerce.CatalogModule.Data" Version="3.200.0" />
-    <PackageReference Include="VirtoCommerce.ExportModule.Data" Version="3.200.0" />
-    <PackageReference Include="VirtoCommerce.ExportModule.JsonProvider" Version="3.200.0" />
-    <PackageReference Include="VirtoCommerce.OrdersModule.Core" Version="3.204.0" />
-    <PackageReference Include="VirtoCommerce.StoreModule.Core" Version="3.203.0" />
-    <PackageReference Include="xunit" Version="2.4.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
-    <PackageReference Include="coverlet.collector" Version="1.0.1" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="VirtoCommerce.CatalogModule.Data" Version="3.800.0" />
+    <PackageReference Include="VirtoCommerce.ExportModule.Data" Version="3.800.0" />
+    <PackageReference Include="VirtoCommerce.ExportModule.JsonProvider" Version="3.800.0" />
+    <PackageReference Include="VirtoCommerce.OrdersModule.Core" Version="3.801.0" />
+    <PackageReference Include="VirtoCommerce.StoreModule.Core" Version="3.800.0" />
+    <PackageReference Include="xunit" Version="2.6.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" />
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

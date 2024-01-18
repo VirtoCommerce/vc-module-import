@@ -34,7 +34,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
 
         public async Task WriteAsync(object[] items, ImportContext context)
         {
-            var products = items.Cast<CatalogProduct>();
+            var products = items.Cast<CatalogProduct>().ToArray();
 
             //Load properties metadata for product before save
             await LoadPropertiesMetadata(products, context);
@@ -46,7 +46,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
             {
                 OuterIds = products.Select(x => x.OuterId).ToArray()
             });
-            var searchResultOuterId = searchResult.Results.Select(x => x.OuterId);
+            var searchResultOuterIds = searchResult.Results.Select(x => x.OuterId).ToArray();
 
             foreach (var product in products)
             {
@@ -56,7 +56,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
                 {
                     try
                     {
-                        if (!searchResultOuterId.Contains(product.OuterId))
+                        if (!searchResultOuterIds.Contains(product.OuterId))
                         {
                             await _itemService.SaveChangesAsync(new[] { product });
                         }
@@ -117,12 +117,13 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         protected virtual void Dispose(bool disposing)
         {
         }
-        private async Task LoadPropertiesMetadata(IEnumerable<CatalogProduct> products, ImportContext context)
+
+        private async Task LoadPropertiesMetadata(IList<CatalogProduct> products, ImportContext context)
         {
-            var createNewDictItemIfNotFound = context.ImportProfile.Settings.GetSettingValue(CsvProductSettings.CreateDictionaryValues.Name, (bool)CsvProductSettings.CreateDictionaryValues.DefaultValue);
+            var createNewDictItemIfNotFound = context.ImportProfile.Settings.GetValue<bool>(CsvProductSettings.CreateDictionaryValues);
 
             var categoriesIds = products.Select(x => x.CategoryId).Distinct().ToArray();
-            var categories = await _categoryService.GetByIdsAsync(categoriesIds, null);
+            var categories = await _categoryService.GetAsync(categoriesIds, null);
             var categoriesByIdDict = categories.ToDictionary(x => x.Id).WithDefaultValue(null);
 
             foreach (var product in products)
@@ -130,7 +131,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
                 var allCategoryProperties = categoriesByIdDict[product.CategoryId]?.Properties?.ToArray();
                 if (allCategoryProperties != null)
                 {
-                    foreach (var propertyValue in product.Properties?.SelectMany(x => x.Values))
+                    foreach (var propertyValue in product.Properties?.SelectMany(x => x.Values) ?? Enumerable.Empty<PropertyValue>())
                     {
                         var property = await _propertyMetadataLoader.TryLoadMetadata(propertyValue, allCategoryProperties, createNewDictItemIfNotFound);
                         if (property != null && property.Dictionary && propertyValue.ValueId == null)
@@ -138,7 +139,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
                             var errorInfo = new ErrorInfo
                             {
                                 ErrorMessage = $"The '{propertyValue.Alias}' dictionary item is not found in '{propertyValue.PropertyName}' dictionary",
-                                ErrorCode = "ImportError"
+                                ErrorCode = "ImportError",
                             };
                             context.ErrorCallback(errorInfo);
                         }
