@@ -123,7 +123,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
             var createNewDictItemIfNotFound = context.ImportProfile.Settings.GetValue<bool>(CsvProductSettings.CreateDictionaryValues);
 
             var categoriesIds = products.Select(x => x.CategoryId).Distinct().ToArray();
-            var categories = await _categoryService.GetAsync(categoriesIds, null);
+            var categories = await _categoryService.GetAsync(categoriesIds, null) ?? Array.Empty<Category>();
             var categoriesByIdDict = categories.ToDictionary(x => x.Id).WithDefaultValue(null);
 
             foreach (var product in products)
