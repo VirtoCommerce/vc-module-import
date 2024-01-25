@@ -2,9 +2,9 @@
   "name": "@virtocommerce/import-app-api",
   "version": "1.0.147",
   "type": "module",
-  "types": "./import.d.ts",
+  "types": "./virtocommerce.import.d.ts",
   "exports": {
-    ".": "./import.ts"
+    ".": "./virtocommerce.import.ts"
   },
   "scripts": {
     "generate-types": "tsc --emitDeclarationOnly --declaration"

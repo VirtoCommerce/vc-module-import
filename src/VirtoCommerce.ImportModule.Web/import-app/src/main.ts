@@ -4,6 +4,7 @@ import { createApp } from "vue";
 import { router } from "./router";
 import * as locales from "./locales";
 import { RouterView } from "vue-router";
+import { bootstrap } from "./bootstrap";
 
 // Load required CSS
 import "./styles/index.scss";
@@ -20,6 +21,10 @@ async function startApp() {
   app.use(VirtoShellFramework, {
     router,
     platformUrl: import.meta.env.APP_PLATFORM_URL,
+    i18n: {
+      locale: import.meta.env.APP_I18N_LOCALE,
+      fallbackLocale: import.meta.env.APP_I18N_FALLBACK_LOCALE,
+    },
   });
 
   Object.values(modules.default).forEach((module) => {
@@ -27,6 +32,8 @@ async function startApp() {
   });
 
   app.use(router);
+
+  bootstrap(app);
 
   Object.entries(locales).forEach(([key, message]) => {
     app.config.globalProperties.$mergeLocaleMessage(key, message);

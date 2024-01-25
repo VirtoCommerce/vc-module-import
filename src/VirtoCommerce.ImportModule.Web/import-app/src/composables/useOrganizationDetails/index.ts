@@ -1,5 +1,5 @@
 import { computed, ComputedRef, ref, Ref } from "vue";
-import { OrganizationInfo, OrganizationClient } from "../../api_client/import";
+import { OrganizationInfo, OrganizationClient } from "../../api_client/virtocommerce.import";
 
 const organizationDetails = ref() as Ref<OrganizationInfo>;
 const organizationClient = new OrganizationClient();

@@ -123,7 +123,6 @@ import useImport from "../composables/useImport";
 import { IDataImporter, ObjectSettingEntry } from "@virtocommerce/import-app-api";
 import { useIsFormValid, Field, useForm, useIsFormDirty } from "vee-validate";
 import { useI18n } from "vue-i18n";
-import { onBeforeRouteLeave } from "vue-router";
 
 export interface Props {
   expanded?: boolean;
@@ -144,6 +143,7 @@ export interface Emits {
 defineOptions({
   url: "/import-profile-details",
   name: "ImportProfileDetails",
+  routable: false,
 });
 
 const props = withDefaults(defineProps<Props>(), {
@@ -173,7 +173,7 @@ const {
 useForm({ validateOnMount: false });
 const isValid = useIsFormValid();
 const isDirty = useIsFormDirty();
-const { currentBladeNavigationData } = useBladeNavigation();
+const { onBeforeClose } = useBladeNavigation();
 
 useBeforeUnload(computed(() => !isDisabled.value || modified.value));
 
@@ -284,12 +284,8 @@ async function deleteProfile() {
   }
 }
 
-onBeforeRouteLeave(async (to) => {
-  if (
-    currentBladeNavigationData.value?.fullPath &&
-    !to.path.includes(currentBladeNavigationData.value?.fullPath) &&
-    modified.value
-  ) {
+onBeforeClose(async () => {
+  if (modified.value) {
     return await showConfirmation(unref(computed(() => t("IMPORT.PAGES.PROFILE_DETAILS.ALERTS.CLOSE_CONFIRMATION"))));
   }
 });
