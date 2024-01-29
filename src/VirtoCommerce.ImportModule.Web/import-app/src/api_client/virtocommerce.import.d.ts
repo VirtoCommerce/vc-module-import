@@ -550,4 +550,4 @@ export declare class ApiException extends Error {
     protected isApiException: boolean;
     static isApiException(obj: any): obj is ApiException;
 }
-//# sourceMappingURL=import.d.ts.map
+//# sourceMappingURL=virtocommerce.import.d.ts.map

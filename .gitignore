@@ -339,3 +339,6 @@ ASALocalRun/
 # Webpack output
 dist/
 .history
+
+# MacOS
+.DS_Store

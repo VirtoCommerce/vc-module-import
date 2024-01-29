@@ -11,13 +11,16 @@ export const routes: RouteRecordRaw[] = [
       root: true,
     },
     children: [],
+    redirect: (to) => {
+      console.log("to", to);
+      if (to.name === "App") {
+        return { path: to.params.userId ? to.path + "/import" : "/import", params: to.params };
+      }
+      return to.path;
+    },
   },
   {
-    path: "/",
-    redirect: "/import",
-  },
-  {
-    path: "/:pathMatch(.*)*",
+    path: "/:userId?/:pathMatch(.*)*",
     component: App,
     beforeEnter: async (to) => {
       const { routeResolver } = useBladeNavigation();

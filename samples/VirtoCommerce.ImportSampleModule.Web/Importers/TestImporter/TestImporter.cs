@@ -9,7 +9,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
 {
     public class TestImporter : IDataImporter
     {
-        public virtual string TypeName { get; } = nameof(TestImporter);
+        public virtual string TypeName => nameof(TestImporter);
         public virtual Dictionary<string, string> Metadata { get; }
         public virtual SettingDescriptor[] AvailSettings { get; set; }
         public IAuthorizationRequirement AuthorizationRequirement { get; set; }
@@ -26,17 +26,12 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
 
         public object Clone()
         {
-            return base.MemberwiseClone();
+            return MemberwiseClone();
         }
 
         public Task<ValidationResult> ValidateAsync(ImportContext context)
         {
             return Task.FromResult(new ValidationResult());
-        }
-
-        public async Task OnImportCompletedAsync()
-        {
-            //do nothing
         }
     }
 }

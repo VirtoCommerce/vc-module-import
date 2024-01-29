@@ -4,8 +4,15 @@
     :logo="uiSettings.logo"
     :title="uiSettings.title"
     :version="version"
+    disable-menu
   >
-    <template #navigation-menu><div></div></template>
+    <template #toolbar:user-dropdown="{ userDropdown }">
+      <component
+        :is="userDropdown"
+        disabled
+      >
+      </component>
+    </template>
   </VcApp>
 </template>
 
