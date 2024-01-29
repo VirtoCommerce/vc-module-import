@@ -131,17 +131,17 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 
         protected virtual CsvConfiguration GetConfiguration(ImportContext context)
         {
-            var csvConfigurarion = new CsvConfiguration(CultureInfo.InvariantCulture)
+            var csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                Delimiter = context.ImportProfile.Settings.GetSettingValue(CsvSettings.Delimiter.Name, (string)CsvSettings.Delimiter.DefaultValue),
-                PrepareHeaderForMatch = (PrepareHeaderForMatchArgs args) =>
+                Delimiter = context.ImportProfile.Settings.GetValue<string>(CsvSettings.Delimiter),
+                PrepareHeaderForMatch = args =>
                 {
                     var result = args.Header.ToLower();
                     return result;
                 },
                 Mode = CsvMode.RFC4180,
                 BadDataFound = null,
-                //TODO: Temporary disable since it cause false positive errors on CsvMapping when access to csv cell by name in custom mapping converters  args.Row["Name"] 
+                //TODO: Temporary disable since it cause false positive errors on CsvMapping when access to csv cell by name in custom mapping converters  args.Row["Name"]
                 //BadDataFound = args =>
                 //{
                 //    var errorInfo = new ErrorInfo
@@ -158,7 +158,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 
             if (context.ErrorCallback != null)
             {
-                csvConfigurarion.ReadingExceptionOccurred = args =>
+                csvConfiguration.ReadingExceptionOccurred = args =>
                 {
                     var errorInfo = new ErrorInfo
                     {
@@ -170,7 +170,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                     return false;
                 };
 
-                csvConfigurarion.MissingFieldFound = args =>
+                csvConfiguration.MissingFieldFound = args =>
                 {
                     var errorInfo = new ErrorInfo
                     {
@@ -184,7 +184,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                     context.ErrorCallback(errorInfo);
                 };
             }
-            return csvConfigurarion;
+            return csvConfiguration;
         }
 
         public void Dispose()
