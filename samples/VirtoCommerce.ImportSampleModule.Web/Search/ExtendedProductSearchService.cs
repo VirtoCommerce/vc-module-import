@@ -43,7 +43,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Search
                                         .AsNoTracking()
                                         .ToArrayAsync();
 
-                    result.Results = (await _itemService.GetByIdsAsync(ids, criteria.ResponseGroup)).OrderBy(x => Array.IndexOf(ids, x.Id)).ToList();
+                    result.Results = (await _itemService.GetAsync(ids, criteria.ResponseGroup)).OrderBy(x => Array.IndexOf(ids, x.Id)).ToList();
                 }
             }
             return result;

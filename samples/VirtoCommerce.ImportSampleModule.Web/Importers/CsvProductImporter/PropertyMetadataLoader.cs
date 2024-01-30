@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VirtoCommerce.CatalogModule.Core.Model;
@@ -35,14 +36,14 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
                     {
                         PropertyIds = new[] { metadata.Id },
                         Keyword = propertyValue.Value?.ToString()
-                    })).Results
+                    }, true)).Results
                     .FirstOrDefault();
 
                     //TODO: Finding value by localized value
-                    if (dictItem == null && createNewDictItemIfNotExists == true)
+                    if (dictItem == null && createNewDictItemIfNotExists)
                     {
-                        dictItem = new PropertyDictionaryItem { Alias = propertyValue.Value.ToString(), PropertyId = metadata.Id };
-                        await _propDictItemService.SaveChangesAsync(new[] { dictItem });
+                        dictItem = new PropertyDictionaryItem { Alias = propertyValue.Value?.ToString(), PropertyId = metadata.Id };
+                        await _propDictItemService.SaveChangesAsync((IList<PropertyDictionaryItem>)new[] { dictItem });
                     }
                     if (dictItem != null)
                     {
