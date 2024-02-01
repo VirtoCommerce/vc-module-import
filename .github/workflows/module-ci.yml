@@ -143,7 +143,7 @@ jobs:
           fi;
 
       - name: Create deployment matrix
-        if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/VCI-805' }}
+        if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' }}
         uses: VirtoCommerce/vc-github-actions/cloud-create-deploy-matrix@master
         id: deployment-matrix
         with:
@@ -185,7 +185,7 @@ jobs:
           echo "Jira Upload Build Info response: ${{ steps.push_build_info_to_jira.outputs.response }}"
 
   deploy-cloud:
-    if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/dev') || (github.ref == 'refs/heads/VCI-805') }}
+    if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/dev') }}
     needs: ci
     uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@VCI-805
     with:
