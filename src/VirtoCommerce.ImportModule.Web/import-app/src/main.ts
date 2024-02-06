@@ -33,11 +33,12 @@ async function startApp() {
 
   app.use(router);
 
-  bootstrap(app);
-
   Object.entries(locales).forEach(([key, message]) => {
     app.config.globalProperties.$mergeLocaleMessage(key, message);
   });
+
+  // Should be after merging locales
+  bootstrap(app);
 
   // Global error handler
   app.config.errorHandler = (err: unknown) => {

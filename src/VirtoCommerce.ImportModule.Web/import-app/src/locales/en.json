@@ -4,13 +4,6 @@
     "MENU": {
       "DASHBOARD": "Home"
     },
-    "TOOLBAR": {
-      "LOGIN": "Log In",
-      "SETTINGS": "Settings",
-      "HELP": "Help",
-      "NOTIFICATIONS": "Notifications",
-      "LANGUAGE": "Language selector"
-    },
     "USER": {
       "ROLE": {
         "ADMINISTRATOR": "Administrator"
@@ -114,6 +107,10 @@
     },
     "LANGUAGE_SELECTOR": {
       "TITLE": "Language selector"
+    },
+    "FILTERS": {
+      "APPLY": "Apply filters",
+      "RESET": "Reset"
     }
   },
   "INVITATION": {

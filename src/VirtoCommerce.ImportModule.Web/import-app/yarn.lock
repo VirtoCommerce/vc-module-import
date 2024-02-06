@@ -1911,40 +1911,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/core@npm:^1.5.3":
-  version: 1.5.3
-  resolution: "@floating-ui/core@npm:1.5.3"
+"@floating-ui/core@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "@floating-ui/core@npm:1.6.0"
   dependencies:
-    "@floating-ui/utils": "npm:^0.2.0"
-  checksum: 7d9feaca2565a2a71bf03d23cd292c03def63097d7fde7d62909cdb8ddb84664781f3922086bcf10443f3310cb92381a0ecf745b2774edb917fa74fe61015c56
+    "@floating-ui/utils": "npm:^0.2.1"
+  checksum: d6a47cacde193cd8ccb4c268b91ccc4ca254dffaec6242b07fd9bcde526044cc976d27933a7917f9a671de0a0e27f8d358f46400677dbd0c8199de293e9746e1
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.5.4":
-  version: 1.5.4
-  resolution: "@floating-ui/dom@npm:1.5.4"
+"@floating-ui/dom@npm:^1.6.1":
+  version: 1.6.1
+  resolution: "@floating-ui/dom@npm:1.6.1"
   dependencies:
-    "@floating-ui/core": "npm:^1.5.3"
-    "@floating-ui/utils": "npm:^0.2.0"
-  checksum: 3ba02ba2b4227c1e18df6ccdd029a1c100058db2e76ca1dac60a593ec72b2d4d995fa5c2d1639a5c38adb17e12398fbfe4f6cf5fd45f2ee6170ed0cf64acea06
+    "@floating-ui/core": "npm:^1.6.0"
+    "@floating-ui/utils": "npm:^0.2.1"
+  checksum: c010feb55be37662eb4cc8d0a22e21359c25247bbdcd9557617fd305cf08c8f020435b17e4b4f410201ba9abe3a0dd96b5c42d56e85f7a5e11e7d30b85afc116
   languageName: node
   linkType: hard
 
-"@floating-ui/utils@npm:^0.2.0, @floating-ui/utils@npm:^0.2.1":
+"@floating-ui/utils@npm:^0.2.1":
   version: 0.2.1
   resolution: "@floating-ui/utils@npm:0.2.1"
   checksum: 33c9ab346e7b05c5a1e6a95bc902aafcfc2c9d513a147e2491468843bd5607531b06d0b9aa56aa491cbf22a6c2495c18ccfc4c0344baec54a689a7bb8e4898d6
   languageName: node
   linkType: hard
 
-"@floating-ui/vue@npm:^1.0.2":
-  version: 1.0.4
-  resolution: "@floating-ui/vue@npm:1.0.4"
+"@floating-ui/vue@npm:^1.0.6":
+  version: 1.0.6
+  resolution: "@floating-ui/vue@npm:1.0.6"
   dependencies:
-    "@floating-ui/dom": "npm:^1.5.4"
+    "@floating-ui/dom": "npm:^1.6.1"
     "@floating-ui/utils": "npm:^0.2.1"
     vue-demi: "npm:>=0.13.0"
-  checksum: ce914b2d03fdddc2102a9b64f5a24a3b71437335753d3714be68d8e494c3105b3b71eef479e0119783f1c4600d29d838cecbb89224b65611bdea2dcd8540a7f9
+  checksum: 3e90abd1d3bc56bbe78d5ec66fabb705b284f3abe805f2dd5ba9b98a5d78477ba4e17d8ce50afed50cca4ec9a56df7bec06fb0e231bb2d6702e93f253eb405c2
   languageName: node
   linkType: hard
 
@@ -2816,9 +2816,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vc-shell/api-client-generator@npm:^1.0.151":
-  version: 1.0.151
-  resolution: "@vc-shell/api-client-generator@npm:1.0.151"
+"@vc-shell/api-client-generator@npm:^1.0.154":
+  version: 1.0.154
+  resolution: "@vc-shell/api-client-generator@npm:1.0.154"
   dependencies:
     chalk: "npm:^2.4.2"
     nswag: "npm:^13.20.0"
@@ -2826,28 +2826,28 @@ __metadata:
     vite-plugin-dts: "npm:^3.6.4"
   bin:
     api-client-generator: ./dist/api-client-generator.js
-  checksum: d99eec4b657611cea9a2c56bf852c71963808195ca32d63326907e95a442054641ce3143b78240f77ea8250ef3e2914acdd9815dd6bafed1e64a638a3e07dfb6
+  checksum: e3716ac87b1be364e001b9a42b38b39d1a8af26845c0298507b2ed07d334fea8044202ade15137bf9db4ab8d2386021d5b84b3178bf1b75ac77e709267eb9296
   languageName: node
   linkType: hard
 
-"@vc-shell/config-generator@npm:^1.0.151":
-  version: 1.0.151
-  resolution: "@vc-shell/config-generator@npm:1.0.151"
+"@vc-shell/config-generator@npm:^1.0.154":
+  version: 1.0.154
+  resolution: "@vc-shell/config-generator@npm:1.0.154"
   dependencies:
     "@vitejs/plugin-vue": "npm:^5.0.3"
     vite: "npm:^5.0.11"
     vite-plugin-checker: "npm:^0.6.2"
     vite-plugin-mkcert: "npm:^1.17.1"
-    vue: "npm:^3.4.14"
-  checksum: 60d7eb52ab35fbcc92045c59aea5f380037189e40f17821dc7076e54fd5dd60bfb054f98f9a8f92e5de27717539fbc5264e72635a3d6e07645ddd1f79901dd41
+    vue: "npm:^3.4.15"
+  checksum: fa42d63be4d8a51a6567740b24be711f230fd211e9d7b6bb1f440e735329a8783a8cee2c7ff249140a9c94b307283b2b93543da7eb90130b90779a08d7a44db0
   languageName: node
   linkType: hard
 
-"@vc-shell/framework@npm:^1.0.151":
-  version: 1.0.151
-  resolution: "@vc-shell/framework@npm:1.0.151"
+"@vc-shell/framework@npm:^1.0.154":
+  version: 1.0.154
+  resolution: "@vc-shell/framework@npm:1.0.154"
   dependencies:
-    "@floating-ui/vue": "npm:^1.0.2"
+    "@floating-ui/vue": "npm:^1.0.6"
     "@microsoft/signalr": "npm:^8.0.0"
     "@vee-validate/i18n": "npm:^4.12.4"
     "@vee-validate/rules": "npm:^4.12.4"
@@ -2864,33 +2864,33 @@ __metadata:
     quill-image-uploader: "npm:^1.3.0"
     swiper: "npm:^6.8.4"
     vee-validate: "npm:^4.12.4"
-    vue: "npm:^3.4.14"
+    vue: "npm:^3.4.15"
     vue-currency-input: "npm:^3.0.5"
     vue-i18n: "npm:^9.8.0"
     vue-router: "npm:^4.2.5"
     vue3-ace-editor: "npm:^2.2.4"
     whatwg-fetch: "npm:^3.6.19"
-  checksum: 40bd71f11091ce0eeadd8e5ac5236b11d8518e9349bccbe00c3252b08fe3b9a0df573af5b19843e510840792dd120e69a4a68247aed3baebee276114e1d8d187
+  checksum: 7801712d6e0961585e491a3bb0bfb3137edad5afbf4fa8d98f0989bdd6c0fe6861c64054b3e7ce85f802a2a17db06e2bc290f4773db46db843719f5e31541761
   languageName: node
   linkType: hard
 
-"@vc-shell/release-config@npm:^1.0.151":
-  version: 1.0.151
-  resolution: "@vc-shell/release-config@npm:1.0.151"
+"@vc-shell/release-config@npm:^1.0.154":
+  version: 1.0.154
+  resolution: "@vc-shell/release-config@npm:1.0.154"
   dependencies:
     chalk: "npm:^2.4.2"
     mri: "npm:^1.2.0"
     prompts: "npm:^2.4.2"
     semver: "npm:^7.5.4"
     vite: "npm:^5.0.11"
-  checksum: 23bdac2439b422f8a7fa0b343075b354c5e95702f7d2d7b5322719ce9c2b4af800bea8d8e5a2f6352fe4ef71744a83b71f4512fd14f6f07136e5a92a874b8f4f
+  checksum: 6130d9a0daa4daef0b6ecd3002d6ea471a5cd4d62847258f62011a04e8dc14a93f61c9b45c498239c92e7cdf0f39a94a9540201c90ade16917172805af7dd667
   languageName: node
   linkType: hard
 
-"@vc-shell/ts-config@npm:^1.0.151":
-  version: 1.0.151
-  resolution: "@vc-shell/ts-config@npm:1.0.151"
-  checksum: c16dc84f1fd4459d549914f93c37935bb0c1474692a0365b3abd3a4458b9dea651041c1db7481d02c0d407265ec283b21e085aa206f2a29e940ea75dc00b90d6
+"@vc-shell/ts-config@npm:^1.0.154":
+  version: 1.0.154
+  resolution: "@vc-shell/ts-config@npm:1.0.154"
+  checksum: 1fb29bae377f4c81b49efeeea2741cfe84e0512633916ae7fa663064bd69aede8073ed97d7ac99e078e7c0d49cac941b2dbe49b75c7712a5b6ffab7d1e8a550e
   languageName: node
   linkType: hard
 
@@ -5838,11 +5838,11 @@ __metadata:
     "@types/node": "npm:^20.10.5"
     "@typescript-eslint/eslint-plugin": "npm:^6.16.0"
     "@typescript-eslint/parser": "npm:^6.16.0"
-    "@vc-shell/api-client-generator": "npm:^1.0.151"
-    "@vc-shell/config-generator": "npm:^1.0.151"
-    "@vc-shell/framework": "npm:^1.0.151"
-    "@vc-shell/release-config": "npm:^1.0.151"
-    "@vc-shell/ts-config": "npm:^1.0.151"
+    "@vc-shell/api-client-generator": "npm:^1.0.154"
+    "@vc-shell/config-generator": "npm:^1.0.154"
+    "@vc-shell/framework": "npm:^1.0.154"
+    "@vc-shell/release-config": "npm:^1.0.154"
+    "@vc-shell/ts-config": "npm:^1.0.154"
     "@vitejs/plugin-vue": "npm:^5.0.3"
     "@vue/eslint-config-prettier": "npm:^9.0.0"
     "@vue/eslint-config-typescript": "npm:^12.0.0"
@@ -5873,7 +5873,7 @@ __metadata:
     vite-plugin-checker: "npm:^0.6.2"
     vite-plugin-mkcert: "npm:^1.17.1"
     vite-plugin-pwa: "npm:^0.17.4"
-    vue: "npm:^3.4.14"
+    vue: "npm:^3.4.15"
     vue-eslint-parser: "npm:^9.3.2"
     vue-router: "npm:^4.2.5"
     vue-tsc: "npm:^1.8.27"
@@ -9712,7 +9712,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue@npm:^3.4.14":
+"vue@npm:^3.4.15":
   version: 3.4.15
   resolution: "vue@npm:3.4.15"
   dependencies:
