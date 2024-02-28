@@ -187,13 +187,13 @@ jobs:
   deploy-cloud:
     if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/dev') }}
     needs: ci
-    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@v3.200.35
+    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@VCI-805
     with:
       releaseSource: module
       moduleId: ${{ needs.ci.outputs.moduleId }}
       moduleVer: ${{ needs.ci.outputs.version }}
       moduleBlob: ${{ needs.ci.outputs.blobId }}
       jiraKeys: ${{ needs.ci.outputs.jira-keys }}
-      argoServer: 'argo.virtocommerce.cloud'
+      cloudUrl: 'https://portal.virtocommerce.cloud'
       matrix: '{"include":${{ needs.ci.outputs.matrix }}}'
     secrets: inherit
