@@ -10,7 +10,10 @@
   >
     <VcContainer class="import">
       <!-- Import profile widgets-->
-      <div v-loading="profilesLoading">
+      <div
+        v-loading="profilesLoading"
+        class="tw-min-h-6 tw-contents"
+      >
         <VcSlider
           v-if="importProfiles && importProfiles.length > 0"
           class="tw-p-3"
@@ -103,8 +106,8 @@ import { UserPermissions } from "./../types";
 import { useI18n } from "vue-i18n";
 
 export interface Props {
-  expanded: boolean;
-  closable: boolean;
+  expanded?: boolean;
+  closable?: boolean;
   param?: string;
   options?: {
     importJobId: string;
@@ -243,8 +246,8 @@ onMounted(async () => {
 });
 
 async function reload() {
-  await fetchImportHistory();
-  await fetchImportProfiles();
+  fetchImportHistory();
+  fetchImportProfiles();
 }
 
 function newProfile() {
