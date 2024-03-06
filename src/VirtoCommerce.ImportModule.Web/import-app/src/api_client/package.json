@@ -1,6 +1,6 @@
 {
   "name": "@virtocommerce/import-app-api",
-  "version": "1.0.149",
+  "version": "1.0.150",
   "type": "module",
   "types": "./virtocommerce.import.d.ts",
   "exports": {
