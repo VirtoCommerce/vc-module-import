@@ -12,7 +12,7 @@
       <!-- Import profile widgets-->
       <div
         v-loading="profilesLoading"
-        class="tw-min-h-6 tw-contents"
+        class="tw-min-h-8 tw-flex-none"
       >
         <VcSlider
           v-if="importProfiles && importProfiles.length > 0"
