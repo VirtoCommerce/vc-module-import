@@ -69,6 +69,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 ProfileName = importProfile.Name,
             };
 
+            importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+
             return RunImportBackgroundJob(importProfile, pushNotification);
         }
 
