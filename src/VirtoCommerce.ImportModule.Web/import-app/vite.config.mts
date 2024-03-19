@@ -13,9 +13,10 @@ export default getApplicationConfiguration({
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
         name: "Import App",
+        short_name: "Import App",
         theme_color: "#319ED4",
         display: "fullscreen",
-        start_url: "./index.html",
+        start_url: "/apps/import-app",
         icons: [
           {
             src: "./img/icons/pwa-192x192.png",

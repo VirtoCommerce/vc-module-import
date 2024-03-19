@@ -69,6 +69,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 ProfileName = importProfile.Name,
             };
 
+            importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+
             return RunImportBackgroundJob(importProfile, pushNotification);
         }
 
@@ -168,6 +170,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
         public async Task<ImportDataPreview> PreviewAsync(ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
+            importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+
             var context = new ImportContext(importProfile);
 
             var result = new ImportDataPreview();
@@ -200,6 +204,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
         public async Task<ValidationResult> ValidateAsync(ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
+            importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+
             var context = new ImportContext(importProfile);
 
             var validationResult = await importer.ValidateAsync(context);

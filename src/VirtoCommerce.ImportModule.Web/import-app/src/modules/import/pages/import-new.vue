@@ -357,6 +357,7 @@ const popupItems = ref<Record<string, unknown>[]>([]);
 const errorMessage = ref("");
 const cancelled = ref(false);
 const notificationId = ref();
+const previewLoading = ref(false);
 
 watch(
   moduleNotifications,
@@ -599,6 +600,7 @@ const uploadActions = ref<INotificationActions[]>([
     name: computed(() => t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.PREVIEW")),
     async clickHandler() {
       try {
+        previewLoading.value = true
         preview.value = await previewData();
         popupItems.value = [];
         popupColumns.value = [];
@@ -618,10 +620,13 @@ const uploadActions = ref<INotificationActions[]>([
       } catch (e: unknown) {
         errorMessage.value = (e as Error).message;
         throw e;
+      } finally {
+        previewLoading.value = false
       }
     },
     outline: true,
     isVisible: computed(() => isValid.value && !importStarted.value),
+    disabled: computed(() => previewLoading.value),
   },
   {
     name: computed(() => t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.START_IMPORT")),

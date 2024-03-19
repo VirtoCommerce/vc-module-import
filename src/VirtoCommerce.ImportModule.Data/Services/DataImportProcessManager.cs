@@ -56,7 +56,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 Description = "Import has been started",
             };
 
-            var fixedSizeErrorsQueue = new FixedSizeQueue<ErrorInfo>(50);
+            var fixedSizeErrorsQueue = new FixedSizeQueue<ErrorInfo>(Math.Max(maxErrorsCountThreshold, 50));
             // Import errors
             var errorsCount = 0;
             void ErrorCallback(ErrorInfo info)
@@ -64,12 +64,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 errorsCount++;
                 fixedSizeErrorsQueue.Add(info);
                 _logger.LogError(info.ToString());
+                importProgress.Errors = fixedSizeErrorsQueue.GetTopValues().Select(x => x.ToString()).ToList();
                 if (errorsCount == maxErrorsCountThreshold)
                 {
-                    importProgress.Errors.Add("The import process has been canceled because it exceeds the configured maximum errors limit");
-                    _logger.LogError("The import process has been canceled because it exceeds the configured maximum errors limit");
+                    const string limitErrorMessage = "The import process has been canceled because it exceeds the configured maximum errors limit";
+                    importProgress.Errors.Add(limitErrorMessage);
+                    _logger.LogError(limitErrorMessage);
                 }
-                importProgress.Errors = fixedSizeErrorsQueue.GetTopValues().Select(x => x.ToString()).ToArray();
                 progressCallback(importProgress).GetAwaiter().GetResult();
             }
 

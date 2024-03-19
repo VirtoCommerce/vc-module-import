@@ -33,9 +33,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 query = query.Where(x => x.UserId == criteria.UserId);
             }
 
-            if (!string.IsNullOrEmpty(criteria.ProfileId))
+            if (!criteria.ProfileIds.IsNullOrEmpty())
             {
-                query = query.Where(x => x.ProfileId == criteria.ProfileId);
+                query = criteria.ProfileIds.Count == 1
+                    ? query.Where(x => x.ProfileId == criteria.ProfileIds[0])
+                    : query.Where(x => criteria.ProfileIds.Contains(x.ProfileId));
             }
 
             if (!string.IsNullOrEmpty(criteria.JobId))

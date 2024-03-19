@@ -48,7 +48,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _settingsManager.DeepLoadSettingsAsync(model).GetAwaiter().GetResult();
 
             var importer = _importersRegistry.AllRegisteredImporters.FirstOrDefault(x => x.TypeName == model.DataImporterType);
-            if (importer != null)
+            if (importer != null && importer.AvailSettings != null && importer.AvailSettings.Any())
             {
                 //filter only settings that defined for a importer
                 model.Settings = model.Settings.Join(importer.AvailSettings, entry => entry.Name, setting => setting.Name, (entry, setting) => entry).ToList();
