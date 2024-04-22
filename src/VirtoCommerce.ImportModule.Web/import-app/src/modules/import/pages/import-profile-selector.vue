@@ -197,8 +197,7 @@ const columns = ref<ITableColumns[]>([
     id: "createdDate",
     title: computed(() => t("IMPORT.PAGES.LIST.TABLE.HEADER.STARTED_AT")),
     width: 147,
-    type: "date",
-    format: "L LT",
+    type: "date-time",
   },
   {
     id: "errorsCount",

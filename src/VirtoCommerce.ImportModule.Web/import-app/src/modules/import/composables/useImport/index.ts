@@ -403,7 +403,7 @@ export default (): IUseImport => {
   }
 
   async function GetSellerId(): Promise<string> {
-    let result = route?.params?.userId as string;
+    let result = route?.params?.sellerId as string;
     if (!result || result === "") {
       result = (await getCurrentOrganization())?.organizationId as string;
     }

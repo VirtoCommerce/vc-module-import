@@ -92,7 +92,7 @@
                 :required="setting.isRequired ?? false"
                 :value-type="setting.valueType ?? ''"
                 :placeholder="setting.defaultValue"
-                @update:model-value="setSettingsValue"
+                @update:model-value="(args) => setSettingsValue({ property: setting, ...args })"
               >
               </VcDynamicProperty>
             </VcCol>
@@ -264,8 +264,9 @@ function setSettingsValue(data: { property: ObjectSettingEntry; value: string | 
   });
 }
 
-function loadDictionaries(setting: ObjectSettingEntry) {
-  if (setting.allowedValues && setting.allowedValues.length) {
+function loadDictionaries(settingId: string) {
+  const setting = profileDetails.value.settings?.find((x) => x.id === settingId);
+  if (setting?.allowedValues && setting?.allowedValues.length) {
     return setting.allowedValues.map((val) => ({
       id: val,
       alias: val,
