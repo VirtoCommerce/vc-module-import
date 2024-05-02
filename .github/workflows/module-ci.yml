@@ -187,7 +187,7 @@ jobs:
   deploy-cloud:
     if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/dev') }}
     needs: ci
-    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@v3.800.6
+    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@VCI-805
     with:
       releaseSource: module
       moduleId: ${{ needs.ci.outputs.moduleId }}
