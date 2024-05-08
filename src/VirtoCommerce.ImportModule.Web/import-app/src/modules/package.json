@@ -1,6 +1,6 @@
 {
   "name": "@virtocommerce/import-app",
-  "version": "1.0.153",
+  "version": "1.0.154",
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/types/index.d.ts",
