@@ -210,22 +210,10 @@ const columns = ref<ITableColumns[]>([
 const title = computed(() => t("IMPORT.PAGES.PROFILE_SELECTOR.TITLE"));
 
 watch(
-  () => [props.param],
-  async ([newParam]) => {
-    if (newParam && props.options && props.options.importJobId) {
-      await openBlade({
-        blade: resolveBladeByName("ImportNew"),
-        param: props.param,
-        options: {
-          importJobId: props.options.importJobId,
-        },
-        onOpen() {
-          selectedItemId.value = newParam;
-        },
-        onClose() {
-          selectedItemId.value = undefined;
-        },
-      });
+  () => props.param,
+  async (newParam) => {
+    if (props.options && props.options.importJobId) {
+      selectedItemId.value = newParam;
     }
   },
   { immediate: true },

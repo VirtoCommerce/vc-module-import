@@ -66,6 +66,13 @@ async function onClick() {
       },
       true,
     );
+    await openBlade({
+      blade: resolveBladeByName("ImportNew"),
+      param: props.notification.profileId,
+      options: {
+        importJobId: props.notification.jobId,
+      },
+    });
   }
 }
 </script>
