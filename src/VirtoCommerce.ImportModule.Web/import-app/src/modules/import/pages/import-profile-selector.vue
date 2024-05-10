@@ -170,8 +170,8 @@ const bladeToolbar = ref<IBladeToolbar[]>([
     id: "new",
     title: computed(() => t("IMPORT.PAGES.PROFILE_SELECTOR.TOOLBAR.ADD_PROFILE")),
     icon: "fas fa-plus",
-    clickHandler() {
-      newProfile();
+    async clickHandler() {
+      await newProfile();
     },
     isVisible: computed(() => hasAccess(UserPermissions.SellerImportProfilesEdit)),
   },
@@ -237,20 +237,17 @@ async function reload() {
   fetchImportProfiles();
 }
 
-function newProfile() {
-  bladeWidth.value = 70;
-
-  openBlade({
+async function newProfile() {
+  await openBlade({
     blade: resolveBladeByName("ImportProfileDetails"),
   });
+  bladeWidth.value = 70;
 }
 
-function openImporter(profileId: string) {
-  bladeWidth.value = 50;
-
+async function openImporter(profileId: string) {
   const profile = importProfiles.value?.find((profile) => profile.id === profileId);
 
-  openBlade({
+  await openBlade({
     blade: resolveBladeByName("ImportNew"),
     param: profileId,
     options: {
@@ -263,12 +260,11 @@ function openImporter(profileId: string) {
       selectedProfileId.value = undefined;
     },
   });
+  bladeWidth.value = 50;
 }
 
-function onItemClick(item: ImportRunHistory) {
-  bladeWidth.value = 50;
-
-  openBlade({
+async function onItemClick(item: ImportRunHistory) {
+  await openBlade({
     blade: resolveBladeByName("ImportNew"),
     param: item.profileId,
     options: {
@@ -282,6 +278,7 @@ function onItemClick(item: ImportRunHistory) {
       selectedItemId.value = undefined;
     },
   });
+  bladeWidth.value = 50;
 }
 
 async function onPaginationClick(page: number) {

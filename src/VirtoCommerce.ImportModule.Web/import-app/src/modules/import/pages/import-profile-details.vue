@@ -81,7 +81,7 @@
 
               <VcDynamicProperty
                 v-for="(setting, i) in profileDetails.settings"
-                :key="`${profileDetails.id}_${i}`"
+                :key="`${setting.name}_${i}`"
                 class="tw-px-4 tw-pb-4"
                 :property="setting"
                 :dictionary="setting.isDictionary"
@@ -258,7 +258,7 @@ function setSettingsValue(data: { property: ObjectSettingEntry; value: string | 
   const mutatedSetting = new ObjectSettingEntry({ ...property, value });
 
   profileDetails.value.settings?.forEach((x) => {
-    if (x.id === property.id) {
+    if ((x.id && property.id && x.id === property.id) || x.name === property.name) {
       Object.assign(x, mutatedSetting);
     }
   });
