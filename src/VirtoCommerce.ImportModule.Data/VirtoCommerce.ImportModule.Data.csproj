@@ -11,8 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="VirtoCommerce.Platform.Data" Version="3.825.0" />
-    <PackageReference Include="VirtoCommerce.Platform.Hangfire" Version="3.825.0" />
+    <PackageReference Include="VirtoCommerce.Platform.Data" Version="3.801.0" />
+    <PackageReference Include="VirtoCommerce.Platform.Hangfire" Version="3.801.0" />
   </ItemGroup>
 
   <ItemGroup>
