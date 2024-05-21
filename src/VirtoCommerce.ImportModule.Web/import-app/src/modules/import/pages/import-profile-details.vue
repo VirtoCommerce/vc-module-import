@@ -6,6 +6,7 @@
     :toolbar-items="bladeToolbar"
     :closable="closable"
     :expanded="expanded"
+    :modified="modified"
     @close="$emit('close:blade')"
     @expand="$emit('expand:blade')"
     @collapse="$emit('collapse:blade')"
