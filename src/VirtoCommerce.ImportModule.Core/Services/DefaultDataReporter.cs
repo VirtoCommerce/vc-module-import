@@ -13,7 +13,7 @@ namespace VirtoCommerce.ImportModule.Core.Services
 
         public Task<string> SaveErrorsAsync(List<ErrorInfo> errorsToSave)
         {
-            return Task.FromResult(nameof(DefaultDataReporter));
+            return Task.FromResult<string>(null);
         }
 
         public object Clone()
