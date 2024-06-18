@@ -1,6 +1,6 @@
 <template>
   <VcBlade
-    v-loading="loading"
+    v-loading:1000="loading"
     :title="param && profileDetails ? profileDetails.name : $t('IMPORT.PAGES.PROFILE_DETAILS.TITLE')"
     width="50%"
     :toolbar-items="bladeToolbar"

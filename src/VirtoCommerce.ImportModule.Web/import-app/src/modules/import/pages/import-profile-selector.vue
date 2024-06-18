@@ -11,7 +11,7 @@
     <VcContainer class="import">
       <!-- Import profile widgets-->
       <div
-        v-loading="profilesLoading"
+        v-loading:1000="profilesLoading"
         class="tw-min-h-8 tw-flex-none"
       >
         <VcSlider

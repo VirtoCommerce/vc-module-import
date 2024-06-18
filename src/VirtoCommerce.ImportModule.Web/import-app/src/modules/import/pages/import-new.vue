@@ -1,6 +1,6 @@
 <template>
   <VcBlade
-    v-loading="bladeLoading"
+    v-loading:1000="bladeLoading"
     :title="param && profileDetails?.name ? profileDetails.name : options?.title"
     width="70%"
     :toolbar-items="bladeToolbar"
