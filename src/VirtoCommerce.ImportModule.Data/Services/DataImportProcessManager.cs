@@ -133,7 +133,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     ErrorLine = context.ProgressInfo?.ProcessedCount,
                     ErrorMessage = ex.ExpandExceptionMessage(),
                 });
-                throw;
             }
             finally
             {

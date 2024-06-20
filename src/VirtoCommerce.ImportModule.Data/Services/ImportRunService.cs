@@ -142,6 +142,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
             {
                 pushNotification.Description = "Import was cancelled by user";
             }
+            catch (OperationCanceledException)
+            {
+                pushNotification.Description = "The operation was cancelled";
+            }
             catch (Exception ex)
             {
                 pushNotification.Errors.Add(ex.ToString());
@@ -150,7 +154,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                pushNotification.Finished = DateTime.UtcNow;
+                pushNotification.Finished ??= DateTime.UtcNow;
 
                 await _pushNotificationManager.SendAsync(pushNotification);
 
