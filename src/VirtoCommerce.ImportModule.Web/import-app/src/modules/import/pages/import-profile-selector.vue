@@ -11,7 +11,7 @@
     <VcContainer class="import">
       <!-- Import profile widgets-->
       <div
-        v-loading="profilesLoading"
+        v-loading:1000="profilesLoading"
         class="tw-min-h-8 tw-flex-none"
       >
         <VcSlider
@@ -77,6 +77,19 @@
           <!-- Override finished column template -->
           <template #item_finished="itemData">
             <ImportStatus :item="itemData.item" />
+          </template>
+
+          <template #empty>
+            <div class="tw-w-full tw-h-full tw-box-border tw-flex tw-flex-col tw-items-center tw-justify-center">
+              <VcIcon
+                icon="fas fa-file-import"
+                class="tw-text-[#A9BFD2]"
+                size="xxxl"
+              />
+              <div class="tw-m-4 tw-text-xl tw-font-medium">
+                {{ $t("IMPORT.PAGES.PROFILE_SELECTOR.EMPTY.NO_ITEMS") }}
+              </div>
+            </div>
           </template>
         </VcTable>
       </VcCard>
@@ -170,8 +183,8 @@ const bladeToolbar = ref<IBladeToolbar[]>([
     id: "new",
     title: computed(() => t("IMPORT.PAGES.PROFILE_SELECTOR.TOOLBAR.ADD_PROFILE")),
     icon: "fas fa-plus",
-    clickHandler() {
-      newProfile();
+    async clickHandler() {
+      await newProfile();
     },
     isVisible: computed(() => hasAccess(UserPermissions.SellerImportProfilesEdit)),
   },
@@ -197,8 +210,7 @@ const columns = ref<ITableColumns[]>([
     id: "createdDate",
     title: computed(() => t("IMPORT.PAGES.LIST.TABLE.HEADER.STARTED_AT")),
     width: 147,
-    type: "date",
-    format: "L LT",
+    type: "date-time",
   },
   {
     id: "errorsCount",
@@ -211,22 +223,10 @@ const columns = ref<ITableColumns[]>([
 const title = computed(() => t("IMPORT.PAGES.PROFILE_SELECTOR.TITLE"));
 
 watch(
-  () => [props.param],
-  async ([newParam]) => {
-    if (newParam && props.options && props.options.importJobId) {
-      await openBlade({
-        blade: resolveBladeByName("ImportNew"),
-        param: props.param,
-        options: {
-          importJobId: props.options.importJobId,
-        },
-        onOpen() {
-          selectedItemId.value = newParam;
-        },
-        onClose() {
-          selectedItemId.value = undefined;
-        },
-      });
+  () => props.param,
+  async (newParam) => {
+    if (props.options && props.options.importJobId) {
+      selectedItemId.value = newParam;
     }
   },
   { immediate: true },
@@ -250,20 +250,17 @@ async function reload() {
   fetchImportProfiles();
 }
 
-function newProfile() {
-  bladeWidth.value = 70;
-
-  openBlade({
+async function newProfile() {
+  await openBlade({
     blade: resolveBladeByName("ImportProfileDetails"),
   });
+  bladeWidth.value = 70;
 }
 
-function openImporter(profileId: string) {
-  bladeWidth.value = 50;
-
+async function openImporter(profileId: string) {
   const profile = importProfiles.value?.find((profile) => profile.id === profileId);
 
-  openBlade({
+  await openBlade({
     blade: resolveBladeByName("ImportNew"),
     param: profileId,
     options: {
@@ -276,12 +273,11 @@ function openImporter(profileId: string) {
       selectedProfileId.value = undefined;
     },
   });
+  bladeWidth.value = 50;
 }
 
-function onItemClick(item: ImportRunHistory) {
-  bladeWidth.value = 50;
-
-  openBlade({
+async function onItemClick(item: ImportRunHistory) {
+  await openBlade({
     blade: resolveBladeByName("ImportNew"),
     param: item.profileId,
     options: {
@@ -295,6 +291,7 @@ function onItemClick(item: ImportRunHistory) {
       selectedItemId.value = undefined;
     },
   });
+  bladeWidth.value = 50;
 }
 
 async function onPaginationClick(page: number) {

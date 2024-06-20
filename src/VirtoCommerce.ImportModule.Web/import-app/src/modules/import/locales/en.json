@@ -24,6 +24,9 @@
         "TOOLBAR": {
           "ADD_PROFILE": "Add profile",
           "REFRESH": "Refresh"
+        },
+        "EMPTY": {
+          "NO_ITEMS": "List is empty"
         }
       },
       "PROFILE_DETAILS": {

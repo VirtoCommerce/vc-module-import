@@ -144,7 +144,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 // Import finished
                 importProgress.Description = "Import has been finished";
                 importProgress.Finished = DateTime.UtcNow;
-                importProgress.ReportUrl = errorReportResult;
+                importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
 
                 await dataImporter.OnImportCompletedAsync(context);
 

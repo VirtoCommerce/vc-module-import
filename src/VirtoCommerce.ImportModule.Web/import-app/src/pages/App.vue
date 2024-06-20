@@ -47,7 +47,7 @@ onMounted(async () => {
 console.debug(`Initializing App`);
 
 async function customizationHandler() {
-  await getOrganizationInfo(route?.params?.userId as string);
+  await getOrganizationInfo(route?.params?.sellerId as string);
 
   applySettings({
     logo: organizationDetails.value?.organizationLogoUrl || logoImage,

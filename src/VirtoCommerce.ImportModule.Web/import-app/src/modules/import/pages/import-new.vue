@@ -1,6 +1,6 @@
 <template>
   <VcBlade
-    v-loading="bladeLoading"
+    v-loading:1000="bladeLoading"
     :title="param && profileDetails?.name ? profileDetails.name : options?.title"
     width="70%"
     :toolbar-items="bladeToolbar"
@@ -600,7 +600,7 @@ const uploadActions = ref<INotificationActions[]>([
     name: computed(() => t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.PREVIEW")),
     async clickHandler() {
       try {
-        previewLoading.value = true
+        previewLoading.value = true;
         preview.value = await previewData();
         popupItems.value = [];
         popupColumns.value = [];
@@ -621,7 +621,7 @@ const uploadActions = ref<INotificationActions[]>([
         errorMessage.value = (e as Error).message;
         throw e;
       } finally {
-        previewLoading.value = false
+        previewLoading.value = false;
       }
     },
     outline: true,
@@ -782,6 +782,7 @@ async function onPaginationClick(page: number) {
 
 defineExpose({
   reloadParent,
+  title: props.param && profileDetails.value.name ? profileDetails.value.name : props.options?.title,
 });
 </script>
 

@@ -1,11 +1,12 @@
 <template>
   <VcBlade
-    v-loading="loading"
+    v-loading:1000="loading"
     :title="param && profileDetails ? profileDetails.name : $t('IMPORT.PAGES.PROFILE_DETAILS.TITLE')"
     width="50%"
     :toolbar-items="bladeToolbar"
     :closable="closable"
     :expanded="expanded"
+    :modified="modified"
     @close="$emit('close:blade')"
     @expand="$emit('expand:blade')"
     @collapse="$emit('collapse:blade')"
@@ -81,7 +82,7 @@
 
               <VcDynamicProperty
                 v-for="(setting, i) in profileDetails.settings"
-                :key="`${profileDetails.id}_${i}`"
+                :key="`${setting.name}_${i}`"
                 class="tw-px-4 tw-pb-4"
                 :property="setting"
                 :dictionary="setting.isDictionary"
@@ -92,7 +93,7 @@
                 :required="setting.isRequired ?? false"
                 :value-type="setting.valueType ?? ''"
                 :placeholder="setting.defaultValue"
-                @update:model-value="setSettingsValue"
+                @update:model-value="(args) => setSettingsValue({ property: setting, ...args })"
               >
               </VcDynamicProperty>
             </VcCol>
@@ -258,14 +259,15 @@ function setSettingsValue(data: { property: ObjectSettingEntry; value: string | 
   const mutatedSetting = new ObjectSettingEntry({ ...property, value });
 
   profileDetails.value.settings?.forEach((x) => {
-    if (x.id === property.id) {
+    if ((x.id && property.id && x.id === property.id) || x.name === property.name) {
       Object.assign(x, mutatedSetting);
     }
   });
 }
 
-function loadDictionaries(setting: ObjectSettingEntry) {
-  if (setting.allowedValues && setting.allowedValues.length) {
+function loadDictionaries(settingId: string) {
+  const setting = profileDetails.value.settings?.find((x) => x.id === settingId);
+  if (setting?.allowedValues && setting?.allowedValues.length) {
     return setting.allowedValues.map((val) => ({
       id: val,
       alias: val,
