@@ -9,6 +9,7 @@ namespace VirtoCommerce.ImportModule.Data.Validators
         {
             RuleFor(x => x.Name).NotEmpty();
             RuleFor(x => x.Settings).NotNull();
+            RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.DataImporterType).NotEmpty();
         }
     }

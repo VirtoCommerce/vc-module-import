@@ -133,7 +133,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     ErrorLine = context.ProgressInfo?.ProcessedCount,
                     ErrorMessage = ex.ExpandExceptionMessage(),
                 });
-                throw;
             }
             finally
             {
@@ -142,7 +141,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 importRemainingEstimator.Stop(context);
 
                 // Import finished
-                importProgress.Description = "Import has been finished";
+                importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
                 importProgress.Finished = DateTime.UtcNow;
                 importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
 
