@@ -24,7 +24,7 @@
   <assemblyFile>VirtoCommerce.ImportModule.Web.dll</assemblyFile>
   <moduleType>VirtoCommerce.ImportModule.Web.Module, VirtoCommerce.ImportModule.Web</moduleType>
   <releaseNotes>First version.</releaseNotes>
-  <copyright>Copyright © 2023 VirtoCommerce. All rights reserved</copyright>
+  <copyright>Copyright © 2023-2024 VirtoCommerce. All rights reserved</copyright>
   <tags>extension module</tags>
   <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
   <apps>

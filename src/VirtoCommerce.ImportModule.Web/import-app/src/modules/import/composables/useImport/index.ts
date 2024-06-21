@@ -324,7 +324,7 @@ export default (): IUseImport => {
 
     const command = new ImportProfile({
       ...updatedProfile,
-      userId: importUserId,
+      userId: importUserId && importUserId != "" ? importUserId : user.value?.id,
     });
 
     try {
@@ -345,10 +345,10 @@ export default (): IUseImport => {
     const client = await getApiClient();
 
     newProfile.userName = user.value?.userName;
-    newProfile.userId = importUserId;
+    newProfile.userId = importUserId && importUserId != "" ? importUserId : user.value?.id;
     const command = new ImportProfile({
       ...newProfile,
-      userId: importUserId,
+      userId: importUserId && importUserId != "" ? importUserId : user.value?.id,
       settings: newProfile.settings?.map((setting) => new ObjectSettingEntry(setting)),
     });
 
