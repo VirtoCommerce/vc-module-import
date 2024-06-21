@@ -65,6 +65,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             var pushNotification = new ImportPushNotification(_userNameResolver.GetCurrentUserName())
             {
+                Title = "Import process",
                 ProfileId = importProfile.Id,
                 ProfileName = importProfile.Name,
             };
@@ -105,7 +106,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             async Task ProgressInfoCallback(ImportProgressInfo progressInfo)
             {
-                pushNotification.Title = progressInfo.Description;
+                pushNotification.Description = progressInfo.Description;
 
                 pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
                 pushNotification.EstimatedRemaining = progressInfo.EstimatedRemaining;
@@ -117,6 +118,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 pushNotification.Errors = progressInfo.Errors;
                 pushNotification.ReportUrl = progressInfo.ReportUrl;
 
+                if (pushNotification.ProcessedCount > 0 && pushNotification.Finished is null)
+                {
+                    pushNotification.Description = pushNotification.TotalCount > 0
+                        ? $"{pushNotification.ProcessedCount} of {pushNotification.TotalCount} have been imported"
+                        : $"{pushNotification.ProcessedCount} have been imported";
+                }
+
                 await _pushNotificationManager.SendAsync(pushNotification);
 
                 importRunHistory.UpdateProgress(pushNotification);
@@ -126,24 +134,27 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             try
             {
-
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
 
                 await _dataImportManager.ImportAsync(importProfile, ProgressInfoCallback, cancellationToken);
             }
             catch (JobAbortedException)
             {
-                pushNotification.Title = "Import was cancelled by user";
+                pushNotification.Description = "Import was cancelled by user";
+            }
+            catch (OperationCanceledException)
+            {
+                pushNotification.Description = "The operation was cancelled";
             }
             catch (Exception ex)
             {
                 pushNotification.Errors.Add(ex.ToString());
-                pushNotification.Title = "Import failed";
+                pushNotification.Description = "Import failed";
                 throw;
             }
             finally
             {
-                pushNotification.Finished = DateTime.UtcNow;
+                pushNotification.Finished ??= DateTime.UtcNow;
 
                 await _pushNotificationManager.SendAsync(pushNotification);
 
