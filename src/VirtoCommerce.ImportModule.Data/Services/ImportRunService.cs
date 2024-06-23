@@ -61,7 +61,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _dataImportManager = dataImportManager;
         }
 
-        public ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile)
+        public virtual ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile)
         {
             var pushNotification = new ImportPushNotification(_userNameResolver.GetCurrentUserName())
             {
@@ -75,7 +75,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return RunImportBackgroundJob(importProfile, pushNotification);
         }
 
-        public ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile, ImportPushNotification pushNotification)
+        public virtual ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile, ImportPushNotification pushNotification)
         {
             var jobId = _backgroundJobExecutor.Enqueue<ImportJob>(x => x.ImportBackgroundAsync(importProfile, pushNotification, JobCancellationToken.Null, null));
 
@@ -84,12 +84,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return pushNotification;
         }
 
-        public void CancelRunBackgroundJob(ImportCancellationRequest cancellationRequest)
+        public virtual void CancelRunBackgroundJob(ImportCancellationRequest cancellationRequest)
         {
             BackgroundJob.Delete(cancellationRequest.JobId);
         }
 
-        public async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken)
+        public virtual async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken)
         {
             var pushNotification = new ImportPushNotification(_userNameResolver.GetCurrentUserName())
             {
@@ -100,7 +100,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return await RunImportAsync(importProfile, pushNotification, cancellationToken);
         }
 
-        public async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken)
+        public virtual async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken)
         {
             var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
 
@@ -178,7 +178,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return pushNotification;
         }
 
-        public async Task<ImportDataPreview> PreviewAsync(ImportProfile importProfile)
+        public virtual async Task<ImportDataPreview> PreviewAsync(ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
             importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
@@ -212,7 +212,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return result;
         }
 
-        public async Task<ValidationResult> ValidateAsync(ImportProfile importProfile)
+        public virtual async Task<ValidationResult> ValidateAsync(ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
             importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
