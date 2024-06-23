@@ -89,7 +89,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             BackgroundJob.Delete(cancellationRequest.JobId);
         }
 
-        public virtual async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken)
+        public virtual Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken)
         {
             var pushNotification = new ImportPushNotification(_userNameResolver.GetCurrentUserName())
             {
@@ -97,7 +97,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 ProfileName = importProfile.Name,
             };
 
-            return await RunImportAsync(importProfile, pushNotification, cancellationToken);
+            return RunImportAsync(importProfile, pushNotification, cancellationToken);
         }
 
         public virtual async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken)
