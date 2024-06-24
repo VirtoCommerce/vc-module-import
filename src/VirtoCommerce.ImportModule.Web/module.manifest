@@ -32,6 +32,7 @@
       <title>Import App</title>
       <iconUrl>/apps/import-app/img/icons/favicon-32x32.png</iconUrl>
       <contentPath>import-app/dist</contentPath>
+      <permission>import:access</permission>
     </app>
   </apps>
 </module>
