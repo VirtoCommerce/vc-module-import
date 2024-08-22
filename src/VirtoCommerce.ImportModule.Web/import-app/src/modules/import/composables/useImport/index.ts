@@ -19,14 +19,14 @@ import { IObjectSettingEntry, useNotifications, useUser } from "@vc-shell/framew
 import * as _ from "lodash-es";
 import { useRoute } from "vue-router";
 
-export type INotificationHistory = (ImportPushNotification | ImportRunHistory) & {
-  created?: string;
-  createdDate?: string;
-  errorCount?: number;
-};
+export type INotificationHistory = ImportPushNotification | ImportRunHistory;
 
 export interface IImportStatus {
-  notification?: INotificationHistory;
+  notification?: INotificationHistory & {
+    created?: Date;
+    createdDate?: Date;
+    errorCount?: number;
+  };
   jobId?: string;
   inProgress: boolean;
   progress?: number;
