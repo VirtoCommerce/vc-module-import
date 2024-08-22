@@ -19,7 +19,11 @@ import { IObjectSettingEntry, useNotifications, useUser } from "@vc-shell/framew
 import * as _ from "lodash-es";
 import { useRoute } from "vue-router";
 
-export type INotificationHistory = ImportPushNotification | ImportRunHistory;
+export type INotificationHistory = (ImportPushNotification | ImportRunHistory) & {
+  created?: string;
+  createdDate?: string;
+  errorCount?: number;
+};
 
 export interface IImportStatus {
   notification?: INotificationHistory;
@@ -206,7 +210,6 @@ export default (): IUseImport => {
   }
 
   async function fetchImportProfiles() {
-
     const client = await getApiClient();
 
     try {
