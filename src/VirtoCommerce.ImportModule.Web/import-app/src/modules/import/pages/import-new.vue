@@ -521,17 +521,16 @@ const importBadges = computed((): IImportBadges[] => {
       title:
         t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.STARTED_AT") +
         " " +
-        (importStatus.value && importStatus.value.notification && "created" in importStatus.value.notification
+        (importStatus.value?.notification?.created
           ? moment(importStatus.value.notification.created).locale(locale).format("LTS")
-          : importStatus.value && importStatus.value.notification && "createdDate" in importStatus.value.notification
+          : importStatus.value?.notification?.createdDate
             ? moment(importStatus.value.notification.createdDate).locale(locale).format("LTS")
             : null),
-      description:
-        importStatus.value && importStatus.value.notification && "created" in importStatus.value.notification
-          ? moment(importStatus.value.notification.created).locale(locale).fromNow()
-          : importStatus.value && importStatus.value.notification && "createdDate" in importStatus.value.notification
-            ? moment(importStatus.value.notification.createdDate).locale(locale).fromNow()
-            : undefined,
+      description: importStatus.value?.notification?.created
+        ? moment(importStatus.value.notification.created).locale(locale).fromNow()
+        : importStatus.value?.notification?.createdDate
+          ? moment(importStatus.value.notification.createdDate).locale(locale).fromNow()
+          : undefined,
     },
     {
       id: "linesRead",
@@ -545,23 +544,12 @@ const importBadges = computed((): IImportBadges[] => {
       icon: "fas fa-check-circle",
       color: "#87B563",
       title:
-        importStatus.value &&
-        importStatus.value.notification &&
-        "errorCount" in importStatus.value.notification &&
-        importStatus.value.notification.errorCount &&
-        importStatus.value.notification.processedCount
+        typeof importStatus.value?.notification?.processedCount !== "undefined" &&
+        typeof importStatus.value?.notification?.errorCount !== "undefined"
           ? importStatus.value.notification.processedCount - importStatus.value.notification.errorCount >= 0
             ? importStatus.value.notification.processedCount - importStatus.value.notification.errorCount
             : 0
-          : importStatus.value &&
-              importStatus.value.notification &&
-              "errorsCount" in importStatus.value.notification &&
-              importStatus.value.notification.errorsCount &&
-              importStatus.value.notification.processedCount
-            ? importStatus.value.notification.processedCount - importStatus.value.notification.errorsCount >= 0
-              ? importStatus.value.notification.processedCount - importStatus.value.notification.errorsCount
-              : 0
-            : 0,
+          : 0,
       description: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.IMPORTED"),
     },
     {
@@ -569,17 +557,9 @@ const importBadges = computed((): IImportBadges[] => {
       icon: "fas fa-exclamation-circle",
       color: "#FFBB0D",
       title:
-        importStatus.value &&
-        importStatus.value.notification &&
-        "errorCount" in importStatus.value.notification &&
-        importStatus.value.notification.errorCount
+        typeof importStatus.value?.notification?.errorCount !== "undefined"
           ? importStatus.value.notification.errorCount
-          : importStatus.value &&
-              importStatus.value.notification &&
-              "errorsCount" in importStatus.value.notification &&
-              importStatus.value.notification.errorsCount
-            ? importStatus.value.notification.errorsCount
-            : 0,
+          : 0,
       description: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.SKIPPED"),
     },
   ];
