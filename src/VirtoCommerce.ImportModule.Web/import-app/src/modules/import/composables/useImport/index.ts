@@ -14,12 +14,13 @@ import {
   SearchImportRunHistoryResult,
   OrganizationInfo,
   OrganizationClient,
+  IImportPushNotification,
 } from "@virtocommerce/import-app-api";
 import { IObjectSettingEntry, useNotifications, useUser } from "@vc-shell/framework";
 import * as _ from "lodash-es";
 import { useRoute } from "vue-router";
 
-export type INotificationHistory = ImportPushNotification | ImportRunHistory;
+export type INotificationHistory = IImportPushNotification | ImportRunHistory;
 
 export interface IImportStatus {
   notification?: INotificationHistory & {
@@ -172,9 +173,14 @@ export default (): IUseImport => {
   }
 
   function updateStatus(notification: INotificationHistory) {
-    const pushNotification = notification as ImportPushNotification;
+    console.log("updateStatus", notification);
+    const pushNotification = notification as ImportPushNotification & {
+      processedCount: number;
+      totalCount: number;
+      errorsCount: number;
+    };
     importStatus.value = {
-      notification: notification,
+      notification: { ...notification, errorCount: pushNotification.errorsCount },
       jobId: notification.jobId,
       inProgress: !notification.finished,
       progress: ((notification.processedCount as number) / (notification.totalCount as number)) * 100 || 0,
