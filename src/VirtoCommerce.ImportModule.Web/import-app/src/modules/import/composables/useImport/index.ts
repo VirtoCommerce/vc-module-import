@@ -180,7 +180,7 @@ export default (): IUseImport => {
       errorsCount: number;
     };
     importStatus.value = {
-      notification: { ...notification, errorCount: pushNotification.errorsCount },
+      notification: { ...notification, errorCount: pushNotification.errorsCount ?? pushNotification.errorCount },
       jobId: notification.jobId,
       inProgress: !notification.finished,
       progress: ((notification.processedCount as number) / (notification.totalCount as number)) * 100 || 0,
