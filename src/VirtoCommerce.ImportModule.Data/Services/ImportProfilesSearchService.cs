@@ -37,6 +37,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
             {
                 query = query.Where(x => x.Name == criteria.Name);
             }
+            else if (!string.IsNullOrEmpty(criteria.Keyword))
+            {
+                query = query.Where(x => x.Name.Contains(criteria.Keyword));
+            }
 
             return query;
         }
