@@ -1,21 +1,9 @@
 <template>
   <div class="tw-flex tw-flex-col tw-grow tw-basis-0">
-    <div class="tw-flex tw-flex-row tw-items-center">
-      <div
-        v-if="isUploaded"
-        class="tw-w-[30px] tw-h-[41px] tw-bg-center tw-bg-no-repeat tw-bg-[image:var(--file-upload-success-img)]"
-      ></div>
-      <div
-        v-else
-        class="tw-w-[30px] tw-h-[41px] tw-bg-center tw-bg-no-repeat tw-bg-[image:var(--file-upload-error-img)]"
-      ></div>
-      <div class="tw-flex tw-flex-col tw-grow tw-basis-0 tw-ml-3">
-        <div class="tw-font-normal tw-text-lg">
-          {{ uploadedFile.name }}
-        </div>
-        <VcHint> {{ uploadedFile.size }} Mb </VcHint>
-      </div>
-    </div>
+    <import-uploaded-file
+      :uploaded-file="uploadedFile"
+      :is-uploaded="isUploaded"
+    />
     <div
       v-if="filteredActions && filteredActions.length"
       class="tw-flex tw-flex-row tw-justify-between tw-mt-5"
@@ -54,6 +42,7 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import { INotificationActions } from "../types";
+import ImportUploadedFile from "./ImportUploadedFile.vue";
 
 export interface Props {
   uploadActions: INotificationActions[];

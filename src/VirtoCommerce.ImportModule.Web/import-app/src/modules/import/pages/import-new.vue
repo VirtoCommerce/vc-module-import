@@ -1,8 +1,8 @@
 <template>
   <VcBlade
-    v-loading:1000="bladeLoading"
-    :title="param && profileDetails?.name ? profileDetails.name : options?.title"
-    width="70%"
+    v-loading:1001="bladeLoading"
+    :title="title"
+    width="50%"
     :toolbar-items="bladeToolbar"
     :closable="closable"
     :expanded="expanded"
@@ -45,8 +45,8 @@
                         accept="*.*"
                         :loading="fileLoading"
                         @upload="uploadCsv"
-                      ></VcFileUpload
-                    ></VcRow>
+                      ></VcFileUpload>
+                    </VcRow>
                     <VcRow>
                       <Field
                         v-slot="{ field, errorMessage, handleChange, errors }"
@@ -94,104 +94,13 @@
                   >
                   </import-upload-status>
                 </VcRow>
-                <!-- Uploaded file import status -->
-                <VcCol v-if="importStarted">
-                  <VcRow
-                    v-if="inProgress"
-                    class="tw-relative tw-p-[40px] before:tw-content-[''] before:[background:linear-gradient(180deg,#ecf2f7_0%,rgba(236,242,246,0)_100%)] before:tw-left-0 before:tw-right-0 before:tw-absolute before:h-[21px] before:tw-top-0"
-                  >
-                    <VcCol class="tw-text-[#a1c0d4]">
-                      {{ $t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.IN_PROGRESS") }}
-                      <VcProgress
-                        :key="importStatus?.progress"
-                        class="tw-mt-3"
-                        :value="importStatus?.progress"
-                        :variant="progressbarVariant"
-                      ></VcProgress>
-                      <VcHint
-                        v-if="importStatus?.estimatingRemaining || importStatus?.estimatedRemaining"
-                        class="tw-py-3"
-                      >
-                        <template v-if="importStatus?.estimatingRemaining">
-                          {{ $t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.ESTIMATING") }}
-                        </template>
-                        <template v-else>
-                          {{ $t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.ESTIMATED") }}
-                          {{ estimatedRemaining }}
-                        </template>
-                      </VcHint>
-                    </VcCol>
-                  </VcRow>
-                  <VcRow class="tw-border-t tw-border-solid tw-border-t-[#e5e5e5]">
-                    <VcCol
-                      v-for="(badge, i) in importBadges"
-                      :key="i"
-                      class="tw-flex !tw-flex-row tw-items-center tw-p-5"
-                    >
-                      <VcIcon
-                        :icon="badge.icon"
-                        size="xxl"
-                        :style="{ color: badge.color }"
-                      ></VcIcon>
-                      <div class="tw-ml-3">
-                        <div class="tw-font-medium">
-                          {{ badge.title }}
-                        </div>
-                        <VcHint>{{ badge.description }}</VcHint>
-                      </div>
-                    </VcCol>
-                  </VcRow>
-                </VcCol>
               </VcCol>
-              <VcHint
-                v-if="errorMessage"
-                class="tw-p-3 import-new__error"
-              >
-                {{ errorMessage }}
-              </VcHint>
-              <div v-if="reportUrl && reportUrl != 'DefaultDataReporter'">
-                <VcHint class="tw-p-3 import-new__history"
-                  >{{ $t("IMPORT.PAGES.LIST.REPORT.DOWNLOAD") }}
-                  <a
-                    class="vc-link"
-                    :href="reportUrl"
-                    >{{ reportUrl }}</a
-                  >
-                </VcHint>
-              </div>
+              <!-- Uploaded file import status -->
+              <ImportStat :import-status="importStatus" />
             </VcCard>
           </VcRow>
         </div>
-        <!-- Skipped details table -->
-        <VcCol
-          v-if="importStarted && reversedErrors?.length"
-          class="tw-p-3"
-        >
-          <VcCard
-            class="import-new__skipped"
-            :fill="true"
-            :variant="skippedColorVariant"
-            :header="$t('IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.TABLE.SKIPPED_DETAILS')"
-          >
-            <VcTable
-              :columns="skippedColumns"
-              :header="false"
-              :footer="false"
-              :items="reversedErrors ?? []"
-              state-key="import_errors"
-            >
-              <!-- Override errors column template -->
-              <template #item_errors="itemData">
-                <div class="tw-flex tw-flex-col">
-                  <div class="tw-truncate">
-                    {{ itemData.item }}
-                  </div>
-                </div>
-              </template>
-            </VcTable>
-          </VcCard>
-        </VcCol>
-
+        <ImportErrorsCard :import-status="importStatus" />
         <!-- History-->
         <VcCol
           v-if="!importStarted"
@@ -204,13 +113,15 @@
           >
             <VcTable
               :columns="columns"
+              :loading="importHistoryLoading"
               :items="importHistory ?? []"
               :header="false"
-              :loading="importLoading"
               :total-count="totalHistoryCount"
               :pages="historyPages"
+              :selected-item-id="selectedItemId"
               :current-page="currentPage"
               state-key="import_history"
+              @item-click="onItemClick"
               @pagination-click="onPaginationClick"
             >
               <!-- Override name column template -->
@@ -234,7 +145,7 @@
       v-if="importPreview"
       :columns="popupColumns"
       :items="popupItems"
-      :total="previewTotalNum"
+      :total="previewTotalNum ?? 0"
       :disabled="!!(importStatus && importStatus.jobId)"
       @close="importPreview = false"
       @start-import="initializeImporting"
@@ -268,19 +179,20 @@ import {
 } from "@vc-shell/framework";
 import { UserPermissions } from "./../types";
 import useImport, { ExtProfile } from "../composables/useImport";
-import { ImportDataPreview, ImportPushNotification } from "@virtocommerce/import-app-api";
+import { ImportDataPreview, ImportPushNotification, ImportRunHistory } from "@virtocommerce/import-app-api";
 import ImportPopup from "../components/ImportPopup.vue";
 import ImportUploadStatus from "../components/ImportUploadStatus.vue";
 import ImportStatus from "../components/ImportStatus.vue";
 import { Field } from "vee-validate";
 import { useI18n } from "vue-i18n";
+import { ImportStat, ImportErrorsCard, ImportUploadedFile } from "../components";
 
 export interface Props {
   expanded: boolean;
   closable: boolean;
   param?: string;
   options?: {
-    importJobId: string;
+    importJobId?: string;
     title?: string;
   };
 }
@@ -301,16 +213,8 @@ interface INotificationActions {
   disabled?: boolean | ComputedRef<boolean>;
 }
 
-interface IImportBadges {
-  id: string;
-  icon: string;
-  color: string;
-  title?: string | number;
-  description?: string;
-}
-
 defineOptions({
-  url: "/importer",
+  // url: "/importer",
   name: "ImportNew",
 });
 
@@ -325,7 +229,7 @@ const { openBlade, resolveBladeByName } = useBladeNavigation();
 
 const { t } = useI18n({ useScope: "global" });
 const { hasAccess } = usePermissions();
-// const { getAccessToken } = useUser();
+
 const {
   loading: importLoading,
   importHistory,
@@ -336,48 +240,65 @@ const {
   historyPages,
   totalHistoryCount,
   currentPage,
+  importHistoryLoading,
+  dataImportersLoading,
+  previewDataLoading,
+  profilesLoading,
   cancelImport,
   clearImport,
   previewData,
   setFile,
   startImport,
-  loadImportProfile,
   fetchImportHistory,
-  fetchDataImporters,
-  updateStatus,
-  getLongRunning,
+  setErrorMessage,
+  clearErrorMessage,
+  init,
+  getTasks,
 } = useImport();
 const { moduleNotifications, markAsRead } = useNotifications("ImportPushNotification");
-const locale = window.navigator.language;
 const fileLoading = ref(false);
 const preview = ref<ImportDataPreview>();
 const importPreview = ref(false);
 const popupColumns = ref<ITableColumns[]>([]);
 const popupItems = ref<Record<string, unknown>[]>([]);
-const errorMessage = ref("");
+const title = computed(() =>
+  props.param && profileDetails.value.name ? profileDetails.value.name : props.options?.title,
+);
+
 const cancelled = ref(false);
 const notificationId = ref();
 const previewLoading = ref(false);
+const selectedItemId = ref();
+const bladeWidth = ref(70);
 
 watch(
   moduleNotifications,
   (newVal: ImportPushNotification[]) => {
     newVal.forEach((message) => {
+      const messageContent = message.profileName ? `${message.profileName}: ${message.title}` : message.title;
+
+      if (!importStarted.value && message.profileId === props.param) {
+        getTasks({
+          profileId: message.profileId,
+          importJobId: message.jobId,
+        });
+      }
+
       if (!message.finished) {
-        if (!notificationId.value && message.title) {
-          notificationId.value = notification(message.title, {
+        if (!notificationId.value && messageContent) {
+          notificationId.value = notification(messageContent, {
             timeout: false,
           });
         } else {
           notification.update(notificationId.value, {
-            content: message.title,
+            content: messageContent,
           });
         }
       } else {
         if (message.title === "Import failed") {
           notification.update(notificationId.value, {
             timeout: 5000,
-            content: message.title,
+            content: messageContent,
             type: "error",
             onClose() {
               markAsRead(message);
@@ -387,7 +308,7 @@ watch(
         } else {
           notification.update(notificationId.value, {
             timeout: 5000,
-            content: message.title,
+            content: messageContent,
             type: "success",
             onClose() {
               markAsRead(message);
@@ -416,7 +337,7 @@ const bladeToolbar = ref<IBladeToolbar[]>([
       });
     },
     isVisible: computed(() => !!(hasAccess(UserPermissions.SellerImportProfilesEdit) && profile.value)),
-    disabled: computed(() => importLoading.value || !profile.value.name),
+    disabled: computed(() => importLoading.value || !profile.value.name || importStarted.value),
   },
   {
     id: "cancel",
@@ -451,29 +372,21 @@ const bladeToolbar = ref<IBladeToolbar[]>([
     disabled: computed(() => importStatus.value?.inProgress),
     isVisible: computed(() => !!(importStatus.value && profile.value.name)),
   },
-  {
-    id: "reRun",
-    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.RE_RUN")),
-    icon: "fas fa-sync",
-    async clickHandler() {
-      const historyItem =
-        importHistory.value && importHistory.value.find((x) => x.jobId === props.options?.importJobId);
-      if (historyItem?.fileUrl) {
-        const correctedProfile = profile?.value;
-        correctedProfile.importFileUrl = historyItem.fileUrl;
-        correctedProfile.inProgress = false;
-        correctedProfile.jobId = undefined;
-        await start(correctedProfile);
-      }
-    },
-    disabled: computed(() => {
-      const historyItem =
-        importHistory.value && importHistory.value.find((x) => x.jobId === props.options?.importJobId);
-      return !(historyItem?.finished && historyItem.fileUrl != null);
-    }),
-    isVisible: computed(() => !!(importStatus.value && profile.value.name)),
-  },
 ]);
+
+async function reRunImport(importJobId?: string) {
+  const jobId = props.options?.importJobId || importJobId;
+  const historyItem = importHistory.value && importHistory.value.find((x) => x.jobId === jobId);
+
+  if (historyItem?.fileUrl) {
+    const correctedProfile = profile?.value;
+    correctedProfile.importFileUrl = historyItem.fileUrl;
+    correctedProfile.inProgress = false;
+    correctedProfile.jobId = undefined;
+    await start(correctedProfile);
+  }
+}
+
 const columns = ref<ITableColumns[]>([
   {
     id: "profileName", // temp
@@ -504,66 +417,6 @@ const columns = ref<ITableColumns[]>([
     sortable: true,
   },
 ]);
-
-const skippedColumns = ref<ITableColumns[]>([
-  {
-    id: "errors",
-    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.TABLE.ERROR_DESC")),
-  },
-]);
-
-const importBadges = computed((): IImportBadges[] => {
-  return [
-    {
-      id: "clock",
-      icon: "far fa-clock",
-      color: "#A9BFD2",
-      title:
-        t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.STARTED_AT") +
-        " " +
-        (importStatus.value?.notification?.created
-          ? moment(importStatus.value.notification.created).locale(locale).format("LTS")
-          : importStatus.value?.notification?.createdDate
-            ? moment(importStatus.value.notification.createdDate).locale(locale).format("LTS")
-            : null),
-      description: importStatus.value?.notification?.created
-        ? moment(importStatus.value.notification.created).locale(locale).fromNow()
-        : importStatus.value?.notification?.createdDate
-          ? moment(importStatus.value.notification.createdDate).locale(locale).fromNow()
-          : undefined,
-    },
-    {
-      id: "linesRead",
-      icon: "fas fa-check-circle",
-      color: "#87B563",
-      title: importStatus.value?.notification?.totalCount,
-      description: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.LINES_READ"),
-    },
-    {
-      id: "linesImported",
-      icon: "fas fa-check-circle",
-      color: "#87B563",
-      title:
-        typeof importStatus.value?.notification?.processedCount !== "undefined" &&
-        typeof importStatus.value?.notification?.errorCount !== "undefined"
-          ? importStatus.value.notification.processedCount - importStatus.value.notification.errorCount >= 0
-            ? importStatus.value.notification.processedCount - importStatus.value.notification.errorCount
-            : 0
-          : 0,
-      description: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.IMPORTED"),
-    },
-    {
-      id: "skipped",
-      icon: "fas fa-exclamation-circle",
-      color: "#FFBB0D",
-      title:
-        typeof importStatus.value?.notification?.errorCount !== "undefined"
-          ? importStatus.value.notification.errorCount
-          : 0,
-      description: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.SKIPPED"),
-    },
-  ];
-});
 
 const uploadActions = ref<INotificationActions[]>([
   {
@@ -598,7 +451,7 @@ const uploadActions = ref<INotificationActions[]>([
           importPreview.value = true;
         }
       } catch (e: unknown) {
-        errorMessage.value = (e as Error).message;
+        setErrorMessage((e as Error).message);
         throw e;
       } finally {
         previewLoading.value = false;
@@ -619,74 +472,56 @@ const uploadActions = ref<INotificationActions[]>([
   },
 ]);
 
-const skippedColorVariant = computed(() => {
-  return !(
-    importStatus.value &&
-    importStatus.value.notification &&
-    importStatus.value.notification.errors &&
-    importStatus.value.notification.errors.length
-  )
-    ? "success"
-    : "danger";
-});
-
-const progressbarVariant = computed(() => (inProgress.value ? "striped" : "default"));
-
 const inProgress = computed(() => (importStatus.value && importStatus.value.inProgress) || false);
 
-const bladeLoading = computed(() => importLoading.value);
+const bladeLoading = computed(
+  () =>
+    importLoading.value ||
+    dataImportersLoading.value ||
+    profilesLoading.value ||
+    previewDataLoading.value ||
+    importHistoryLoading.value,
+);
 
 const profileDetails = computed(() => profile.value);
 
 const importStarted = computed(() => !!(importStatus.value && importStatus.value.jobId));
 
-const estimatedRemaining = computed(() => {
-  return importStatus.value && importStatus.value.estimatedRemaining
-    ? moment.duration(importStatus.value.estimatedRemaining).locale(locale).humanize(false, "precise")
-    : null;
-});
-
 const previewTotalNum = computed(() => preview.value?.totalCount);
 
-const reversedErrors = computed(() => {
-  const errors = _.cloneDeep(importStatus.value?.notification?.errors);
+async function onItemClick(item: ImportRunHistory) {
+  if (item?.jobId && item.profileId) {
+    // const historyItem = importHistory.value && importHistory.value.find((x) => x.jobId === item?.jobId);
 
-  return errors?.reverse();
-});
+    // if (historyItem) {
+    //   updateStatus(historyItem);
+    // } else {
+    //   getLongRunning({ id: item.profileId });
+    // }
 
-const reportUrl = computed(() => importStatus.value?.notification?.reportUrl);
+    openBlade({
+      blade: resolveBladeByName("ImportProcess"),
+      options: {
+        importJobId: item?.jobId,
+        title: item?.profileName,
+      },
+      param: item?.profileId,
+      onOpen() {
+        selectedItemId.value = item?.id;
+      },
+      onClose() {
+        selectedItemId.value = undefined;
+      },
+    });
 
-watch(
-  () => importStatus.value?.inProgress,
-  (newVal) => {
-    if (newVal === false) {
-      emit("parent:call", { method: "reload" });
-    }
-  },
-);
+    bladeWidth.value = 50;
+  }
+}
 
 onMounted(async () => {
-  if (props.param) {
-    await fetchDataImporters();
-    await loadImportProfile({ id: props.param });
-    await fetchImportHistory({
-      profileId: props.param,
-      jobId: props.options?.importJobId,
-    });
-  }
-  if (props.param && props.options && props.options?.importJobId) {
-    const historyItem = importHistory.value && importHistory.value.find((x) => x.jobId === props.options?.importJobId);
-    if (historyItem) {
-      updateStatus(historyItem);
-    } else {
-      getLongRunning({ id: props.param });
-    }
-  }
+  clearImport();
+  await init({ profileId: props.param, importJobId: props.options?.importJobId });
 });
-
-function clearErrorMessage() {
-  errorMessage.value = "";
-}
 
 async function uploadCsv(files: FileList | null) {
   if (files && files.length) {
@@ -704,7 +539,7 @@ async function uploadCsv(files: FileList | null) {
       }
       files = null;
     } catch (e: unknown) {
-      errorMessage.value = (e as Error).message;
+      setErrorMessage((e as Error).message);
       if (files)
         setFile({
           name: files[0].name,
@@ -727,10 +562,10 @@ async function saveExternalUrl() {
 
 async function start(profile?: ExtProfile) {
   try {
-    errorMessage.value = "";
+    clearErrorMessage();
     await startImport(profile);
   } catch (e: unknown) {
-    errorMessage.value = (e as Error).message;
+    setErrorMessage((e as Error).message);
     throw e;
   }
 }
@@ -762,13 +597,24 @@ async function onPaginationClick(page: number) {
 
 defineExpose({
   reloadParent,
-  title: props.param && profileDetails.value.name ? profileDetails.value.name : props.options?.title,
+  reRunImport,
+  title,
 });
 </script>
 
 <style lang="scss">
 :root {
-  --color-error: #f14e4e;
+  --color-error: var(--base-error-color);
+  --import-new-description-color: var(--neutrals-800);
+  --import-new-border-color: var(--secondary-200);
+  --import-new-preview-text-color: var(--primary-500);
+  --import-new-icon-color: var(--secondary-500);
+  --import-new-badge-color-success: var(--success-500);
+  --import-new-badge-color-info: var(--secondary-500);
+  --import-new-badge-color-warning: var(--warning-500);
+  --import-new-badge-color-error: var(--danger-500);
+  --import-new-progress-text-color: var(--secondary-500);
+  --import-new-border-top-color: var(--neutrals-200);
 }
 
 .import-new {
