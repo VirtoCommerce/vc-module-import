@@ -1,6 +1,6 @@
 <template>
   <VcBlade
-    v-loading:1000="loading"
+    v-loading:1000="bladeLoading"
     :title="param && profileDetails ? profileDetails.name : $t('IMPORT.PAGES.PROFILE_DETAILS.TITLE')"
     width="50%"
     :toolbar-items="bladeToolbar"
@@ -163,6 +163,8 @@ const {
   loading,
   profile,
   modified,
+  updateImportProfileLoading,
+  dataImportersLoading,
   createImportProfile,
   loadImportProfile,
   deleteImportProfile,
@@ -177,6 +179,8 @@ const isDirty = useIsFormDirty();
 const { onBeforeClose } = useBladeNavigation();
 
 useBeforeUnload(computed(() => !isDisabled.value || modified.value));
+
+const bladeLoading = computed(() => loading.value || updateImportProfileLoading.value || dataImportersLoading.value);
 
 const isDisabled = computed(() => {
   return !isDirty.value || !isValid.value;

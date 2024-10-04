@@ -1,6 +1,6 @@
 <template>
   <NotificationTemplate
-    :color="notificationStyle.color.value"
+    :color="notificationStyle.color"
     :title="notification.title ?? ''"
     :icon="notificationStyle.icon"
     :notification="notification"
@@ -41,17 +41,25 @@ defineOptions({
 
 const { openBlade, resolveBladeByName } = useBladeNavigation();
 
-const notificationStyle = computed(() => ({
-  color: computed(() => {
-    const notification = props.notification;
-    return notification.finished && !(notification.errors && notification.errors.length)
-      ? "#87b563"
-      : !(notification.errors && notification.errors.length) && !notification.finished
-        ? "#A9BCCD"
-        : "#F14E4E";
-  }),
-  icon: "fas fa-download",
-}));
+const notificationStyle = computed(() => {
+  const notification = props.notification;
+  if (notification.finished && !(notification.errors && notification.errors.length)) {
+    return {
+      color: 'var(--import-notification-success-color)',
+      icon: "fas fa-check-circle",
+    };
+  } else if (!(notification.errors && notification.errors.length) && !notification.finished) {
+    return {
+      color: 'var(--import-notification-info-color)',
+      icon: "fas fa-info-circle",
+    };
+  } else {
+    return {
+      color: 'var(--import-notification-error-color)',
+      icon: "fas fa-exclamation-circle",
+    };
+  }
+});
 
 async function onClick() {
   if (props.notification.notifyType === "ImportPushNotification") {
@@ -60,14 +68,11 @@ async function onClick() {
       {
         blade: resolveBladeByName("ImportProfileSelector"),
         param: props.notification.profileId,
-        options: {
-          importJobId: props.notification.jobId,
-        },
       },
       true,
     );
     await openBlade({
-      blade: resolveBladeByName("ImportNew"),
+      blade: resolveBladeByName("ImportProcess"),
       param: props.notification.profileId,
       options: {
         importJobId: props.notification.jobId,
@@ -76,3 +81,11 @@ async function onClick() {
   }
 }
 </script>
+
+<style lang="scss">
+:root {
+  --import-notification-success-color: var(--success-500);
+  --import-notification-info-color: var(--secondary-500);
+  --import-notification-error-color: var(--danger-500);
+}
+</style>

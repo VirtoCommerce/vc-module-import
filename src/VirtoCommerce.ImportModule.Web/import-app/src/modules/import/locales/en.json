@@ -19,11 +19,41 @@
         "FOR_REFERENCE": "for a reference"
       },
       "LAST_EXECUTIONS": "Last executions",
+      "IMPORT_PROFILES": {
+        "TITLE": "Import profiles",
+        "TOOLBAR": {
+          "ADD_PROFILE": "Add profile",
+          "REFRESH": "Refresh"
+        },
+        "TABLE": {
+          "HEADER": {
+            "PROFILE_NAME": "Profile name",
+            "IMPORTER": "Importer",
+            "LAST_RUN": "Last run date",
+            "LONG_RUNNING_STATUS": "Status"
+          },
+          "CELLS": {
+            "LONG_RUNNING_STATUS": {
+              "RUNNING": "In progress"
+            }
+          }
+        },
+        "EMPTY": {
+          "NO_ITEMS": "List is empty"
+        }
+      },
       "PROFILE_SELECTOR": {
         "TITLE": "Import profiles",
         "TOOLBAR": {
           "ADD_PROFILE": "Add profile",
           "REFRESH": "Refresh"
+        },
+        "TABLE": {
+          "HEADER": {
+            "PROFILE_NAME": "Profile name",
+            "IMPORTER": "Importer",
+            "CREATED_DATE": "Created date"
+          }
         },
         "EMPTY": {
           "NO_ITEMS": "List is empty"
@@ -98,6 +128,9 @@
             "NO_ERRORS": "No errors found"
           }
         }
+      },
+      "IMPORT_PROCESS": {
+        "TITLE_SUFFIX": " statistics"
       },
       "ACTIONS": {
         "UPLOADER": {
