@@ -21,6 +21,9 @@ namespace VirtoCommerce.ImportModule.Data.Models
         [StringLength(1024)]
         public string ProfileName { get; set; }
 
+        [StringLength(1024)]
+        public string Name { get; set; }
+
         [StringLength(128)]
         public string JobId { get; set; }
 
@@ -56,6 +59,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             UserId = model.UserId;
             ProfileId = model.ProfileId;
             ProfileName = model.ProfileName;
+            Name = model.Name;
             JobId = model.JobId;
             Executed = model.Executed;
             Finished = model.Finished;
@@ -85,6 +89,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             model.UserId = UserId;
             model.ProfileId = ProfileId;
             model.ProfileName = ProfileName;
+            model.Name = Name;
             model.JobId = JobId;
             model.Executed = Executed;
             model.Finished = Finished;
@@ -103,6 +108,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             target.ModifiedBy = ModifiedBy;
             target.ModifiedDate = ModifiedDate;
 
+            target.Name = Name;
             target.Finished = Finished;
             target.TotalCount = TotalCount;
             target.ProcessedCount = ProcessedCount;

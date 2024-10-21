@@ -135,6 +135,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             try
             {
                 await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
+                importProfile.RunHistory = importRunHistory;
 
                 await _dataImportManager.ImportAsync(importProfile, ProgressInfoCallback, cancellationToken);
             }
