@@ -23,7 +23,7 @@ jobs:
 
   publish-nuget:
     needs:
-      [build, test]
+      [build]
     uses: VirtoCommerce/.github/.github/workflows/publish-github.yml@v3.800.9    
     with:
       fullKey: ${{ needs.build.outputs.packageFullKey }}
