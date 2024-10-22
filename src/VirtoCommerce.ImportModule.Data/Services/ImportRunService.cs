@@ -102,7 +102,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         public virtual async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken)
         {
-            var importRunHistory = ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
+            var importRunHistory = importProfile.RunHistory ?? ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
 
             async Task ProgressInfoCallback(ImportProgressInfo progressInfo)
             {
