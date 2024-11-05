@@ -28,6 +28,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             var query = ((IImportRepository)repository).ImportRunHistories;
 
+            if (!string.IsNullOrEmpty(criteria.Keyword))
+            {
+                query = query.Where(x => x.Name.Contains(criteria.Keyword));
+            }
+
             if (!string.IsNullOrEmpty(criteria.UserId))
             {
                 query = query.Where(x => x.UserId == criteria.UserId);
