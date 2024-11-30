@@ -14,20 +14,15 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 {
     public class CsvDataReader<TCsvImportable, TCsvClassMap> : IImportDataReader where TCsvClassMap : ClassMap
     {
-        private int? _totalCount;
-        private int _pageSize;
-        private string _headerRaw;
         private readonly Stream _stream;
-        protected CsvConfiguration CsvConfiguration { get; set; }
         private readonly CsvReader _csvReader;
+        private readonly int _pageSize;
         private readonly bool _needReadRaw;
+        private int? _totalCount;
+        private string _headerRaw;
+        protected CsvConfiguration CsvConfiguration { get; set; }
 
         public bool HasMoreResults { get; private set; } = true;
-
-        public CsvDataReader(Stream stream, ImportContext context) :
-            this(stream, context, false)
-        {
-        }
 
         public CsvDataReader(Stream stream, ImportContext context, bool needReadRaw = false)
         {
@@ -53,7 +48,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             _needReadRaw = needReadRaw;
         }
 
-        public async Task<int> GetTotalCountAsync(ImportContext context)
+        public virtual async Task<int> GetTotalCountAsync(ImportContext context)
         {
             if (_totalCount.HasValue)
             {
@@ -83,7 +78,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             return _totalCount.Value;
         }
 
-        public async Task<object[]> ReadNextPageAsync(ImportContext context)
+        public virtual async Task<object[]> ReadNextPageAsync(ImportContext context)
         {
             var result = new List<object>();
 
@@ -109,20 +104,17 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                                 Row = row,
                                 RawHeader = _headerRaw,
                                 RawRecord = rawRecord,
-                                Record = record
+                                Record = record,
                             });
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    if (context.ErrorCallback != null)
+                    context.ErrorCallback?.Invoke(new ErrorInfo
                     {
-                        context.ErrorCallback(new ErrorInfo
-                        {
-                            ErrorMessage = ex.Message
-                        });
-                    }
+                        ErrorMessage = ex.Message,
+                    });
                 }
             }
 
