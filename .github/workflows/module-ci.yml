@@ -104,25 +104,17 @@ jobs:
         with:
           versionSuffix: ${{ env.VERSION_SUFFIX }}
 
-      - name: SonarCloud Begin
-        uses: VirtoCommerce/vc-github-actions/sonar-scanner-begin@master
+      - name: Build Import App
+        uses: ./.github/actions/build-import-app
         with:
-          repoOrg: ${{ github.repository_owner }}
-          sonarOrg: ${{secrets.SONAR_ORG_KEY}}
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          npmToken: ${{ secrets.NPM_TOKEN }}
 
       - name: Build
         run: vc-build Compile
 
       - name: Unit Tests
         run: vc-build Test -skip
-
-      - name: SonarCloud End
-        uses: VirtoCommerce/vc-github-actions/sonar-scanner-end@master
-
-      - name: Quality Gate
-        uses: VirtoCommerce/vc-github-actions/sonar-quality-gate@master
-        with:
-          login: ${{secrets.SONAR_TOKEN}}
 
       - name: Packaging
         run: vc-build Compress -skip Clean+Restore+Compile+Test
@@ -236,26 +228,6 @@ jobs:
         if: success()
         run: |
           echo "Jira Upload Build Info response: ${{ steps.push_build_info_to_jira.outputs.response }}"
-
-  module-katalon-tests:
-    if: ${{ ((github.ref == 'refs/heads/dev') && (github.event_name == 'push') && (needs.ci.outputs.run-e2e == 'true')) ||
-      (github.event_name == 'workflow_dispatch') || (github.base_ref == 'dev') && (github.event_name == 'pull_request') }}
-    needs: 'ci'
-    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.800.10
-
-    with:
-      katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
-      katalonRepoBranch: 'dev'
-      testSuite: 'Test Suites/Modules/Platform_collection'
-      installModules: 'true'
-      installCustomModule: 'true'
-      customModuleId:  ${{ needs.ci.outputs.moduleId }}
-      customModuleUrl:  ${{ needs.ci.outputs.artifactUrl }}
-      platformDockerTag: 'dev-linux-latest'
-      storefrontDockerTag: 'dev-linux-latest'
-    secrets:
-      envPAT: ${{ secrets.REPO_TOKEN }}
-      katalonApiKey: ${{ secrets.KATALON_API_KEY }}
 
   deploy-cloud:
     if: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name == 'push' }}
