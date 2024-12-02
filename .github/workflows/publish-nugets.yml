@@ -1,5 +1,4 @@
-# v3.800.10
-# https://virtocommerce.atlassian.net/browse/VCST-1738
+# v3.200.36
 name: Publish nuget
 
 on:
@@ -12,13 +11,8 @@ on:
         type: boolean
 
 jobs:
-  test:
-    uses: VirtoCommerce/.github/.github/workflows/test-and-sonar.yml@v3.800.10
-    secrets:
-      sonarToken: ${{ secrets.SONAR_TOKEN }}
-
   build:
-    uses: VirtoCommerce/.github/.github/workflows/build.yml@v3.800.10
+    uses: VirtoCommerce/.github/.github/workflows/build.yml@v3.200.36
     with:
       uploadPackage: 'true'
       uploadDocker: 'false'
@@ -28,8 +22,8 @@ jobs:
 
   publish-nuget:
     needs:
-      [build, test]
-    uses: VirtoCommerce/.github/.github/workflows/publish-github.yml@v3.800.10
+      [build]
+    uses: VirtoCommerce/.github/.github/workflows/publish-github.yml@v3.200.36
     with:
       fullKey: ${{ needs.build.outputs.packageFullKey }}
       forceGithub: false
