@@ -58,4 +58,5 @@ async function customizationHandler() {
 
 <style lang="scss">
 @import "./../styles/index.scss";
+@import "./../styles/base.scss";
 </style>
