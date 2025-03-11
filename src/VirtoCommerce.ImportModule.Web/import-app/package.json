@@ -1,6 +1,6 @@
 {
   "name": "import-app",
-  "version": "1.0.167",
+  "version": "1.0.168",
   "private": true,
   "scripts": {
     "bootstrap": "yarn build:modules-library",
