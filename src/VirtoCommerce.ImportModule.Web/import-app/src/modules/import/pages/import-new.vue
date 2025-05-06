@@ -111,6 +111,7 @@
             :fill="true"
             class="import-new__history"
           >
+          <!-- @vue-generic {ImportRunHistory} -->
             <VcTable
               :columns="columns"
               :loading="importHistoryLoading"
@@ -426,7 +427,7 @@ const uploadActions = ref<INotificationActions[]>([
       clearErrorMessage();
     },
     outline: true,
-    variant: "danger",
+    variant: "secondary",
     isVisible: computed(() => !inProgress.value),
   },
   {

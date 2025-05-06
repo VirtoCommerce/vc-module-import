@@ -8,6 +8,7 @@
     @expand="$emit('expand:blade')"
     @collapse="$emit('collapse:blade')"
   >
+  <!-- @vue-generic {ExtProfile} -->
     <VcTable
       :loading="profilesLoading"
       :columns="columns"
