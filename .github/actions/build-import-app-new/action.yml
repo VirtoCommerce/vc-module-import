@@ -18,22 +18,22 @@ runs:
       with:
         repository: "VirtoCommerce/vc-module-import"
         token: ${{ inputs.githubToken }}
-        path: "src/VirtoCommerce.ImportModule.Web/import-app"
+        path: "src/VirtoCommerce.ImportModule.Web/import-app-new"
         ref: ${{ env.REF }}
 
     - name: Install dependencies for Import App
       shell: bash
-      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app-new
       run: yarn
 
     - name: Build Import Module
       shell: bash
-      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app-new
       run: yarn bootstrap
 
     - name: Add auth token
       shell: bash
-      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app-new
       run: |
         yarn config set --json npmRegistries '{ "//registry.npmjs.org": { "npmAuthToken": "'"${NPM_TOKEN}"'" } }'
       env:
@@ -41,7 +41,7 @@ runs:
 
     - name: Check for NPM tag
       shell: bash
-      working-directory: "src/VirtoCommerce.ImportModule.Web/import-app"
+      working-directory: "src/VirtoCommerce.ImportModule.Web/import-app-new"
       run: |
         # Set default tag
         NPM_TAG="latest"
@@ -61,7 +61,7 @@ runs:
 
     - name: Publish Import module
       shell: bash
-      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app-new
       run: |
         if [ "$NPM_TAG" = "latest" ]; then
           yarn run publish || true
@@ -71,6 +71,6 @@ runs:
 
     - name: Build Import App
       shell: bash
-      working-directory: src/VirtoCommerce.ImportModule.Web/import-app
+      working-directory: src/VirtoCommerce.ImportModule.Web/import-app-new
       run: yarn build
 

@@ -36,8 +36,8 @@
     </app>
     <app id="import-app-new">
       <title>Import App New</title>
-      <iconUrl>/apps/import-app/img/icons/favicon-32x32.png</iconUrl>
-      <contentPath>import-app/dist</contentPath>
+      <iconUrl>/apps/import-app-new/img/icons/favicon-32x32.png</iconUrl>
+      <contentPath>import-app-new/dist</contentPath>
       <permission>import:access</permission>
     </app>
   </apps>
