@@ -1,5 +1,5 @@
 # v2.0.0
-name: Build Import App
+name: Build Import App New
 
 inputs:
   githubToken:
@@ -13,6 +13,18 @@ runs:
   using: composite
 
   steps:
+    - name: Set Vendor Portal ref
+      shell: bash
+      run: |
+        echo "REF=feat/redesign" >> $GITHUB_ENV
+
+    - name: Checkout Import module
+      uses: actions/checkout@v3
+      with:
+        repository: "VirtoCommerce/vc-module-import"
+        token: ${{ inputs.githubToken }}
+        path: "src/VirtoCommerce.ImportModule.Web/import-app"
+        ref: ${{ env.REF }}
 
     - name: Install dependencies for Import App
       shell: bash
