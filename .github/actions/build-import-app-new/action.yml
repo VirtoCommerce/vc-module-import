@@ -13,14 +13,6 @@ runs:
   using: composite
 
   steps:
-    - name: Checkout Import module
-      uses: actions/checkout@v3
-      with:
-        repository: "VirtoCommerce/vc-module-import"
-        token: ${{ inputs.githubToken }}
-        path: "src/VirtoCommerce.ImportModule.Web/import-app-new"
-        ref: ${{ env.REF }}
-
     - name: Install dependencies for Import App
       shell: bash
       working-directory: src/VirtoCommerce.ImportModule.Web/import-app-new
