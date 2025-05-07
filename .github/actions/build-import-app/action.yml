@@ -59,7 +59,7 @@ runs:
         if [ "$NPM_TAG" = "latest" ]; then
           yarn run publish || true
         else
-          yarn run publish:tag --tag=$NPM_TAG || true
+          yarn workspace @virtocommerce/import-app npm publish --tag=$NPM_TAG || true
         fi
 
     - name: Build Import App
