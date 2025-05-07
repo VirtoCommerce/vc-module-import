@@ -32,12 +32,6 @@
     <Copy SourceFiles="@(NotificationTemplates)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
     <Copy SourceFiles="@(ImportApp)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
   </Target>
-  <ItemGroup>
-    <Compile Remove="import-app\**" />
-    <Content Remove="import-app\**" />
-    <EmbeddedResource Remove="import-app\**" />
-    <None Remove="import-app\**" />
-  </ItemGroup>
 
 
   <ItemGroup>
@@ -48,6 +42,10 @@
 
   <ItemGroup>
     <Folder Include="Scripts\widgets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="import-app\.yarn\releases\yarn-4.0.2.cjs" />
   </ItemGroup>
 
 </Project>

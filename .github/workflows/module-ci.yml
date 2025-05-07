@@ -97,6 +97,12 @@ jobs:
         with:
           versionSuffix: ${{ env.VERSION_SUFFIX }}
 
+      - name: Build Import App
+        uses: ./.github/actions/build-import-app
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          npmToken: ${{ secrets.NPM_TOKEN }}
+
       - name: Build New Import App
         uses: ./.github/actions/build-import-app-new
         with:
