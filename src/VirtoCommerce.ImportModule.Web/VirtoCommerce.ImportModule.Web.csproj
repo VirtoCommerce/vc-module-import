@@ -27,10 +27,12 @@
   <ItemGroup>
     <NotificationTemplates Include="NotificationTemplates\**" />
     <ImportApp Include="import-app\dist\**" />
+    <ImportAppNew Include="import-app-new\dist\**" />
   </ItemGroup>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="@(NotificationTemplates)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
     <Copy SourceFiles="@(ImportApp)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
+    <Copy SourceFiles="@(ImportAppNew)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
   </Target>
 
 
