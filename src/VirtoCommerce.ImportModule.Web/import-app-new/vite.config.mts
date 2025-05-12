@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 export default getApplicationConfiguration({
   resolve: {
     alias: {
-      "@virtocommerce/import-app": resolve("src/modules/index.ts"),
+      "@virtocommerce/import-module": resolve("src/modules/index.ts"),
     },
   },
 });

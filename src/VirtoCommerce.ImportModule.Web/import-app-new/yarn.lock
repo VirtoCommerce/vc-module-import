@@ -2704,14 +2704,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@virtocommerce/import-app@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@virtocommerce/import-app@npm:1.1.0"
-  checksum: d179450db3d4bc89357c69ab3730c39cd5ba111c47c2910cf19873c9b89910855168af22677e3f36b1a97c14fc7215cc3839d0a2a131ab71434fc218f7aa666e
-  languageName: node
-  linkType: hard
-
-"@virtocommerce/import-module@workspace:src/modules":
+"@virtocommerce/import-module@npm:^1.1.0, @virtocommerce/import-module@workspace:src/modules":
   version: 0.0.0-use.local
   resolution: "@virtocommerce/import-module@workspace:src/modules"
   languageName: unknown
@@ -6008,7 +6001,7 @@ __metadata:
     "@vc-shell/ts-config": "npm:^1.1.5"
     "@vcmp-vendor-portal/api": "npm:^1.1.3"
     "@vcmp-vendor-portal/modules": "npm:^1.1.3"
-    "@virtocommerce/import-app": "npm:^1.1.0"
+    "@virtocommerce/import-module": "npm:^1.1.0"
     "@vitejs/plugin-vue": "npm:5.0.3"
     "@vue/eslint-config-prettier": "npm:^9.0.0"
     "@vue/eslint-config-typescript": "npm:^13.0.0"
