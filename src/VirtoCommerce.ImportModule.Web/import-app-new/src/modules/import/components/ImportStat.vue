@@ -119,7 +119,7 @@ const importBadges = computed((): IImportBadges[] => {
   return [
     {
       id: "clock",
-      icon: "far fa-clock",
+      icon: "lucide-clock",
       color: "var(--import-new-badge-color-info)",
       title:
         t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.STARTED_AT") +
@@ -137,14 +137,14 @@ const importBadges = computed((): IImportBadges[] => {
     },
     {
       id: "linesRead",
-      icon: "fas fa-check-circle",
+      icon: "material-check_circle",
       color: "var(--import-new-badge-color-success)",
       title: importStatus.value?.notification?.totalCount,
       description: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.LINES_READ"),
     },
     {
       id: "linesImported",
-      icon: "fas fa-check-circle",
+      icon: "material-check_circle",
       color: "var(--import-new-badge-color-success)",
       title:
         typeof importStatus.value?.notification?.processedCount !== "undefined" &&
@@ -157,7 +157,7 @@ const importBadges = computed((): IImportBadges[] => {
     },
     {
       id: "skipped",
-      icon: "fas fa-exclamation-circle",
+      icon: "material-error",
       color: "var(--import-new-badge-color-warning)",
       title:
         typeof importStatus.value?.notification?.errorCount !== "undefined"
