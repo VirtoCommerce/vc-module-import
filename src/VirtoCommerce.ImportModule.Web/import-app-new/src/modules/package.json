@@ -1,5 +1,5 @@
 {
-  "name": "@virtocommerce/import-app",
+  "name": "@virtocommerce/import-module",
   "version": "1.1.0",
   "type": "module",
   "main": "./dist/index.mjs",
