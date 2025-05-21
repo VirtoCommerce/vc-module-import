@@ -32,7 +32,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' &&
         (github.event.pull_request.head.repo.full_name == github.repository ||
         github.event.pull_request.head.repo.full_name == '') }}  # Check that PR not from forked repo and not from Dependabot
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       CLOUD_INSTANCE_BASE_URL: ${{secrets.CLOUD_INSTANCE_BASE_URL}}
       CLIENT_ID: ${{secrets.CLIENT_ID}}
@@ -58,6 +58,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
             node-version: '18'
+
+      - name: Enable Corepack & use Yarn 4
+        run: |
+          corepack enable
+          corepack prepare yarn@4.0.2 --activate
 
       - name: Set RELEASE_STATUS
         if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
@@ -98,6 +103,12 @@ jobs:
           githubToken: ${{ secrets.REPO_TOKEN }}
           npmToken: ${{ secrets.NPM_TOKEN }}
 
+      - name: Build New Import App
+        uses: ./.github/actions/build-import-app-new
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          npmToken: ${{ secrets.NPM_TOKEN }}
+
       - name: Build
         run: vc-build Compile
 
@@ -108,11 +119,11 @@ jobs:
         run: vc-build Compress -skip Clean+Restore+Compile+Test
 
       - name: Publish Nuget
-        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}
+        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feat/redesign') && github.event_name != 'workflow_dispatch' }}
         uses: VirtoCommerce/vc-github-actions/publish-nuget@master
 
       - name: Publish to Blob
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feat/redesign' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
         id: blobRelease
         uses: VirtoCommerce/vc-github-actions/publish-blob-release@master
         with:
@@ -143,7 +154,7 @@ jobs:
           fi;
 
       - name: Create deployment matrix
-        if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
+        if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feat/redesign'}}
         uses: VirtoCommerce/vc-github-actions/cloud-create-deploy-matrix@master
         id: deployment-matrix
         with:
@@ -185,7 +196,7 @@ jobs:
           echo "Jira Upload Build Info response: ${{ steps.push_build_info_to_jira.outputs.response }}"
 
   deploy-cloud:
-    if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/dev') }}
+    if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/dev') || github.ref == 'refs/heads/feat/redesign' }}
     needs: ci
     uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@VCI-805
     with:
