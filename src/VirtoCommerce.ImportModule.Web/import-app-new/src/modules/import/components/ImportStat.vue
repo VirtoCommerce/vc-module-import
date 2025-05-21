@@ -33,7 +33,7 @@
         class="tw-flex !tw-flex-row tw-items-center tw-p-5"
       >
         <VcIcon
-          :icon="`material-${badge.icon}`"
+          :icon="`${badge.icon}`"
           size="xxl"
           :style="{ color: badge.color }"
         ></VcIcon>

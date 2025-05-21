@@ -134,7 +134,7 @@ const columns = ref<ITableColumns[]>([
 
 const onItemClick = (item: ExtProfile) => {
   openBlade({
-    blade: markRaw(importNew),
+    blade: resolveBladeByName("ImportNew"),
     param: item.id,
     options: {
       importJobId: item && item.inProgress ? item.jobId : undefined,
