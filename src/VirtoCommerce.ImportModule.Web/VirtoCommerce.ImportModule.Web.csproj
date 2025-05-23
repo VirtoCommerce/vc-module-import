@@ -26,17 +26,17 @@
 
   <ItemGroup>
     <NotificationTemplates Include="NotificationTemplates\**" />
-    <ImportApp Include="import-app\dist\**" />
+    <ImportApp Include="App\dist\**" />
   </ItemGroup>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="@(NotificationTemplates)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
     <Copy SourceFiles="@(ImportApp)" DestinationFiles="$(PublishDir)\..\%(Identity)" />
   </Target>
   <ItemGroup>
-    <Compile Remove="import-app\**" />
-    <Content Remove="import-app\**" />
-    <EmbeddedResource Remove="import-app\**" />
-    <None Remove="import-app\**" />
+    <Compile Remove="App\**" />
+    <Content Remove="App\**" />
+    <EmbeddedResource Remove="App\**" />
+    <None Remove="App\**" />
   </ItemGroup>
 
 
