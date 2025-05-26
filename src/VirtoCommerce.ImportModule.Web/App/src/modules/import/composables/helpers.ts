@@ -7,7 +7,7 @@ const { getApiClient: getOrgApiClient } = useApiClient(OrganizationClient);
 export const useHelpers = () => {
   const route = useRoute();
 
-  const { loading: getCurrentOrganizationLoading, action: getCurrentOrganization } = useAsync(async () => {
+  const { action: getCurrentOrganization } = useAsync(async () => {
     const client = await getOrgApiClient();
     return client.getOrganizationInfo();
   });
@@ -17,7 +17,6 @@ export const useHelpers = () => {
     if (!result || result === "") {
       result = (await getCurrentOrganization())?.organizationId as string;
     }
-
     return result;
   }
 

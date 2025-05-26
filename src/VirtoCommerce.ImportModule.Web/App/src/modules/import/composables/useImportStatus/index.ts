@@ -14,7 +14,7 @@ export default function useImportStatus({
   setProfiles,
   setFile,
   importProfiles,
-  profile
+  profile,
 }: {
   setProfiles: (extProfile: ExtProfile[]) => void;
   setFile: (file: IUploadedFile) => void;
@@ -60,21 +60,21 @@ export default function useImportStatus({
         }
       }
 
-      if (importProfiles.value  && importProfiles.value?.length) {
-        const res = importProfiles.value.map((res) => {
+      if (importProfiles.value && importProfiles.value?.length) {
+        const mappedProfiles = importProfiles.value.map((profile) => {
           const notification = newNotifications.value.find(
-            (x: ImportPushNotification) => x.profileId === res.id,
+            (x: ImportPushNotification) => x.profileId === profile.id,
           ) as ImportPushNotification;
 
           if (notification) {
-            res.inProgress = !notification.finished;
-            res.jobId = notification.jobId;
+            profile.inProgress = !notification.finished;
+            profile.jobId = notification.jobId;
           }
 
-          return res;
+          return profile;
         });
 
-        setProfiles(res);
+        setProfiles(mappedProfiles);
       }
     },
     { deep: true, immediate: true },

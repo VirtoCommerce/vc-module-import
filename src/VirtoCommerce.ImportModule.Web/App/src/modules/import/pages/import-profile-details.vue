@@ -239,11 +239,18 @@ const bladeToolbar = ref<IBladeToolbar[]>([
 
 const sampleTemplateUrl = computed(() => {
   const importer = dataImporters.value.find((x) => x.typeName === profileDetails.value.dataImporterType);
-  return profile.value.importer
-    ? profile.value.importer.metadata && profile.value.importer.metadata.sampleCsvUrl
-    : importer
-      ? importer.metadata && importer.metadata.sampleCsvUrl
-      : "#";
+
+  let url: string | undefined;
+
+  if (profile.value.importer) {
+    url = profile.value.importer.metadata && profile.value.importer.metadata.sampleCsvUrl;
+  } else if (importer) {
+    url = importer.metadata && importer.metadata.sampleCsvUrl;
+  } else {
+    url = "#";
+  }
+
+  return url;
 });
 
 const title = computed(() =>

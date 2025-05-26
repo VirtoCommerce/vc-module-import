@@ -1,4 +1,4 @@
-import { computed, ComputedRef, Ref, ref, watch } from "vue";
+import { computed, ComputedRef, Ref, ref } from "vue";
 import {
   ImportClient,
   IDataImporter,
@@ -7,26 +7,12 @@ import {
   ImportProfile,
   ImportPushNotification,
   ImportRunHistory,
-  ObjectSettingEntry,
-  SearchImportProfilesCriteria,
   ISearchImportRunHistoryCriteria,
-  SearchImportRunHistoryCriteria,
-  SearchImportRunHistoryResult,
-  OrganizationInfo,
-  OrganizationClient,
   IImportPushNotification,
   ISearchImportProfilesCriteria,
 } from "@virtocommerce/import-app-api";
-import {
-  IObjectSettingEntry,
-  useApiClient,
-  useAsync,
-  useLoading,
-  useNotifications,
-  useUser,
-} from "@vc-shell/framework";
+import { useApiClient, useAsync, useLoading, useNotifications } from "@vc-shell/framework";
 import * as _ from "lodash-es";
-import { useRoute } from "vue-router";
 import { useHelpers } from "../helpers";
 import useImportProfiles from "../useImportProfiles";
 import useImportStatus from "../useImportStatus";
@@ -170,7 +156,7 @@ export default (): IUseImport => {
     }
   });
 
-  const { loading: cancelImportLoading, action: cancelImport } = useAsync(async () => {
+  const { action: cancelImport } = useAsync(async () => {
     const client = await getApiClient();
     try {
       if (importStatus.value?.inProgress) {

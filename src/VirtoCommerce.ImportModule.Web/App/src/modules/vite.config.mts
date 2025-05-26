@@ -16,7 +16,7 @@ export default defineConfig({
     copyPublicDir: false,
     lib: {
       entry: resolve(__dirname, "./index.ts"),
-      fileName: (format, name) => `${name}.mjs`,
+      fileName: (_format, name) => `${name}.mjs`,
       formats: ["es"],
     },
     outDir: join(__dirname, "dist"),

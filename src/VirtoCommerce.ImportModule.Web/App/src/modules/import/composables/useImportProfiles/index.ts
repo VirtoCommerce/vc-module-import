@@ -6,7 +6,14 @@ import {
   ISearchImportProfilesCriteria,
   SearchImportProfilesCriteria,
 } from "@virtocommerce/import-app-api";
-import { IObjectSettingEntry, ObjectSettingEntry, useApiClient, useAsync, useLoading, useUser } from "@vc-shell/framework";
+import {
+  IObjectSettingEntry,
+  ObjectSettingEntry,
+  useApiClient,
+  useAsync,
+  useLoading,
+  useUser,
+} from "@vc-shell/framework";
 import * as _ from "lodash-es";
 import { ISearchProfile, ExtProfile } from "../useImport";
 import { useHelpers } from "../helpers";
@@ -56,26 +63,24 @@ export default function useImportProfiles() {
     profileDetailsCopy = _.cloneDeep(profileDetails.value);
   });
 
-  const { loading: createImportProfileLoading, action: createImportProfile } = useAsync(
-    async (newProfile?: ImportProfile) => {
-      if (!newProfile) {
-        return;
-      }
-      const importUserId = await GetSellerId();
-      const client = await getApiClient();
+  const { action: createImportProfile } = useAsync(async (newProfile?: ImportProfile) => {
+    if (!newProfile) {
+      return;
+    }
+    const importUserId = await GetSellerId();
+    const client = await getApiClient();
 
-      newProfile.userName = user.value?.userName;
-      newProfile.userId = importUserId && importUserId != "" ? importUserId : user.value?.id;
-      const command = new ImportProfile({
-        ...newProfile,
-        userId: importUserId && importUserId != "" ? importUserId : user.value?.id,
-        settings: newProfile.settings?.map((setting) => new ObjectSettingEntry(setting)),
-      });
+    newProfile.userName = user.value?.userName;
+    newProfile.userId = importUserId && importUserId != "" ? importUserId : user.value?.id;
+    const command = new ImportProfile({
+      ...newProfile,
+      userId: importUserId && importUserId != "" ? importUserId : user.value?.id,
+      settings: newProfile.settings?.map((setting) => new ObjectSettingEntry(setting)),
+    });
 
-      const newProfileWithId = await client.createImportProfile(command);
-      await loadImportProfile({ id: newProfileWithId.id as string });
-    },
-  );
+    const newProfileWithId = await client.createImportProfile(command);
+    await loadImportProfile({ id: newProfileWithId.id as string });
+  });
 
   const { loading: updateImportProfileLoading, action: updateImportProfile } = useAsync(
     async (updatedProfile?: ImportProfile) => {
@@ -95,19 +100,17 @@ export default function useImportProfiles() {
     },
   );
 
-  const { loading: deleteImportProfileLoading, action: deleteImportProfile } = useAsync(
-    async (args?: { id: string }) => {
-      if (!args?.id) {
-        return;
-      }
-      const client = await getApiClient();
-      await client.deleteProfile(args.id);
-    },
-  );
+  const { action: deleteImportProfile } = useAsync(async (args?: { id: string }) => {
+    if (!args?.id) {
+      return;
+    }
+    const client = await getApiClient();
+    await client.deleteProfile(args.id);
+  });
 
   function setImporter(typeName: string) {
     if (typeName) {
-      const importer = dataImporters.value.find((importer) => importer.typeName === typeName);
+      const importer = dataImporters.value.find((item) => item.typeName === typeName);
       if (importer) {
         profileDetails.value.settings = [
           ...(importer?.availSettings?.map((x) => {
@@ -140,7 +143,7 @@ export default function useImportProfiles() {
 
   return {
     loading: useLoading(profilesLoading, profileLoading),
-    importProfiles: computed(() =>importProfiles.value),
+    importProfiles: computed(() => importProfiles.value),
     dataImporters: computed(() => dataImporters.value),
     dataImportersLoading,
     modified: computed(() => modified.value),
@@ -155,6 +158,6 @@ export default function useImportProfiles() {
     deleteImportProfile,
     setImporter,
     setProfiles,
-    setProfile
+    setProfile,
   };
 }

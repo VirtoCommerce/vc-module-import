@@ -116,19 +116,32 @@ const reportUrl = computed(() => importStatus.value?.notification?.reportUrl);
 const inProgress = computed(() => (importStatus.value && importStatus.value.inProgress) || false);
 
 const importBadges = computed((): IImportBadges[] => {
+  const clockTitleTime = (() => {
+    if (importStatus.value?.notification?.created) {
+      return moment(importStatus.value.notification.created).locale(locale).format("LTS");
+    } else if (importStatus.value?.notification?.createdDate) {
+      return moment(importStatus.value.notification.createdDate).locale(locale).format("LTS");
+    }
+    return null;
+  })();
+
+  const linesImported = (() => {
+    if (
+      typeof importStatus.value?.notification?.processedCount !== "undefined" &&
+      typeof importStatus.value?.notification?.errorCount !== "undefined"
+    ) {
+      const value = importStatus.value.notification.processedCount - importStatus.value.notification.errorCount;
+      return value >= 0 ? value : 0;
+    }
+    return 0;
+  })();
+
   return [
     {
       id: "clock",
       icon: "lucide-clock",
       color: "var(--import-new-badge-color-info)",
-      title:
-        t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.STARTED_AT") +
-        " " +
-        (importStatus.value?.notification?.created
-          ? moment(importStatus.value.notification.created).locale(locale).format("LTS")
-          : importStatus.value?.notification?.createdDate
-            ? moment(importStatus.value.notification.createdDate).locale(locale).format("LTS")
-            : null),
+      title: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.STARTED_AT") + " " + clockTitleTime,
       description: importStatus.value?.notification?.created
         ? moment(importStatus.value.notification.created).locale(locale).fromNow()
         : importStatus.value?.notification?.createdDate
@@ -146,13 +159,7 @@ const importBadges = computed((): IImportBadges[] => {
       id: "linesImported",
       icon: "material-check_circle",
       color: "var(--import-new-badge-color-success)",
-      title:
-        typeof importStatus.value?.notification?.processedCount !== "undefined" &&
-        typeof importStatus.value?.notification?.errorCount !== "undefined"
-          ? importStatus.value.notification.processedCount - importStatus.value.notification.errorCount >= 0
-            ? importStatus.value.notification.processedCount - importStatus.value.notification.errorCount
-            : 0
-          : 0,
+      title: linesImported,
       description: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.IMPORTED"),
     },
     {

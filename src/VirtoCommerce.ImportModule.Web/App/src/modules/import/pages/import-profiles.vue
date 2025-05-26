@@ -167,7 +167,7 @@ const onSearchList = debounce(async (keyword: string) => {
 }, 1000);
 
 async function openImporter(profileId: string) {
-  const profile = importProfiles.value?.find((profile) => profile.id === profileId);
+  const profile = importProfiles.value?.find((importProfile) => importProfile.id === profileId);
 
   await openBlade({
     blade: resolveBladeByName("ImportNew"),

@@ -492,14 +492,6 @@ const previewTotalNum = computed(() => preview.value?.totalCount);
 
 async function onItemClick(item: ImportRunHistory) {
   if (item?.jobId && item.profileId) {
-    // const historyItem = importHistory.value && importHistory.value.find((x) => x.jobId === item?.jobId);
-
-    // if (historyItem) {
-    //   updateStatus(historyItem);
-    // } else {
-    //   getLongRunning({ id: item.profileId });
-    // }
-
     openBlade({
       blade: resolveBladeByName("ImportProcess"),
       options: {
@@ -561,10 +553,10 @@ async function saveExternalUrl() {
   });
 }
 
-async function start(profile?: ExtProfile) {
+async function start(importProfile?: ExtProfile) {
   try {
     clearErrorMessage();
-    await startImport(profile);
+    await startImport(importProfile);
   } catch (e: unknown) {
     setErrorMessage((e as Error).message);
     throw e;
