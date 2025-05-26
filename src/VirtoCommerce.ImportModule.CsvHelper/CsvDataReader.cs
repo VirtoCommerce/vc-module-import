@@ -14,28 +14,24 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 {
     public class CsvDataReader<TCsvImportable, TCsvClassMap> : IImportDataReader where TCsvClassMap : ClassMap
     {
-        private int? _totalCount;
-        private int _pageSize;
-        private string _headerRaw;
         private readonly Stream _stream;
-        protected CsvConfiguration CsvConfiguration { get; set; }
-        private readonly CsvReader _csvReader;
+
+        private readonly int _pageSize;
         private readonly bool _needReadRaw;
+        private int? _totalCount;
+        private string _headerRaw;
+        protected CsvConfiguration CsvConfiguration { get; set; }
+        protected readonly CsvReader CsvReader;
 
         public bool HasMoreResults { get; private set; } = true;
-
-        public CsvDataReader(Stream stream, ImportContext context) :
-            this(stream, context, false)
-        {
-        }
 
         public CsvDataReader(Stream stream, ImportContext context, bool needReadRaw = false)
         {
             CsvConfiguration = GetConfiguration(context);
 
             _stream = stream;
-            _csvReader = new CsvReader(new StreamReader(_stream), CsvConfiguration);
-            _csvReader.Context.RegisterClassMap<TCsvClassMap>();
+            CsvReader = new CsvReader(new StreamReader(_stream), CsvConfiguration);
+            CsvReader.Context.RegisterClassMap<TCsvClassMap>();
 
             _pageSize = Convert.ToInt32(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == CsvSettings.PageSize.Name)?.Value ?? 50);
             _needReadRaw = needReadRaw;
@@ -46,14 +42,14 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             CsvConfiguration = MergeWithDefaultConfig(csvConfiguration, context);
 
             _stream = stream;
-            _csvReader = new CsvReader(new StreamReader(_stream), CsvConfiguration);
-            _csvReader.Context.RegisterClassMap<TCsvClassMap>();
+            CsvReader = new CsvReader(new StreamReader(_stream), CsvConfiguration);
+            CsvReader.Context.RegisterClassMap<TCsvClassMap>();
 
             _pageSize = Convert.ToInt32(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == CsvSettings.PageSize.Name)?.Value ?? 50);
             _needReadRaw = needReadRaw;
         }
 
-        public async Task<int> GetTotalCountAsync(ImportContext context)
+        public virtual async Task<int> GetTotalCountAsync(ImportContext context)
         {
             if (_totalCount.HasValue)
             {
@@ -83,7 +79,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             return _totalCount.Value;
         }
 
-        public async Task<object[]> ReadNextPageAsync(ImportContext context)
+        public virtual async Task<object[]> ReadNextPageAsync(ImportContext context)
         {
             var result = new List<object>();
 
@@ -91,38 +87,35 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             {
                 try
                 {
-                    HasMoreResults = await _csvReader.ReadAsync();
+                    HasMoreResults = await CsvReader.ReadAsync();
                     if (HasMoreResults)
                     {
-                        var record = _csvReader.GetRecord<TCsvImportable>();
+                        var record = CsvReader.GetRecord<TCsvImportable>();
                         if (!_needReadRaw)
                         {
                             result.Add(record);
                         }
                         else
                         {
-                            var rawRecord = _csvReader.Parser.RawRecord.TrimEnd('\r', '\n');
-                            var row = _csvReader.Parser.Row;
+                            var rawRecord = CsvReader.Parser.RawRecord.TrimEnd('\r', '\n');
+                            var row = CsvReader.Parser.Row;
 
                             result.Add(new CsvImportRecord<TCsvImportable>
                             {
                                 Row = row,
                                 RawHeader = _headerRaw,
                                 RawRecord = rawRecord,
-                                Record = record
+                                Record = record,
                             });
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    if (context.ErrorCallback != null)
+                    context.ErrorCallback?.Invoke(new ErrorInfo
                     {
-                        context.ErrorCallback(new ErrorInfo
-                        {
-                            ErrorMessage = ex.Message
-                        });
-                    }
+                        ErrorMessage = ex.Message,
+                    });
                 }
             }
 
@@ -195,7 +188,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 
         protected virtual void Dispose(bool disposing)
         {
-            _csvReader.Dispose();
+            CsvReader.Dispose();
             _stream?.Dispose();
         }
 

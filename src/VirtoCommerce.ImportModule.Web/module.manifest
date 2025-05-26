@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <module>
   <id>VirtoCommerce.Import</id>
-  <version>3.806.0</version>
+  <version>3.807.0</version>
   <version-tag></version-tag>
   <platformVersion>3.825.0</platformVersion>
   <dependencies>
@@ -24,14 +24,14 @@
   <assemblyFile>VirtoCommerce.ImportModule.Web.dll</assemblyFile>
   <moduleType>VirtoCommerce.ImportModule.Web.Module, VirtoCommerce.ImportModule.Web</moduleType>
   <releaseNotes>First version.</releaseNotes>
-  <copyright>Copyright © 2023-2024 VirtoCommerce. All rights reserved</copyright>
+  <copyright>Copyright © 2023-2025 VirtoCommerce. All rights reserved</copyright>
   <tags>extension module</tags>
   <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
   <apps>
     <app id="import-app">
       <title>Import App</title>
       <iconUrl>/apps/import-app/img/icons/favicon-32x32.png</iconUrl>
-      <contentPath>import-app/dist</contentPath>
+      <contentPath>App/dist</contentPath>
       <permission>import:access</permission>
     </app>
   </apps>
