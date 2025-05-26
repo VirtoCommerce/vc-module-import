@@ -64,8 +64,6 @@
       </div>
     </VcRow>
   </VcCol>
-
-
 </template>
 
 <script setup lang="ts">
@@ -98,12 +96,9 @@ const importStatus = computed(() => props.importStatus);
 
 const locale = window.navigator.language;
 
-
-
 const progressbarVariant = computed(() => (inProgress.value ? "striped" : "default"));
 
 const importStarted = computed(() => !!(importStatus.value && importStatus.value.jobId));
-
 
 const estimatedRemaining = computed(() => {
   return importStatus.value && importStatus.value.estimatedRemaining
@@ -136,18 +131,23 @@ const importBadges = computed((): IImportBadges[] => {
     return 0;
   })();
 
+  const clockDescription = (() => {
+    if (importStatus.value?.notification?.created) {
+      return moment(importStatus.value.notification.created).locale(locale).fromNow();
+    } else if (importStatus.value?.notification?.createdDate) {
+      return moment(importStatus.value.notification.createdDate).locale(locale).fromNow();
+    }
+    return undefined;
+  })();
+
   return [
-    {
-      id: "clock",
-      icon: "lucide-clock",
-      color: "var(--import-new-badge-color-info)",
-      title: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.STARTED_AT") + " " + clockTitleTime,
-      description: importStatus.value?.notification?.created
-        ? moment(importStatus.value.notification.created).locale(locale).fromNow()
-        : importStatus.value?.notification?.createdDate
-          ? moment(importStatus.value.notification.createdDate).locale(locale).fromNow()
-          : undefined,
-    },
+{
+  id: "clock",
+  icon: "lucide-clock",
+  color: "var(--import-new-badge-color-info)",
+  title: t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.STARTED_AT") + " " + clockTitleTime,
+  description: clockDescription,
+},
     {
       id: "linesRead",
       icon: "material-check_circle",
@@ -174,6 +174,4 @@ const importBadges = computed((): IImportBadges[] => {
     },
   ];
 });
-
-
 </script>

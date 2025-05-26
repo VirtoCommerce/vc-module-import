@@ -61,17 +61,17 @@ export default function useImportStatus({
       }
 
       if (importProfiles.value && importProfiles.value?.length) {
-        const mappedProfiles = importProfiles.value.map((profile) => {
+        const mappedProfiles = importProfiles.value.map((item) => {
           const notification = newNotifications.value.find(
-            (x: ImportPushNotification) => x.profileId === profile.id,
+            (x: ImportPushNotification) => x.profileId === item.id,
           ) as ImportPushNotification;
 
           if (notification) {
-            profile.inProgress = !notification.finished;
-            profile.jobId = notification.jobId;
+            item.inProgress = !notification.finished;
+            item.jobId = notification.jobId;
           }
 
-          return profile;
+          return item;
         });
 
         setProfiles(mappedProfiles);
