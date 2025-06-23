@@ -13,7 +13,6 @@ runs:
   using: composite
 
   steps:
-
     - name: Install dependencies for Import App
       shell: bash
       working-directory: src/VirtoCommerce.ImportModule.Web/import-app

@@ -111,6 +111,7 @@
             :fill="true"
             class="import-new__history"
           >
+          <!-- @vue-generic {ImportRunHistory} -->
             <VcTable
               :columns="columns"
               :loading="importHistoryLoading"
@@ -326,7 +327,7 @@ const bladeToolbar = ref<IBladeToolbar[]>([
   {
     id: "edit",
     title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.EDIT")),
-    icon: "fas fa-pencil-alt",
+    icon: "material-edit",
     clickHandler() {
       openBlade({
         blade: resolveBladeByName("ImportProfileDetails"),
@@ -342,7 +343,7 @@ const bladeToolbar = ref<IBladeToolbar[]>([
   {
     id: "cancel",
     title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.CANCEL")),
-    icon: "fas fa-ban",
+    icon: "material-cancel",
     async clickHandler() {
       if (importStatus.value?.inProgress) {
         try {
@@ -362,7 +363,7 @@ const bladeToolbar = ref<IBladeToolbar[]>([
   {
     id: "newRun",
     title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.NEW_RUN")),
-    icon: "fas fa-plus",
+    icon: "material-add",
     clickHandler() {
       emit("parent:call", {
         method: "openImporter",
@@ -426,7 +427,7 @@ const uploadActions = ref<INotificationActions[]>([
       clearErrorMessage();
     },
     outline: true,
-    variant: "danger",
+    variant: "secondary",
     isVisible: computed(() => !inProgress.value),
   },
   {

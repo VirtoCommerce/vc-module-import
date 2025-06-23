@@ -8,6 +8,7 @@
     @expand="$emit('expand:blade')"
     @collapse="$emit('collapse:blade')"
   >
+  <!-- @vue-generic {ExtProfile} -->
     <VcTable
       :loading="profilesLoading"
       :columns="columns"
@@ -58,7 +59,7 @@ defineOptions({
   isWorkspace: true,
   menuItem: {
     title: "IMPORT.MENU.TITLE",
-    icon: "fas fa-file-import",
+    icon: "lucide-file-input",
     priority: 4,
   },
 });
@@ -93,7 +94,7 @@ const bladeToolbar = computed(() => {
     {
       id: "refresh",
       title: computed(() => t("IMPORT.PAGES.IMPORT_PROFILES.TOOLBAR.REFRESH")),
-      icon: "fas fa-sync-alt",
+      icon: "material-refresh",
       async clickHandler() {
         await reload();
       },
@@ -101,7 +102,7 @@ const bladeToolbar = computed(() => {
     {
       id: "add",
       title: computed(() => t("IMPORT.PAGES.IMPORT_PROFILES.TOOLBAR.ADD_PROFILE")),
-      icon: "fas fa-plus",
+      icon: "material-add",
       async clickHandler() {
         await newProfile();
       },
@@ -133,7 +134,7 @@ const columns = ref<ITableColumns[]>([
 
 const onItemClick = (item: ExtProfile) => {
   openBlade({
-    blade: markRaw(importNew),
+    blade: resolveBladeByName("ImportNew"),
     param: item.id,
     options: {
       importJobId: item && item.inProgress ? item.jobId : undefined,

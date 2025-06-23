@@ -46,17 +46,17 @@ const notificationStyle = computed(() => {
   if (notification.finished && !(notification.errors && notification.errors.length)) {
     return {
       color: 'var(--import-notification-success-color)',
-      icon: "fas fa-check-circle",
+      icon: "material-check_circle",
     };
   } else if (!(notification.errors && notification.errors.length) && !notification.finished) {
     return {
       color: 'var(--import-notification-info-color)',
-      icon: "fas fa-info-circle",
+      icon: "material-info",
     };
   } else {
     return {
       color: 'var(--import-notification-error-color)',
-      icon: "fas fa-exclamation-circle",
+      icon: "material-error",
     };
   }
 });

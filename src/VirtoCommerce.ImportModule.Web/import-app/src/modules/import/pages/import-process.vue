@@ -160,7 +160,7 @@ const bladeToolbar = ref<IBladeToolbar[]>([
   {
     id: "reRun",
     title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.RE_RUN")),
-    icon: "fas fa-sync",
+    icon: "material-refresh",
     async clickHandler() {
       emit("parent:call", { method: "reRunImport", args: props.options?.importJobId });
       emit("close:blade");

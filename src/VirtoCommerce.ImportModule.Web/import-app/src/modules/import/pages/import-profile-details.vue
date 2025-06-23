@@ -190,7 +190,7 @@ const bladeToolbar = ref<IBladeToolbar[]>([
   {
     id: "save",
     title: computed(() => t("IMPORT.PAGES.PROFILE_DETAILS.TOOLBAR.SAVE")),
-    icon: "fas fa-save",
+    icon: "material-save",
     async clickHandler() {
       if (isValid.value) {
         if (props.param) {
@@ -214,7 +214,7 @@ const bladeToolbar = ref<IBladeToolbar[]>([
   {
     id: "cancel",
     title: computed(() => t("IMPORT.PAGES.PROFILE_DETAILS.TOOLBAR.CANCEL")),
-    icon: "fas fa-ban",
+    icon: "material-cancel",
     clickHandler() {
       emit("close:blade");
     },
@@ -223,7 +223,7 @@ const bladeToolbar = ref<IBladeToolbar[]>([
   {
     id: "delete",
     title: computed(() => t("IMPORT.PAGES.PROFILE_DETAILS.TOOLBAR.DELETE")),
-    icon: "far fa-trash-alt",
+    icon: "material-delete",
     isVisible: computed(() => !!props.param),
     async clickHandler() {
       if (

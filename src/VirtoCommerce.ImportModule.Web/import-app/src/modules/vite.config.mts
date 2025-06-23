@@ -32,6 +32,14 @@ export default defineConfig({
         "lodash-es",
         "@vueuse/core",
       ],
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith(".css")) {
+            return "style.css";
+          }
+          return "assets/[name]-[hash][extname]";
+        },
+      },
     },
   },
   plugins: [libAssetsPlugin(), vue()],
