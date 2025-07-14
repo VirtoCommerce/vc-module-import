@@ -57,7 +57,10 @@ namespace VirtoCommerce.ImportModule.CsvHelper
             }
 
             var streamPosition = _stream.Position;
-            _stream.Seek(0, SeekOrigin.Begin);
+            if (_stream.CanSeek)
+            {
+                _stream.Seek(0, SeekOrigin.Begin);
+            }
 
             var streamReader = new StreamReader(_stream, leaveOpen: true);
             var csvReader = new CsvReader(streamReader, CsvConfiguration);
@@ -74,7 +77,10 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                 _totalCount++;
             }
 
-            _stream.Seek(streamPosition, SeekOrigin.Begin);
+            if (_stream.CanSeek)
+            {
+                _stream.Seek(streamPosition, SeekOrigin.Begin);
+            }
 
             return _totalCount.Value;
         }
