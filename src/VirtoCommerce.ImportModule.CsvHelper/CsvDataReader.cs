@@ -56,9 +56,10 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                 return _totalCount.Value;
             }
 
-            var streamPosition = _stream.Position;
+            var streamPosition = 0L;
             if (_stream.CanSeek)
             {
+                streamPosition = _stream.Position;
                 _stream.Seek(0, SeekOrigin.Begin);
             }
 
