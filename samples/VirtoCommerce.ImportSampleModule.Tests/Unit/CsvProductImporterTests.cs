@@ -10,6 +10,7 @@ using VirtoCommerce.CatalogModule.Core.Model.Search;
 using VirtoCommerce.CatalogModule.Core.Search;
 using VirtoCommerce.CatalogModule.Core.Services;
 using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.CsvHelper.Services;
 using VirtoCommerce.ImportSampleModule.Web.Importers;
 using VirtoCommerce.ImportSampleModule.Web.Search;
 using VirtoCommerce.Platform.Core.Settings;
@@ -26,10 +27,18 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         private readonly PropertyMetadataLoader _propertyMetadataLoader;
         private readonly Mock<IItemService> _itemService = new();
         private readonly Mock<ICategoryService> _categoryService = new();
+        private readonly Mock<IServiceProvider> _serviceProvider = new();
+        private readonly Mock<ClassMapBuilder<CsvProductClassMap, CatalogProduct>> _classMapBuilder = new();
+        private readonly Mock<ClassMapRegistrar<CsvProductClassMap, CatalogProduct>> _classMapRegistrar = new();
+        private readonly Mock<CsvProductClassMap> _csvProductClassMap = new();
 
         public CsvProductImporterTests()
         {
             _propertyMetadataLoader = new PropertyMetadataLoader(_propDictItemService.Object, _propDictItemSearchService.Object);
+            _classMapBuilder.Setup(x => x.WithSettings(It.IsAny<ICollection<ObjectSettingEntry>>())).Returns(() => _classMapBuilder.Object);
+            _classMapRegistrar.Setup(x => x.Register(It.IsAny<Func<CsvProductClassMap>>())).Returns(() => _classMapBuilder.Object);
+            _serviceProvider.Setup(x => x.GetService(typeof(ClassMapRegistrar<CsvProductClassMap, CatalogProduct>))).Returns(() => _classMapRegistrar.Object);
+            _serviceProvider.Setup(x => x.GetService(typeof(CsvProductClassMap))).Returns(() => _csvProductClassMap.Object);
         }
 
         [Fact]
@@ -48,7 +57,8 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
                 _extendedProductSearchService.Object,
                 _propertyMetadataLoader,
                 _itemService.Object,
-                _categoryService.Object);
+                _categoryService.Object,
+                _serviceProvider.Object);
 
             using var reader = dataImporter.OpenReader(context);
 
@@ -78,7 +88,8 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
                 _extendedProductSearchService.Object,
                 _propertyMetadataLoader,
                 _itemService.Object,
-                _categoryService.Object);
+                _categoryService.Object,
+                _serviceProvider.Object);
 
             // Act
             try
@@ -109,7 +120,8 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
                 _extendedProductSearchService.Object,
                 _propertyMetadataLoader,
                 _itemService.Object,
-                _categoryService.Object);
+                _categoryService.Object,
+                _serviceProvider.Object);
 
             var items = GetProducts();
             using var writer = dataImporter.OpenWriter(context);
@@ -146,7 +158,8 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
                 _extendedProductSearchService.Object,
                 _propertyMetadataLoader,
                 _itemService.Object,
-                _categoryService.Object);
+                _categoryService.Object,
+                _serviceProvider.Object);
 
             var items = GetProducts();
             using var writer = dataImporter.OpenWriter(context);
