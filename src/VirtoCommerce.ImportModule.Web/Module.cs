@@ -149,7 +149,7 @@ namespace VirtoCommerce.ImportModule.Web
             }
 
             // import-app
-            var importAppPath = Path.Combine(ModuleInfo.FullPhysicalPath, "import-app", "dist");
+            var importAppPath = Path.Combine(ModuleInfo.FullPhysicalPath, "App", "dist");
             if (Directory.Exists(importAppPath))
             {
                 appBuilder.UseDefaultFiles(new DefaultFilesOptions()
@@ -162,7 +162,8 @@ namespace VirtoCommerce.ImportModule.Web
                     FileProvider = new PhysicalFileProvider(importAppPath),
                     RequestPath = new PathString($"/apps/import-app")
                 });
-            };
+            }
+            ;
         }
 
         public void Uninstall()
