@@ -1,5 +1,5 @@
 import VirtoShellFramework, { notification, useUser } from "@vc-shell/framework";
-import * as modules from "./modules/import";
+import * as modules from "@virtocommerce/import-app";
 import { createApp } from "vue";
 import { router } from "./router";
 import * as locales from "./locales";
@@ -24,7 +24,7 @@ async function startApp() {
   });
 
   Object.values(modules.default).forEach((module) => {
-    app.use(module, { router });
+    app.use(module.default, { router });
   });
 
   app.use(router);
