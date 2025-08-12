@@ -14,14 +14,15 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 {
     public class CsvDataReader<TCsvImportable, TCsvClassMap> : IImportDataReader where TCsvClassMap : ClassMap
     {
-        private readonly Stream _stream;
-
         private readonly int _pageSize;
         private readonly bool _needReadRaw;
-        private int? _totalCount;
-        private string _headerRaw;
+        private bool _disposed;
         protected CsvConfiguration CsvConfiguration { get; set; }
+        protected readonly Stream Stream;
+        protected readonly Stream CountStream;
         protected readonly CsvReader CsvReader;
+        protected string HeaderRaw;
+        protected int? TotalCount;
 
         public bool HasMoreResults { get; private set; } = true;
 
@@ -29,8 +30,8 @@ namespace VirtoCommerce.ImportModule.CsvHelper
         {
             CsvConfiguration = GetConfiguration(context);
 
-            _stream = stream;
-            CsvReader = new CsvReader(new StreamReader(_stream), CsvConfiguration);
+            Stream = stream;
+            CsvReader = new CsvReader(new StreamReader(Stream), CsvConfiguration);
             CsvReader.Context.RegisterClassMap<TCsvClassMap>();
 
             _pageSize = Convert.ToInt32(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == CsvSettings.PageSize.Name)?.Value ?? 50);
@@ -41,42 +42,73 @@ namespace VirtoCommerce.ImportModule.CsvHelper
         {
             CsvConfiguration = MergeWithDefaultConfig(csvConfiguration, context);
 
-            _stream = stream;
-            CsvReader = new CsvReader(new StreamReader(_stream), CsvConfiguration);
+            Stream = stream;
+            CsvReader = new CsvReader(new StreamReader(Stream), CsvConfiguration);
             CsvReader.Context.RegisterClassMap<TCsvClassMap>();
 
             _pageSize = Convert.ToInt32(context.ImportProfile.Settings.FirstOrDefault(x => x.Name == CsvSettings.PageSize.Name)?.Value ?? 50);
             _needReadRaw = needReadRaw;
         }
 
+        public CsvDataReader(Stream stream, Stream countStream, ImportContext context, bool needReadRaw = false)
+            : this(stream, context, needReadRaw)
+        {
+            CountStream = countStream;
+        }
+
+        public CsvDataReader(Stream stream, Stream countStream, ImportContext context, CsvConfiguration csvConfiguration, bool needReadRaw = false)
+            : this(stream, context, csvConfiguration, needReadRaw)
+        {
+            CountStream = countStream;
+        }
+
         public virtual async Task<int> GetTotalCountAsync(ImportContext context)
         {
-            if (_totalCount.HasValue)
+            if (TotalCount.HasValue)
             {
-                return _totalCount.Value;
+                return TotalCount.Value;
             }
 
-            var streamPosition = _stream.Position;
-            _stream.Seek(0, SeekOrigin.Begin);
+            Stream stream;
+            bool leaveOpen;
+            if (Stream.CanSeek)
+            {
+                stream = Stream;
+                leaveOpen = true;
+            }
+            else
+            {
+                stream = CountStream ?? throw new InvalidOperationException("Count stream is not provided.");
+                leaveOpen = false;
+            }
 
-            var streamReader = new StreamReader(_stream, leaveOpen: true);
-            var csvReader = new CsvReader(streamReader, CsvConfiguration);
+            var streamPosition = 0L;
+            if (stream.CanSeek)
+            {
+                streamPosition = stream.Position;
+                stream.Seek(0, SeekOrigin.Begin);
+            }
+
+            using var csvReader = new CsvReader(new StreamReader(stream), CsvConfiguration, leaveOpen);
 
             await csvReader.ReadAsync();
             csvReader.ReadHeader();
 
-            _headerRaw = string.Join(csvReader.Configuration.Delimiter, csvReader.HeaderRecord);
+            HeaderRaw = string.Join(csvReader.Configuration.Delimiter, csvReader.HeaderRecord);
 
-            _totalCount = 0;
+            TotalCount = 0;
 
             while (await csvReader.ReadAsync())
             {
-                _totalCount++;
+                TotalCount++;
             }
 
-            _stream.Seek(streamPosition, SeekOrigin.Begin);
+            if (stream.CanSeek)
+            {
+                stream.Seek(streamPosition, SeekOrigin.Begin);
+            }
 
-            return _totalCount.Value;
+            return TotalCount.Value;
         }
 
         public virtual async Task<object[]> ReadNextPageAsync(ImportContext context)
@@ -103,7 +135,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
                             result.Add(new CsvImportRecord<TCsvImportable>
                             {
                                 Row = row,
-                                RawHeader = _headerRaw,
+                                RawHeader = HeaderRaw,
                                 RawRecord = rawRecord,
                                 Record = record,
                             });
@@ -188,21 +220,30 @@ namespace VirtoCommerce.ImportModule.CsvHelper
 
         protected virtual void Dispose(bool disposing)
         {
-            CsvReader.Dispose();
-            _stream?.Dispose();
+            if (_disposed)
+            {
+                return;
+            }
+            if (disposing)
+            {
+                CsvReader.Dispose();
+                Stream?.Dispose();
+                CountStream?.Dispose();
+            }
+            _disposed = true;
         }
 
         private CsvConfiguration MergeWithDefaultConfig(CsvConfiguration csvConfiguration, ImportContext context)
         {
             var defaultCsvConfiguration = GetConfiguration(context);
-            var result = csvConfiguration;
-            result.Delimiter = result.Delimiter ?? defaultCsvConfiguration.Delimiter;
-            result.PrepareHeaderForMatch = result.PrepareHeaderForMatch ?? defaultCsvConfiguration.PrepareHeaderForMatch;
-            result.BadDataFound = result.BadDataFound ?? defaultCsvConfiguration.BadDataFound;
-            result.ReadingExceptionOccurred = result.ReadingExceptionOccurred ?? defaultCsvConfiguration.ReadingExceptionOccurred;
-            result.MissingFieldFound = result.MissingFieldFound ?? defaultCsvConfiguration.MissingFieldFound;
 
-            return result;
+            csvConfiguration.Delimiter ??= defaultCsvConfiguration.Delimiter;
+            csvConfiguration.PrepareHeaderForMatch ??= defaultCsvConfiguration.PrepareHeaderForMatch;
+            csvConfiguration.BadDataFound ??= defaultCsvConfiguration.BadDataFound;
+            csvConfiguration.ReadingExceptionOccurred ??= defaultCsvConfiguration.ReadingExceptionOccurred;
+            csvConfiguration.MissingFieldFound ??= defaultCsvConfiguration.MissingFieldFound;
+
+            return csvConfiguration;
         }
     }
 }

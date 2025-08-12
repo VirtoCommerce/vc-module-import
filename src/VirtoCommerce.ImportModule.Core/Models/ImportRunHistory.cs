@@ -14,6 +14,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public string JobId { get; set; }
         public string ProfileId { get; set; }
         public string ProfileName { get; set; }
+        public string Name { get; set; }
         public DateTime Executed { get; set; }
         public DateTime? Finished { get; set; }
         public int TotalCount { get; set; }

@@ -14,6 +14,7 @@ namespace VirtoCommerce.ImportModule.Core.PushNotifications
         public string ProfileName { get; set; }
 
         public string JobId { get; set; }
+        public string RunId { get; set; }
         public bool EstimatingRemaining { get; set; }
         public TimeSpan? EstimatedRemaining { get; set; }
         public DateTime? Finished { get; set; }
