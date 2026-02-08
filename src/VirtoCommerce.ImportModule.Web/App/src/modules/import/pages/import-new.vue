@@ -13,7 +13,8 @@
     <VcContainer class="import-new">
       <VcCol>
         <div class="tw-p-3">
-          <VcRow>
+          <!-- File-based importer: file upload card -->
+          <VcRow v-if="!isApiSourceImporter">
             <VcCard
               :header="
                 importStarted
@@ -96,6 +97,41 @@
                 </VcRow>
               </VcCol>
               <!-- Uploaded file import status -->
+              <ImportStat :import-status="importStatus" />
+            </VcCard>
+          </VcRow>
+          <!-- API-based importer: no file upload needed -->
+          <VcRow v-else>
+            <VcCard
+              :header="
+                importStarted
+                  ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.IMPORT_RESULTS')
+                  : $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.TITLE')
+              "
+            >
+              <VcCol
+                v-if="!importStarted"
+                class="tw-p-5"
+              >
+                <div class="tw-flex tw-flex-row tw-justify-end">
+                  <VcButton
+                    :outline="true"
+                    :small="true"
+                    class="tw-mr-3"
+                    :disabled="!isValid || previewLoading"
+                    @click="apiPreview"
+                  >
+                    {{ $t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.PREVIEW") }}
+                  </VcButton>
+                  <VcButton
+                    :small="true"
+                    :disabled="!isValid || (importStatus && importStatus.inProgress) || importLoading"
+                    @click="start()"
+                  >
+                    {{ $t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.START_IMPORT") }}
+                  </VcButton>
+                </div>
+              </VcCol>
               <ImportStat :import-status="importStatus" />
             </VcCard>
           </VcRow>
@@ -475,6 +511,8 @@ const uploadActions = ref<INotificationActions[]>([
 
 const inProgress = computed(() => (importStatus.value && importStatus.value.inProgress) || false);
 
+const isApiSourceImporter = computed(() => profile.value.importer?.metadata?.sourceType?.toLowerCase() === "api");
+
 const bladeLoading = computed(
   () =>
     importLoading.value ||
@@ -551,6 +589,33 @@ async function saveExternalUrl() {
     url: profile.value.importFileUrl,
     size: Number(0),
   });
+}
+
+async function apiPreview() {
+  try {
+    previewLoading.value = true;
+    preview.value = await previewData();
+    popupItems.value = [];
+    popupColumns.value = [];
+    if (preview.value && preview.value.records && preview.value.records.length) {
+      for (const recordKey in preview.value.records[0]) {
+        popupColumns.value.push({
+          id: recordKey,
+          title: recordKey,
+          width: 130,
+        });
+      }
+      preview.value.records.forEach((record) => {
+        popupItems.value.push(record);
+      });
+      importPreview.value = true;
+    }
+  } catch (e: unknown) {
+    setErrorMessage((e as Error).message);
+    throw e;
+  } finally {
+    previewLoading.value = false;
+  }
 }
 
 async function start(importProfile?: ExtProfile) {

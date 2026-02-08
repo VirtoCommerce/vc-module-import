@@ -70,7 +70,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 ProfileName = importProfile.Name,
             };
 
-            importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+            if (!string.IsNullOrEmpty(importProfile.ImportFileUrl))
+            {
+                importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+            }
 
             return RunImportBackgroundJob(importProfile, pushNotification);
         }
@@ -183,7 +186,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
         public virtual async Task<ImportDataPreview> PreviewAsync(ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
-            importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+            if (!string.IsNullOrEmpty(importProfile.ImportFileUrl))
+            {
+                importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+            }
 
             var context = new ImportContext(importProfile);
 
@@ -194,6 +200,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
             {
                 using var reader = await importer.OpenReaderAsync(context);
 
+                result.TotalCount = await reader.GetTotalCountAsync(context);
+
                 var records = new List<object>();
 
                 do
@@ -202,7 +210,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                 } while (reader.HasMoreResults && records.Count < importProfile.PreviewObjectCount);
 
-                result.TotalCount = await reader.GetTotalCountAsync(context);
                 result.Records = records.Take(importProfile.PreviewObjectCount).ToArray();
             }
             catch (Exception ex)
@@ -217,7 +224,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
         public virtual async Task<ValidationResult> ValidateAsync(ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
-            importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+            if (!string.IsNullOrEmpty(importProfile.ImportFileUrl))
+            {
+                importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
+            }
 
             var context = new ImportContext(importProfile);
 
