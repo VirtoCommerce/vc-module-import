@@ -29,7 +29,10 @@
                 v-if="!importStarted && !(uploadedFile && uploadedFile.url)"
                 class="tw-p-5"
               >
-                <VcRow class="tw-mb-4">
+                <VcRow
+                  v-if="sampleTemplateUrl"
+                  class="tw-mb-4"
+                >
                   <a
                     class="vc-link"
                     :href="sampleTemplateUrl"
@@ -106,7 +109,7 @@
               :header="
                 importStarted
                   ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.IMPORT_RESULTS')
-                  : $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.TITLE')
+                  : $t('IMPORT.PAGES.PRODUCT_IMPORTER.API_SOURCE.TITLE')
               "
             >
               <VcCol
@@ -184,6 +187,7 @@
       :items="popupItems"
       :total="previewTotalNum ?? 0"
       :disabled="!!(importStatus && importStatus.jobId)"
+      :json-mode="isApiSourceImporter"
       @close="importPreview = false"
       @start-import="initializeImporting"
     ></ImportPopup>
@@ -598,13 +602,6 @@ async function apiPreview() {
     popupItems.value = [];
     popupColumns.value = [];
     if (preview.value && preview.value.records && preview.value.records.length) {
-      for (const recordKey in preview.value.records[0]) {
-        popupColumns.value.push({
-          id: recordKey,
-          title: recordKey,
-          width: 130,
-        });
-      }
       preview.value.records.forEach((record) => {
         popupItems.value.push(record);
       });
@@ -641,9 +638,7 @@ function reloadParent() {
 }
 
 const sampleTemplateUrl = computed(() => {
-  return profile.value && profile.value.importer && profile.value.importer.metadata
-    ? profile.value.importer.metadata.sampleCsvUrl
-    : "#";
+  return profile.value?.importer?.metadata?.sampleCsvUrl;
 });
 
 async function onPaginationClick(page: number) {
