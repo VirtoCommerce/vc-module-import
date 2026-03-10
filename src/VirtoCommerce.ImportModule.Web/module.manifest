@@ -35,4 +35,11 @@
       <permission>import:access</permission>
     </app>
   </apps>
+  <frontendModules>
+    <frontendModule id="import-app" path="App/dist">
+      <compatibleWith>
+        <dependency id="@vc-shell/framework">[1.2.4,2.0.0)</dependency>
+      </compatibleWith>
+    </frontendModule>
+  </frontendModules>
 </module>
