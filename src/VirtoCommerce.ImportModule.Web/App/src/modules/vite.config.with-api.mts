@@ -1,6 +1,6 @@
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getDynamicModuleConfiguration } from "@vc-shell/config-generator";
+import { getDynamicModuleConfiguration } from "@vc-shell/mf-module";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

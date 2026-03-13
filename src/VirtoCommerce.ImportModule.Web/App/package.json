@@ -33,8 +33,8 @@
     "@types/node": "^20.10.5",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
-    "@vc-shell/api-client-generator": "2.0.0-alpha.9",
-    "@vc-shell/ts-config": "^2.0.0-alpha.6",
+    "@vc-shell/api-client-generator": "^2.0.0-alpha.11",
+    "@vc-shell/ts-config": "^2.0.0-alpha.11",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^13.0.0",
@@ -68,8 +68,9 @@
     "@module-federation/dts-plugin": "2.0.1"
   },
   "dependencies": {
-    "@vc-shell/config-generator": "2.0.0-alpha.9",
-    "@vc-shell/framework": "2.0.0-alpha.9",
+    "@vc-shell/config-generator": "^2.0.0-alpha.11",
+    "@vc-shell/framework": "^2.0.0-alpha.11",
+    "@vc-shell/mf-module": "^2.0.0-alpha.11",
     "@virtocommerce/import-app": "^1.1.3",
     "@vueuse/core": "^10.7.1",
     "@vueuse/integrations": "^10.7.1",

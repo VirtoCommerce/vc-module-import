@@ -3482,9 +3482,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vc-shell/api-client-generator@npm:2.0.0-alpha.9":
-  version: 2.0.0-alpha.9
-  resolution: "@vc-shell/api-client-generator@npm:2.0.0-alpha.9"
+"@vc-shell/api-client-generator@npm:^2.0.0-alpha.11":
+  version: 2.0.0-alpha.11
+  resolution: "@vc-shell/api-client-generator@npm:2.0.0-alpha.11"
   dependencies:
     chalk: "npm:^2.4.2"
     cross-spawn: "npm:^7.0.3"
@@ -3494,30 +3494,27 @@ __metadata:
     vite-plugin-dts: "npm:^3.6.4"
   bin:
     api-client-generator: ./dist/api-client-generator.js
-  checksum: 10/6f69d56ef456d727bf34b02556ef711bf4aeab9599817925b7103cfabf1154916216b70d5ed533d901e0673d697b6fc49417a39e3921f5358706522c75e07fe1
+  checksum: 10/6eb4a025081b7606758785ce0f90e8c86484e56c6663b47f01e4613d80a501cab0f205f2b6521dd8af442e855ef7b8be27735c8c8a6c82cb08c0193af5031f6b
   languageName: node
   linkType: hard
 
-"@vc-shell/config-generator@npm:2.0.0-alpha.9":
-  version: 2.0.0-alpha.9
-  resolution: "@vc-shell/config-generator@npm:2.0.0-alpha.9"
+"@vc-shell/config-generator@npm:^2.0.0-alpha.11":
+  version: 2.0.0-alpha.11
+  resolution: "@vc-shell/config-generator@npm:2.0.0-alpha.11"
   dependencies:
-    "@module-federation/dts-plugin": "npm:2.0.1"
-    "@module-federation/vite": "npm:^1.12.2"
-    "@vc-shell/mf-config": "npm:2.0.0-alpha.9"
     "@vitejs/plugin-vue": "npm:^5.2.3"
     vite: "npm:^6.3.3"
     vite-plugin-checker: "npm:^0.9.1"
     vite-plugin-circular-dependency: "npm:^0.5.0"
     vite-plugin-mkcert: "npm:^1.17.1"
     vue: "npm:^3.5.30"
-  checksum: 10/94d621de15e5aa427be47fa2920b5ca95635bdf0c123e804e863ba10e3337f8776e2b7c762a26fbebb558e218f71f065825494612f3b32a8054feaf8bd15d169
+  checksum: 10/4abf67e2d4864af01ea67da44328fecff992e9fcfb883148349184e1bb3a445a5450bd5107f7756963b828c2a932d7025c89a7c868761284541033b551a34411
   languageName: node
   linkType: hard
 
-"@vc-shell/framework@npm:2.0.0-alpha.9":
-  version: 2.0.0-alpha.9
-  resolution: "@vc-shell/framework@npm:2.0.0-alpha.9"
+"@vc-shell/framework@npm:^2.0.0-alpha.11":
+  version: 2.0.0-alpha.11
+  resolution: "@vc-shell/framework@npm:2.0.0-alpha.11"
   dependencies:
     "@floating-ui/dom": "npm:^1.7.4"
     "@floating-ui/vue": "npm:^1.0.6"
@@ -3577,14 +3574,34 @@ __metadata:
       optional: false
     vue-router:
       optional: false
-  checksum: 10/f1a3ab0d595cb489d94be3ddc0a69421c412f2e5b02d422322d33e16928c63890c3ee1143ec42a42437cc099b1f80f3c4b2fb0a0d557421448823ec92118de53
+  checksum: 10/f6b16009bdd355c4dd4940cef920876ff954d93fcc73278cdbf7750b36089d734d849e3523940461d5cbcbe9137bdc58dc0a296e639a7e6f65482abe1c5205ed
   languageName: node
   linkType: hard
 
-"@vc-shell/mf-config@npm:2.0.0-alpha.9":
-  version: 2.0.0-alpha.9
-  resolution: "@vc-shell/mf-config@npm:2.0.0-alpha.9"
-  checksum: 10/6fbb895dbbebb0fdce264e47fe6eb04f59c053a33d5a16f67e541bf71db1092083882aba4bc1080600ddd8cfec92ad10308f07f7da3635fe36d77c064b810b76
+"@vc-shell/mf-config@npm:2.0.0-alpha.11":
+  version: 2.0.0-alpha.11
+  resolution: "@vc-shell/mf-config@npm:2.0.0-alpha.11"
+  checksum: 10/8702a43d5957f43224679ec72ec8f4a553d47946bbceecf6f6c9d2a7d71c789ae44e5bc1914fa4fe0fc9046bf66bedbfa6d6318405f03b1d255dbeb6371e3223
+  languageName: node
+  linkType: hard
+
+"@vc-shell/mf-module@npm:^2.0.0-alpha.11":
+  version: 2.0.0-alpha.11
+  resolution: "@vc-shell/mf-module@npm:2.0.0-alpha.11"
+  dependencies:
+    "@module-federation/vite": "npm:^1.12.2"
+    "@vc-shell/mf-config": "npm:2.0.0-alpha.11"
+  peerDependencies:
+    "@vitejs/plugin-vue": ^5.0.0
+    vite: ^5.0.0 || ^6.0.0
+  checksum: 10/3d9859a667b84d70c566f4ffbc9e3b412b102baaf3293508d6a196324ebe99691bce00989a8ed7d14d1abb5cfbf395a732d5099b56176201c4f6e6b683754524
+  languageName: node
+  linkType: hard
+
+"@vc-shell/ts-config@npm:^2.0.0-alpha.11":
+  version: 2.0.0-alpha.11
+  resolution: "@vc-shell/ts-config@npm:2.0.0-alpha.11"
+  checksum: 10/c99f34e64b58eadef094be45feaa06f727c74c61237ae3764111592e53a48c55b9327d66a12b28b33d00a4777d398cf0ef05c4a52b22ed853dde2c623317197c
   languageName: node
   linkType: hard
 
@@ -7725,9 +7742,11 @@ __metadata:
     "@types/node": "npm:^20.10.5"
     "@typescript-eslint/eslint-plugin": "npm:^7.4.0"
     "@typescript-eslint/parser": "npm:^7.4.0"
-    "@vc-shell/api-client-generator": "npm:2.0.0-alpha.9"
-    "@vc-shell/config-generator": "npm:2.0.0-alpha.9"
-    "@vc-shell/framework": "npm:2.0.0-alpha.9"
+    "@vc-shell/api-client-generator": "npm:^2.0.0-alpha.11"
+    "@vc-shell/config-generator": "npm:^2.0.0-alpha.11"
+    "@vc-shell/framework": "npm:^2.0.0-alpha.11"
+    "@vc-shell/mf-module": "npm:^2.0.0-alpha.11"
+    "@vc-shell/ts-config": "npm:^2.0.0-alpha.11"
     "@virtocommerce/import-app": "npm:^1.1.3"
     "@vitejs/plugin-vue": "npm:^5.2.3"
     "@vue/eslint-config-prettier": "npm:^9.0.0"
