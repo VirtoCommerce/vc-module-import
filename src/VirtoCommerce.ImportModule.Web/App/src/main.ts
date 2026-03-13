@@ -24,7 +24,7 @@ async function startApp() {
   });
 
   Object.values(modules.default).forEach((module) => {
-    app.use(module.default, { router });
+    app.use(module.default);
   });
 
   app.use(router);
