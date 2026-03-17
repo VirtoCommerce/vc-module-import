@@ -1,25 +1,17 @@
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getDynamicModuleConfiguration } from "@vc-shell/config-generator";
+import { getDynamicModuleConfiguration } from "@vc-shell/mf-module";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default getDynamicModuleConfiguration({
+  entry: "./src/modules/index.ts",
+  compatibility: {
+    framework: "^2.0.0",
+  },
   resolve: {
     alias: {
       "/assets/empty.png": resolve(__dirname, "../../public/assets/empty.png"),
     },
-  },
-  build: {
-    manifest: "manifest.json",
-    copyPublicDir: false,
-    sourcemap: true,
-    minify: false,
-    lib: {
-      entry: resolve(__dirname, "./index.ts"),
-    },
-  },
-  compatibility: {
-    framework: "^1.1.0",
   },
 });

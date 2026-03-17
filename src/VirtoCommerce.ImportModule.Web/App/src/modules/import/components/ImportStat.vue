@@ -102,7 +102,7 @@ const importStarted = computed(() => !!(importStatus.value && importStatus.value
 
 const estimatedRemaining = computed(() => {
   return importStatus.value && importStatus.value.estimatedRemaining
-    ? moment.duration(importStatus.value.estimatedRemaining).locale(locale).humanize(false, "precise")
+    ? moment.duration(importStatus.value.estimatedRemaining).locale(locale).humanize(false)
     : null;
 });
 

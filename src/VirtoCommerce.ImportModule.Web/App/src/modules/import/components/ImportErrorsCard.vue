@@ -14,7 +14,7 @@
         :columns="skippedColumns"
         :header="false"
         :footer="false"
-        :items="reversedErrors ?? []"
+        :items="(reversedErrors ?? []).map((e) => ({ errors: e }))"
         state-key="import_errors"
       >
         <!-- Override errors column template -->
