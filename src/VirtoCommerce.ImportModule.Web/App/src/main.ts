@@ -34,7 +34,7 @@ async function startApp() {
   });
 
   // Should be after merging locales
-  bootstrap(app);
+  await bootstrap(app);
 
   // Global error handler
   app.config.errorHandler = (err: unknown) => {

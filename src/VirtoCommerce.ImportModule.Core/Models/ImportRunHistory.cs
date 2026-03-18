@@ -23,6 +23,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public ICollection<string> Errors { get; set; }
         public string FileUrl { get; set; }
         public string ReportUrl { get; set; }
+        public string Cursor { get; set; }
 
         public string TypeName => nameof(ImportRunHistory);
 

@@ -11,7 +11,7 @@
     @expand="$emit('expand:blade')"
     @collapse="$emit('collapse:blade')"
   >
-    <VcContainer>
+    <VcContainer class="import-profile-details">
       <VcRow>
         <VcCol>
           <Field
@@ -71,7 +71,10 @@
         <VcCard :header="$t('IMPORT.PAGES.PROFILE_DETAILS.PROFILE_SETTINGS.TITLE')">
           <VcRow>
             <VcCol>
-              <div class="tw-p-4">
+              <div
+                v-if="sampleTemplateUrl"
+                class="tw-p-4"
+              >
                 <a
                   class="vc-link"
                   :href="sampleTemplateUrl"
@@ -240,17 +243,13 @@ const bladeToolbar = ref<IBladeToolbar[]>([
 const sampleTemplateUrl = computed(() => {
   const importer = dataImporters.value.find((x) => x.typeName === profileDetails.value.dataImporterType);
 
-  let url: string | undefined;
-
   if (profile.value.importer) {
-    url = profile.value.importer.metadata && profile.value.importer.metadata.sampleCsvUrl;
+    return profile.value.importer.metadata?.sampleCsvUrl;
   } else if (importer) {
-    url = importer.metadata && importer.metadata.sampleCsvUrl;
-  } else {
-    url = "#";
+    return importer.metadata?.sampleCsvUrl;
   }
 
-  return url;
+  return undefined;
 });
 
 const title = computed(() =>
@@ -307,3 +306,11 @@ defineExpose({
   title,
 });
 </script>
+
+<style lang="scss">
+.import-profile-details {
+  & .vc-container__inner {
+    @apply tw-flex tw-flex-col;
+  }
+}
+</style>

@@ -84,6 +84,10 @@ namespace VirtoCommerce.ImportModule.Data.MySql.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("Cursor")
+                        .HasMaxLength(2048)
+                        .HasColumnType("varchar(2048)");
+
                     b.Property<string>("Errors")
                         .HasColumnType("longtext");
 

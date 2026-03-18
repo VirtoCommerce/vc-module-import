@@ -336,9 +336,13 @@ ASALocalRun/
 *.nupkg
 *.zip
 
-# Webpack output
+# Webpack/Vite build output
 dist/
+**/Content/*-app/
 .history
+
+# TypeScript incremental build cache
+*.tsbuildinfo
 
 # MacOS
 .DS_Store
