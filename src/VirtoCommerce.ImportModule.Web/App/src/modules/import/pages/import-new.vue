@@ -685,8 +685,8 @@ defineExpose({
   }
 
   &__history {
-    & .vc-card__body {
-      @apply tw-flex tw-flex-col;
+    .vc-table-adapter {
+      @apply tw-basis-auto;
     }
   }
 }
