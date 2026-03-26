@@ -24,7 +24,7 @@ async function startApp() {
   });
 
   Object.values(modules.default).forEach((module) => {
-    app.use(module.default, { router });
+    app.use(module.default);
   });
 
   app.use(router);
@@ -34,7 +34,7 @@ async function startApp() {
   });
 
   // Should be after merging locales
-  bootstrap(app);
+  await bootstrap(app);
 
   // Global error handler
   app.config.errorHandler = (err: unknown) => {

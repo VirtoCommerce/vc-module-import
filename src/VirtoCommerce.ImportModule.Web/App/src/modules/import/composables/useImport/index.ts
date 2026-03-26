@@ -169,9 +169,9 @@ export default (): IUseImport => {
   });
 
   function getLongRunning(args?: { id: string }) {
-    const job = notifications.value.find((x: ImportPushNotification) => {
-      return x.profileId === args?.id;
-    }) as ImportPushNotification;
+    const job = notifications.value.find(
+      (x) => (x as ImportPushNotification).profileId === args?.id,
+    ) as ImportPushNotification | undefined;
 
     if (job && !job.finished) {
       updateStatus(job);
@@ -220,7 +220,11 @@ export default (): IUseImport => {
     profilesLoading: computed(() => profilesLoading.value),
     uploadedFile: computed(() => uploadedFile.value),
     importStatus: computed(() => importStatus.value),
-    isValid: computed(() => !!(profile.value.importer && uploadedFile.value)),
+    isValid: computed(() => {
+      if (!profile.value.importer) return false;
+      const isApiSource = profile.value.importer.metadata?.sourceType?.toLowerCase() === "api";
+      return isApiSource || !!uploadedFile.value;
+    }),
     importHistory,
     importProfiles,
     dataImporters: computed(() => dataImporters.value),

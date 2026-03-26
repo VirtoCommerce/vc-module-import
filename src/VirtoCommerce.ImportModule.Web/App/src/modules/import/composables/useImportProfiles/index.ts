@@ -1,14 +1,14 @@
 import { ref, computed, watch, Ref } from "vue";
 import {
   IDataImporter,
+  IObjectSettingEntry,
   ImportClient,
   ImportProfile,
   ISearchImportProfilesCriteria,
+  ObjectSettingEntry,
   SearchImportProfilesCriteria,
 } from "@virtocommerce/import-app-api";
 import {
-  IObjectSettingEntry,
-  ObjectSettingEntry,
   useApiClient,
   useAsync,
   useLoading,

@@ -13,7 +13,8 @@
     <VcContainer class="import-new">
       <VcCol>
         <div class="tw-p-3">
-          <VcRow>
+          <!-- File-based importer: file upload card -->
+          <VcRow v-if="!isApiSourceImporter">
             <VcCard
               :header="
                 importStarted
@@ -28,7 +29,10 @@
                 v-if="!importStarted && !(uploadedFile && uploadedFile.url)"
                 class="tw-p-5"
               >
-                <VcRow class="tw-mb-4">
+                <VcRow
+                  v-if="sampleTemplateUrl"
+                  class="tw-mb-4"
+                >
                   <a
                     class="vc-link"
                     :href="sampleTemplateUrl"
@@ -99,6 +103,41 @@
               <ImportStat :import-status="importStatus" />
             </VcCard>
           </VcRow>
+          <!-- API-based importer: no file upload needed -->
+          <VcRow v-else>
+            <VcCard
+              :header="
+                importStarted
+                  ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.IMPORT_RESULTS')
+                  : $t('IMPORT.PAGES.PRODUCT_IMPORTER.API_SOURCE.TITLE')
+              "
+            >
+              <VcCol
+                v-if="!importStarted"
+                class="tw-p-5"
+              >
+                <div class="tw-flex tw-flex-row tw-justify-end">
+                  <VcButton
+                    :outline="true"
+                    :small="true"
+                    class="tw-mr-3"
+                    :disabled="!isValid || previewLoading"
+                    @click="apiPreview"
+                  >
+                    {{ $t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.PREVIEW") }}
+                  </VcButton>
+                  <VcButton
+                    :small="true"
+                    :disabled="!isValid || (importStatus && importStatus.inProgress) || importLoading"
+                    @click="start()"
+                  >
+                    {{ $t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.START_IMPORT") }}
+                  </VcButton>
+                </div>
+              </VcCol>
+              <ImportStat :import-status="importStatus" />
+            </VcCard>
+          </VcRow>
         </div>
         <ImportErrorsCard :import-status="importStatus" />
         <!-- History-->
@@ -148,6 +187,7 @@
       :items="popupItems"
       :total="previewTotalNum ?? 0"
       :disabled="!!(importStatus && importStatus.jobId)"
+      :json-mode="isApiSourceImporter"
       @close="importPreview = false"
       @start-import="initializeImporting"
     ></ImportPopup>
@@ -159,7 +199,6 @@ import { computed, onMounted, ref, watch, ComputedRef } from "vue";
 import * as _ from "lodash-es";
 import {
   IParentCallArgs,
-  moment,
   VcContainer,
   VcCol,
   VcRow,
@@ -274,8 +313,8 @@ const bladeWidth = ref(70);
 
 watch(
   moduleNotifications,
-  (newVal: ImportPushNotification[]) => {
-    newVal.forEach((message) => {
+  (newVal) => {
+    (newVal as ImportPushNotification[]).forEach((message) => {
       const messageContent = message.profileName ? `${message.profileName}: ${message.title}` : message.title;
 
       if (!importStarted.value && message.profileId === props.param) {
@@ -475,6 +514,8 @@ const uploadActions = ref<INotificationActions[]>([
 
 const inProgress = computed(() => (importStatus.value && importStatus.value.inProgress) || false);
 
+const isApiSourceImporter = computed(() => profile.value.importer?.metadata?.sourceType?.toLowerCase() === "api");
+
 const bladeLoading = computed(
   () =>
     importLoading.value ||
@@ -553,6 +594,26 @@ async function saveExternalUrl() {
   });
 }
 
+async function apiPreview() {
+  try {
+    previewLoading.value = true;
+    preview.value = await previewData();
+    popupItems.value = [];
+    popupColumns.value = [];
+    if (preview.value && preview.value.records && preview.value.records.length) {
+      preview.value.records.forEach((record) => {
+        popupItems.value.push(record);
+      });
+      importPreview.value = true;
+    }
+  } catch (e: unknown) {
+    setErrorMessage((e as Error).message);
+    throw e;
+  } finally {
+    previewLoading.value = false;
+  }
+}
+
 async function start(importProfile?: ExtProfile) {
   try {
     clearErrorMessage();
@@ -576,9 +637,7 @@ function reloadParent() {
 }
 
 const sampleTemplateUrl = computed(() => {
-  return profile.value && profile.value.importer && profile.value.importer.metadata
-    ? profile.value.importer.metadata.sampleCsvUrl
-    : "#";
+  return profile.value?.importer?.metadata?.sampleCsvUrl;
 });
 
 async function onPaginationClick(page: number) {
@@ -626,8 +685,8 @@ defineExpose({
   }
 
   &__history {
-    & .vc-card__body {
-      @apply tw-flex tw-flex-col;
+    .vc-table-adapter {
+      @apply tw-basis-auto;
     }
   }
 }
