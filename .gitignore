@@ -338,6 +338,7 @@ ASALocalRun/
 
 # Webpack/Vite build output
 dist/
+.__mf__temp/
 **/Content/*-app/
 .history
 

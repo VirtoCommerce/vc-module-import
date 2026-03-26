@@ -63,8 +63,8 @@ export default function useImportStatus({
       if (importProfiles.value && importProfiles.value?.length) {
         const mappedProfiles = importProfiles.value.map((item) => {
           const notification = newNotifications.value.find(
-            (x: ImportPushNotification) => x.profileId === item.id,
-          ) as ImportPushNotification;
+            (x) => (x as ImportPushNotification).profileId === item.id,
+          ) as ImportPushNotification | undefined;
 
           if (notification) {
             item.inProgress = !notification.finished;

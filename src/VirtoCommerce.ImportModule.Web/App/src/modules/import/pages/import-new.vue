@@ -313,8 +313,8 @@ const bladeWidth = ref(70);
 
 watch(
   moduleNotifications,
-  (newVal: ImportPushNotification[]) => {
-    newVal.forEach((message) => {
+  (newVal) => {
+    (newVal as ImportPushNotification[]).forEach((message) => {
       const messageContent = message.profileName ? `${message.profileName}: ${message.title}` : message.title;
 
       if (!importStarted.value && message.profileId === props.param) {
@@ -685,8 +685,8 @@ defineExpose({
   }
 
   &__history {
-    & .vc-card__body {
-      @apply tw-flex tw-flex-col;
+    .vc-table-adapter {
+      @apply tw-basis-auto;
     }
   }
 }

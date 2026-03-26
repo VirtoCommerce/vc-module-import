@@ -169,9 +169,9 @@ export default (): IUseImport => {
   });
 
   function getLongRunning(args?: { id: string }) {
-    const job = notifications.value.find((x: ImportPushNotification) => {
-      return x.profileId === args?.id;
-    }) as ImportPushNotification;
+    const job = notifications.value.find(
+      (x) => (x as ImportPushNotification).profileId === args?.id,
+    ) as ImportPushNotification | undefined;
 
     if (job && !job.finished) {
       updateStatus(job);
