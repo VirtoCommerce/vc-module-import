@@ -41,6 +41,9 @@ namespace VirtoCommerce.ImportModule.Data.Models
         [StringLength(2048)]
         public string ReportUrl { get; set; }
 
+        [StringLength(2048)]
+        public string Cursor { get; set; }
+
         public virtual ImportRunHistoryEntity FromModel(ImportRunHistory model, PrimaryKeyResolvingMap pkMap)
         {
             if (model == null)
@@ -69,6 +72,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             Errors = JsonConvert.SerializeObject(model.Errors);
             FileUrl = model.FileUrl;
             ReportUrl = model.ReportUrl;
+            Cursor = model.Cursor;
 
             return this;
         }
@@ -99,6 +103,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             model.Errors = JsonConvert.DeserializeObject<ICollection<string>>(Errors ?? "[]");
             model.FileUrl = FileUrl;
             model.ReportUrl = ReportUrl;
+            model.Cursor = Cursor;
 
             return model;
         }
@@ -116,6 +121,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
             target.Errors = Errors;
             target.FileUrl = FileUrl;
             target.ReportUrl = ReportUrl;
+            target.Cursor = Cursor;
         }
     }
 }

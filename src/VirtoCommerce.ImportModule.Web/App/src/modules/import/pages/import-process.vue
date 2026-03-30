@@ -101,8 +101,8 @@ const importStarted = computed(() => !!(importStatus.value && importStatus.value
 
 watch(
   moduleNotifications,
-  (newVal: ImportPushNotification[]) => {
-    newVal.forEach((message) => {
+  (newVal) => {
+    (newVal as ImportPushNotification[]).forEach((message) => {
       const messageContent = message.profileName ? `${message.profileName} ${message.title}` : message.title;
 
       if (!importStarted.value && message.profileId === props.param) {

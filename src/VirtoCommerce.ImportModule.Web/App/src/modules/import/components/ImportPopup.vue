@@ -26,7 +26,16 @@
             </p>
           </div>
         </div>
+        <!-- JSON mode: show formatted JSON -->
+        <div
+          v-if="jsonMode"
+          class="tw-flex-auto tw-overflow-auto tw-p-5"
+        >
+          <pre class="import-popup__json">{{ formattedJson }}</pre>
+        </div>
+        <!-- Table mode: classic CSV-like preview -->
         <VcTable
+          v-else
           class="tw-flex-auto"
           :columns="columns"
           :items="items"
@@ -54,6 +63,7 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
 import { VcTable, VcButton, VcPopup, ITableColumns } from "@vc-shell/framework";
 
 export interface Props {
@@ -61,6 +71,7 @@ export interface Props {
   items: Record<string, unknown>[];
   total: number;
   disabled: boolean;
+  jsonMode?: boolean;
 }
 
 interface Emits {
@@ -68,14 +79,17 @@ interface Emits {
   (event: "startImport"): void;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   columns: () => [],
   items: () => [],
   total: 0,
   disabled: false,
+  jsonMode: false,
 });
 
 defineEmits<Emits>();
+
+const formattedJson = computed(() => JSON.stringify(props.items, null, 2));
 </script>
 
 <style lang="scss">
@@ -88,6 +102,12 @@ defineEmits<Emits>();
 .import-popup {
   .vc-popup__content-wrapper {
     @apply tw-w-full tw-flex-col;
+  }
+
+  &__json {
+    @apply tw-m-0 tw-text-sm tw-leading-relaxed tw-whitespace-pre-wrap tw-break-words;
+    font-family: "Courier New", Courier, monospace;
+    max-height: 60vh;
   }
 }
 </style>

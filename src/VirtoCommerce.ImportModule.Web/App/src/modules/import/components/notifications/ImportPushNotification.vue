@@ -18,37 +18,22 @@
 </template>
 
 <script lang="ts" setup>
-import { useBladeNavigation, NotificationTemplate } from "@vc-shell/framework";
+import { useBladeNavigation, useNotificationContext, NotificationTemplate } from "@vc-shell/framework";
 import { ImportPushNotification } from "@virtocommerce/import-app-api";
 import { computed } from "vue";
 
-export interface Props {
-  notification: ImportPushNotification;
-}
-
-export interface Emits {
-  (event: "notificationClick"): void;
-}
-
-const props = defineProps<Props>();
-
-const emit = defineEmits<Emits>();
-
-defineOptions({
-  inheritAttrs: false,
-  notifyType: "ImportPushNotification",
-});
+const notification = useNotificationContext<ImportPushNotification>();
 
 const { openBlade, resolveBladeByName } = useBladeNavigation();
 
 const notificationStyle = computed(() => {
-  const notification = props.notification;
-  if (notification.finished && !(notification.errors && notification.errors.length)) {
+  const n = notification.value;
+  if (n.finished && !(n.errors && n.errors.length)) {
     return {
       color: 'var(--import-notification-success-color)',
       icon: "material-check_circle",
     };
-  } else if (!(notification.errors && notification.errors.length) && !notification.finished) {
+  } else if (!(n.errors && n.errors.length) && !n.finished) {
     return {
       color: 'var(--import-notification-info-color)',
       icon: "material-info",
@@ -62,20 +47,19 @@ const notificationStyle = computed(() => {
 });
 
 async function onClick() {
-  if (props.notification.notifyType === "ImportPushNotification") {
-    emit("notificationClick");
+  if (notification.value.notifyType === "ImportPushNotification") {
     await openBlade(
       {
         blade: resolveBladeByName("ImportProfileSelector"),
-        param: props.notification.profileId,
+        param: notification.value.profileId,
       },
       true,
     );
     await openBlade({
       blade: resolveBladeByName("ImportProcess"),
-      param: props.notification.profileId,
+      param: notification.value.profileId,
       options: {
-        importJobId: props.notification.jobId,
+        importJobId: notification.value.jobId,
       },
     });
   }

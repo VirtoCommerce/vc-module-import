@@ -108,6 +108,9 @@
           "TITLE_UPLOADED": "Uploaded",
           "IMPORT_RESULTS": "Import results"
         },
+        "API_SOURCE": {
+          "TITLE": "API import"
+        },
         "UPLOAD_STATUS": {
           "TITLE": "Upload status",
           "LINES_FOUND": "lines found",
