@@ -17,8 +17,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             public FakeCursor Position { get; set; } = new FakeCursor(0);
             public FakeCursor Restored { get; private set; }
+            public bool ReturnNullCursor { get; set; }
 
-            public FakeCursor GetCursor(ImportContext context) => Position;
+            public FakeCursor GetCursor(ImportContext context) => ReturnNullCursor ? null : Position;
             public void RestoreCursor(ImportContext context, FakeCursor cursor) => Restored = cursor;
 
             public bool HasMoreResults => true;
@@ -61,15 +62,18 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.Equal(1000, context.ProgressInfo.ProcessedCount);
         }
 
-        [Fact]
-        public void TryRestoreFromSerializedCursor_invalid_string_returns_false_no_state_change()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("not-base64")]
+        public void TryRestoreFromSerializedCursor_null_or_invalid_returns_false_no_state_change(string serializedCursor)
         {
             var reader = new FakeReader();
             var profile = MakeProfile(lifetimeDays: 7);
             var context = new ImportContext(profile) { ProgressInfo = new ImportProgressInfo { ProcessedCount = 42 } };
 
             IResumableImportDataReader bridge = reader;
-            var ok = bridge.TryRestoreFromSerializedCursor(context, "not-base64");
+            var ok = bridge.TryRestoreFromSerializedCursor(context, serializedCursor);
 
             Assert.False(ok);
             Assert.Null(reader.Restored);
@@ -77,11 +81,11 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void TryRestoreFromSerializedCursor_expired_cursor_returns_false()
+        public void TryRestoreFromSerializedCursor_expired_cursor_returns_false_no_context_mutation()
         {
             var reader = new FakeReader();
             var profile = MakeProfile(lifetimeDays: 7);
-            var context = new ImportContext(profile) { ProgressInfo = new ImportProgressInfo() };
+            var context = new ImportContext(profile) { ProgressInfo = new ImportProgressInfo { ProcessedCount = 77 } };
 
             var cursor = new FakeCursor(10) { CreatedAt = DateTime.UtcNow.AddDays(-8) };
             var serialized = cursor.Serialize();
@@ -91,6 +95,20 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
             Assert.False(ok);
             Assert.Null(reader.Restored);
+            Assert.Equal(77, context.ProgressInfo.ProcessedCount);
+        }
+
+        [Fact]
+        public void GetSerializedCursor_returns_null_when_reader_has_no_cursor()
+        {
+            var reader = new FakeReader { ReturnNullCursor = true };
+            var profile = new ImportProfile { Settings = new List<ObjectSettingEntry>() };
+            var context = new ImportContext(profile) { ProgressInfo = new ImportProgressInfo { ProcessedCount = 250 } };
+            IResumableImportDataReader bridge = reader;
+
+            var serialized = bridge.GetSerializedCursor(context);
+
+            Assert.Null(serialized);
         }
 
         private static ImportProfile MakeProfile(int lifetimeDays) =>
