@@ -19,4 +19,8 @@
     <ProjectReference Include="..\VirtoCommerce.ImportModule.Core\VirtoCommerce.ImportModule.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="VirtoCommerce.ImportModule.Tests" />
+  </ItemGroup>
+
 </Project>
