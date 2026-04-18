@@ -1,6 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
-using VirtoCommerce.ImportModule.Data.Importers;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Tests
 {
@@ -8,12 +10,15 @@ namespace VirtoCommerce.ImportModule.Tests
     {
         public static DataImportProcessManager GetDataImportProcessManager()
         {
-            var services = new ServiceCollection();
-            var provider = services.BuildServiceProvider();
-            var registrar = new DataImporterRegistrar(provider);
-            registrar.Register<TestImporter>(() => new TestImporter());
-            var result = new DataImportProcessManager(registrar);
-            return result;
+            var dataImporterFactory = new Mock<IDataImporterFactory>();
+            dataImporterFactory.Setup(x => x.Create(It.IsAny<string>())).Returns(new Mock<IDataImporter>().Object);
+
+            return new DataImportProcessManager(
+                dataImporterFactory.Object,
+                new Mock<IImportRemainingEstimatorFactory>().Object,
+                new Mock<IImportReporterFactory>().Object,
+                new Mock<ISettingsManager>().Object,
+                NullLoggerFactory.Instance);
         }
     }
 }
