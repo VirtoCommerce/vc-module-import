@@ -171,34 +171,9 @@ export default (): IUseImport => {
   });
 
   async function resume(jobId: string): Promise<ImportPushNotification | undefined> {
-    // TODO: replace this hand-rolled bypass with `client.resumeImport(jobId)` once the
-    // `@virtocommerce/import-app-api` package is regenerated to include the resume endpoint.
-    // Current code reaches through three internal NSwag properties (transformOptions,
-    // http.fetch, baseUrl) to preserve Bearer-token injection; a regenerated typed client
-    // removes the need for any cast.
     try {
       const client = await getApiClient();
-      const internals = client as unknown as Partial<{
-        http: { fetch: (url: string, init: RequestInit) => Promise<Response> };
-        baseUrl: string;
-        transformOptions: (options: RequestInit) => Promise<RequestInit>;
-      }>;
-      if (typeof internals.transformOptions !== "function" || !internals.http || typeof internals.http.fetch !== "function") {
-        throw new Error("Generated ImportClient shape has changed — regenerate @virtocommerce/import-app-api to add resumeImport()");
-      }
-      const options = await internals.transformOptions({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const response = await internals.http.fetch(
-        `${internals.baseUrl ?? ""}/api/import/runs/${encodeURIComponent(jobId)}/resume`,
-        options,
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      return ImportPushNotification.fromJS(data);
+      return await client.resumeImport(jobId);
     } catch (e) {
       console.error("Import resume failed:", e);
       return undefined;

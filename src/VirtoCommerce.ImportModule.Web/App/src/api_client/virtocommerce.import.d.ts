@@ -25,6 +25,12 @@ export declare class ImportClient extends AuthApiBase {
     cancelJob(body?: ImportCancellationRequest | undefined): Promise<void>;
     protected processCancelJob(response: Response): Promise<void>;
     /**
+     * @param jobId Hangfire background-job id of the interrupted run.
+     * @return Success
+     */
+    resumeImport(jobId: string): Promise<ImportPushNotification>;
+    protected processResumeImport(response: Response): Promise<ImportPushNotification>;
+    /**
      * @param body (optional)
      * @return Success
      */
