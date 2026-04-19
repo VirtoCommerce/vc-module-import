@@ -85,7 +85,15 @@ namespace VirtoCommerce.ImportModule.Core
             {
                 get
                 {
-                    return General.AllSettings;
+                    foreach (var setting in General.AllSettings)
+                    {
+                        yield return setting;
+                    }
+
+                    foreach (var setting in ImportCursorSettings.AllSettings)
+                    {
+                        yield return setting;
+                    }
                 }
             }
         }
