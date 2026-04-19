@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
@@ -138,6 +139,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
             using var reader = await dataImporter.OpenReaderAsync(context);
             using var writer = await dataImporter.OpenWriterAsync(context);
 
+            // Attempt to restore cursor from the run history. On success, IsResume flips to true
+            // and context.ProgressInfo.ProcessedCount is repopulated from the cursor. On failure,
+            // the history row is reset so the run starts fresh.
+            context.IsResume = await TryRestoreCursorAsync(reader, context);
+            await dataImporter.OnImportStartedAsync(context);
+
             // Calculate total count
             importProgress.Description = "Evaluating total records counts";
             await progressCallback(importProgress);
@@ -150,11 +157,30 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             await progressCallback(importProgress);
 
+            var saveIntervalPages = context.ImportProfile.Settings
+                .GetValue<int>(ImportCursorSettings.SaveIntervalPages);
+            var pagesSinceLastSave = 0;
+            var cursorReader = reader as IResumableImportDataReader;
+
             try
             {
                 do
                 {
                     token.ThrowIfCancellationRequested();
+
+                    // Top-of-iter checkpoint snapshot — FlushAsync FIRST so ProcessedCount
+                    // embedded in the cursor is durable before the cursor is saved.
+                    if (cursorReader is not null && importProgress.ProcessedCount > 0)
+                    {
+                        pagesSinceLastSave++;
+                        if (pagesSinceLastSave >= saveIntervalPages)
+                        {
+                            await writer.FlushAsync(context);
+                            importProgress.Cursor = cursorReader.GetSerializedCursor(context);
+                            importProgress.ShouldSaveHistory = !string.IsNullOrEmpty(importProgress.Cursor);
+                            pagesSinceLastSave = 0;
+                        }
+                    }
 
                     // Read items
                     var items = await reader.ReadNextPageAsync(context);
@@ -173,6 +199,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                     await progressCallback(importProgress);
 
+                    // One-shot flags — consumed by the callback above, cleared before next iteration.
+                    importProgress.Cursor = null;
+                    importProgress.ShouldSaveHistory = false;
+
                 } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
             }
             catch (Exception ex)
@@ -185,6 +215,20 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
+                // Final durability barrier — ensures all buffered writes are committed before
+                // OnImportCompletedAsync runs. Wrapped in its own try/catch so a flush failure
+                // here doesn't swallow the original exception (already captured above).
+                try
+                {
+                    await writer.FlushAsync(context);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "FlushAsync failed in finally block for import profile '{ProfileName}'",
+                        context.ImportProfile.Name);
+                }
+
                 var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
 
                 importRemainingEstimator.Stop(context);
