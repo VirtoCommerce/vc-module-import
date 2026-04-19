@@ -11,6 +11,7 @@ import {
   IImportPushNotification,
   ISearchImportProfilesCriteria,
 } from "@virtocommerce/import-app-api";
+
 import { useApiClient, useAsync, useLoading, useNotifications } from "@vc-shell/framework";
 import * as _ from "lodash-es";
 import { useHelpers } from "../helpers";
@@ -94,7 +95,7 @@ interface IUseImport {
   clearErrorMessage(): void;
   init(args: { profileId?: string; importJobId?: string }): Promise<void>;
   getTasks(args: { profileId?: string; importJobId?: string }): void;
-  resume(jobId: string): Promise<boolean>;
+  resume(jobId: string): Promise<ImportPushNotification | undefined>;
 }
 
 const { getApiClient } = useApiClient(ImportClient);
@@ -169,7 +170,7 @@ export default (): IUseImport => {
     }
   });
 
-  async function resume(jobId: string): Promise<boolean> {
+  async function resume(jobId: string): Promise<ImportPushNotification | undefined> {
     try {
       const client = await getApiClient();
       const response = await (client as unknown as { http: { fetch: (url: string, init: RequestInit) => Promise<Response> }; baseUrl: string })
@@ -180,10 +181,11 @@ export default (): IUseImport => {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      return true;
+      const data = await response.json();
+      return ImportPushNotification.fromJS(data);
     } catch (e) {
       console.error(e);
-      return false;
+      return undefined;
     }
   }
 

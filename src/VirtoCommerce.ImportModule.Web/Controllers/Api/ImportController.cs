@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -78,23 +79,37 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("runs/{jobId}/resume")]
-        [Authorize(ModuleConstants.Security.Permissions.Execute)]
-        public async Task<ActionResult<bool>> ResumeImport([FromRoute] string jobId)
+        public async Task<ActionResult<ImportPushNotification>> ResumeImport([FromRoute] string jobId)
         {
             if (string.IsNullOrWhiteSpace(jobId))
             {
-                return BadRequest("jobId is required");
+                throw new InvalidOperationException("jobId is required");
             }
 
-            var result = await _importRunService.ResumeImportAsync(jobId);
-            return result switch
+            var searchResult = await _importRunHistorySearchService.SearchAsync(new SearchImportRunHistoryCriteria
             {
-                ResumeImportResult.Resumed => Ok(true),
-                ResumeImportResult.HistoryNotFound => NotFound(new { message = "Import run history not found for the given jobId" }),
-                ResumeImportResult.NotResumable => Conflict(new { message = "Run is not resumable (still running or already completed)" }),
-                ResumeImportResult.RequeueFailed => Conflict(new { message = "Job not found or cannot be re-queued" }),
-                _ => StatusCode(500),
-            };
+                JobId = jobId,
+                Take = 1,
+                Sort = $"{nameof(ImportRunHistory.CreatedDate)}:desc",
+            });
+            var history = searchResult?.Results?.FirstOrDefault()
+                ?? throw new OperationCanceledException($"Import run history for jobId {jobId} is not found");
+
+            var importProfile = await _importProfileCrudService.GetByIdAsync(history.ProfileId)
+                ?? throw new OperationCanceledException($"ImportProfile with {history.ProfileId} is not found");
+
+            var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
+            if (importer.AuthorizationRequirement != null)
+            {
+                var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, importer.AuthorizationRequirement);
+                if (!authorizationResult.Succeeded)
+                {
+                    return Unauthorized();
+                }
+            }
+
+            var notification = await _importRunService.ResumeImportAsync(history.Id);
+            return Ok(notification);
         }
 
         [HttpPost]

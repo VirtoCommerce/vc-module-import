@@ -309,6 +309,7 @@ const {
   init,
   getTasks,
   resume,
+  updateStatus,
 } = useImport();
 const { moduleNotifications, markAsRead } = useNotifications("ImportPushNotification");
 const fileLoading = ref(false);
@@ -492,8 +493,9 @@ async function onResumeClick(row: ImportRunHistory): Promise<void> {
   }
   resumingJobId.value = row.jobId;
   try {
-    const ok = await resume(row.jobId);
-    if (ok) {
+    const notification = await resume(row.jobId);
+    if (notification) {
+      updateStatus(notification);
       await fetchImportHistory({ profileId: profile.value.id });
     } else {
       setErrorMessage(t("IMPORT.PAGES.RESUME.ERROR"));

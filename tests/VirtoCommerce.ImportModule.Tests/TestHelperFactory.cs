@@ -60,19 +60,18 @@ namespace VirtoCommerce.ImportModule.Tests
         {
             public TestableRunService(IImportRunHistoryCrudService historyCrud, IPushNotificationManager pushNotificationManager)
                 : base(
-                    /* UserManager */                   null!,
-                    /* IUserNameResolver */             null!,
-                    /* IMemberService */                null!,
-                    /* IBackgroundJobExecutor */        null!,
-                    /* IPushNotificationManager */      pushNotificationManager,
-                    /* INotificationSearchService */    null!,
-                    /* INotificationSender */           null!,
-                    /* IImportProfileCrudService */     null!,
-                    /* IImportRunHistoryCrudService */  historyCrud,
-                    /* IImportRunHistorySearchService */ null!,
-                    /* IDataImporterFactory */          null!,
-                    /* IDataImportProcessManager */     null!,
-                    /* ILogger<ImportRunService> */     NullLogger<ImportRunService>.Instance)
+                    /* UserManager */                  null!,
+                    /* IUserNameResolver */            null!,
+                    /* IMemberService */               null!,
+                    /* IBackgroundJobExecutor */       null!,
+                    /* IPushNotificationManager */     pushNotificationManager,
+                    /* INotificationSearchService */   null!,
+                    /* INotificationSender */          null!,
+                    /* IImportProfileCrudService */    null!,
+                    /* IImportRunHistoryCrudService */ historyCrud,
+                    /* IDataImporterFactory */         null!,
+                    /* IDataImportProcessManager */    null!,
+                    /* ILogger<ImportRunService> */    NullLogger<ImportRunService>.Instance)
             {
             }
 

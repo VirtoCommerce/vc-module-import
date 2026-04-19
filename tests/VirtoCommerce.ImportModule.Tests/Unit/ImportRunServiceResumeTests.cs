@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using VirtoCommerce.ImportModule.Core.Models;
-using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.Platform.Core.Security;
 using Xunit;
 
 namespace VirtoCommerce.ImportModule.Tests.Unit
@@ -13,89 +14,107 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
     public class ImportRunServiceResumeTests
     {
         [Fact]
-        public async Task ResumeImportAsync_returns_Resumed_when_history_is_resumable_and_hangfire_accepts()
+        public async Task ResumeImportAsync_returns_PushNotification_when_history_is_resumable_and_hangfire_accepts()
         {
-            var service = new TestableResumeService(Resumable("abc"), requeueReturns: true);
+            var history = Resumable("hist-1", "job-42");
+            var service = new TestableResumeService(history, requeueReturns: true, currentUser: "tester");
 
-            var result = await service.ResumeImportAsync("abc");
+            var notification = await service.ResumeImportAsync("hist-1");
 
-            Assert.Equal(ResumeImportResult.Resumed, result);
-            Assert.Equal("abc", service.RequeuedJobId);
+            Assert.NotNull(notification);
+            Assert.Equal("job-42", notification.JobId);
+            Assert.Equal(history.ProfileId, notification.ProfileId);
+            Assert.Equal(history.ProfileName, notification.ProfileName);
+            Assert.Equal(history.ProcessedCount, notification.ProcessedCount);
+            Assert.Equal(history.TotalCount, notification.TotalCount);
+            Assert.Equal("tester", notification.Creator);
+            Assert.Equal("Import process", notification.Title);
+            Assert.Equal("job-42", service.RequeuedJobId);
         }
 
         [Fact]
-        public async Task ResumeImportAsync_returns_HistoryNotFound_when_search_yields_no_match()
+        public async Task ResumeImportAsync_throws_OperationCanceledException_when_history_not_found()
         {
             var service = new TestableResumeService(history: null, requeueReturns: true);
 
-            var result = await service.ResumeImportAsync("abc");
-
-            Assert.Equal(ResumeImportResult.HistoryNotFound, result);
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => service.ResumeImportAsync("missing"));
             Assert.Null(service.RequeuedJobId);
         }
 
         [Fact]
-        public async Task ResumeImportAsync_returns_NotResumable_when_history_is_still_running()
+        public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_still_running()
         {
-            var stillRunning = new ImportRunHistory { JobId = "abc", Finished = null, TotalCount = 100, ProcessedCount = 50 };
+            var stillRunning = new ImportRunHistory { Id = "h", JobId = "job", Finished = null, TotalCount = 100, ProcessedCount = 50 };
             var service = new TestableResumeService(stillRunning, requeueReturns: true);
 
-            var result = await service.ResumeImportAsync("abc");
-
-            Assert.Equal(ResumeImportResult.NotResumable, result);
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.ResumeImportAsync("h"));
             Assert.Null(service.RequeuedJobId);
         }
 
         [Fact]
-        public async Task ResumeImportAsync_returns_NotResumable_when_history_is_already_completed()
+        public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_already_completed()
         {
-            var completed = new ImportRunHistory { JobId = "abc", Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 100 };
+            var completed = new ImportRunHistory { Id = "h", JobId = "job", Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 100 };
             var service = new TestableResumeService(completed, requeueReturns: true);
 
-            var result = await service.ResumeImportAsync("abc");
-
-            Assert.Equal(ResumeImportResult.NotResumable, result);
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.ResumeImportAsync("h"));
             Assert.Null(service.RequeuedJobId);
         }
 
         [Fact]
-        public async Task ResumeImportAsync_returns_RequeueFailed_when_hangfire_rejects()
+        public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_has_no_JobId()
         {
-            var service = new TestableResumeService(Resumable("abc"), requeueReturns: false);
+            var noJob = new ImportRunHistory { Id = "h", JobId = null, Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 42 };
+            var service = new TestableResumeService(noJob, requeueReturns: true);
 
-            var result = await service.ResumeImportAsync("abc");
-
-            Assert.Equal(ResumeImportResult.RequeueFailed, result);
-            Assert.Equal("abc", service.RequeuedJobId);
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.ResumeImportAsync("h"));
+            Assert.Null(service.RequeuedJobId);
         }
 
-        private static ImportRunHistory Resumable(string jobId) => new()
+        [Fact]
+        public async Task ResumeImportAsync_throws_InvalidOperationException_when_hangfire_rejects()
         {
+            var service = new TestableResumeService(Resumable("h", "job"), requeueReturns: false);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.ResumeImportAsync("h"));
+            Assert.Equal("job", service.RequeuedJobId);
+        }
+
+        private static ImportRunHistory Resumable(string id, string jobId) => new()
+        {
+            Id = id,
             JobId = jobId,
+            ProfileId = "profile-1",
+            ProfileName = "Profile One",
             Finished = DateTime.UtcNow,
             TotalCount = 100,
             ProcessedCount = 42,
+            ErrorsCount = 0,
         };
 
         private sealed class TestableResumeService : ImportRunService
         {
             private readonly bool _requeueReturns;
 
-            public TestableResumeService(ImportRunHistory history, bool requeueReturns)
+            public TestableResumeService(ImportRunHistory history, bool requeueReturns, string currentUser = "tester")
                 : base(
-                    /* UserManager */                    null!,
-                    /* IUserNameResolver */              null!,
-                    /* IMemberService */                 null!,
-                    /* IBackgroundJobExecutor */         null!,
-                    /* IPushNotificationManager */       null!,
-                    /* INotificationSearchService */     null!,
-                    /* INotificationSender */            null!,
-                    /* IImportProfileCrudService */      null!,
-                    /* IImportRunHistoryCrudService */   null!,
-                    /* IImportRunHistorySearchService */ BuildSearchService(history),
-                    /* IDataImporterFactory */           null!,
-                    /* IDataImportProcessManager */      null!,
-                    /* ILogger<ImportRunService> */      NullLogger<ImportRunService>.Instance)
+                    /* UserManager */                  null!,
+                    /* IUserNameResolver */            BuildUserNameResolver(currentUser),
+                    /* IMemberService */               null!,
+                    /* IBackgroundJobExecutor */       null!,
+                    /* IPushNotificationManager */     null!,
+                    /* INotificationSearchService */   null!,
+                    /* INotificationSender */          null!,
+                    /* IImportProfileCrudService */    null!,
+                    /* IImportRunHistoryCrudService */ BuildHistoryCrud(history),
+                    /* IDataImporterFactory */         null!,
+                    /* IDataImportProcessManager */    null!,
+                    /* ILogger<ImportRunService> */    NullLogger<ImportRunService>.Instance)
             {
                 _requeueReturns = requeueReturns;
             }
@@ -108,15 +127,18 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 return _requeueReturns;
             }
 
-            private static IImportRunHistorySearchService BuildSearchService(ImportRunHistory history)
+            private static IUserNameResolver BuildUserNameResolver(string userName)
             {
-                var mock = new Mock<IImportRunHistorySearchService>();
-                var result = new SearchImportRunHistoryResult
-                {
-                    Results = history is null ? new ImportRunHistory[0] : new[] { history },
-                    TotalCount = history is null ? 0 : 1,
-                };
-                mock.Setup(x => x.SearchAsync(It.IsAny<SearchImportRunHistoryCriteria>(), It.IsAny<bool>()))
+                var mock = new Mock<IUserNameResolver>();
+                mock.Setup(x => x.GetCurrentUserName()).Returns(userName);
+                return mock.Object;
+            }
+
+            private static IImportRunHistoryCrudService BuildHistoryCrud(ImportRunHistory history)
+            {
+                var mock = new Mock<IImportRunHistoryCrudService>();
+                IList<ImportRunHistory> result = history is null ? [] : [history];
+                mock.Setup(x => x.GetAsync(It.IsAny<IList<string>>(), It.IsAny<string>(), It.IsAny<bool>()))
                     .ReturnsAsync(result);
                 return mock.Object;
             }

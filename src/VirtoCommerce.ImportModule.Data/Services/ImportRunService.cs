@@ -10,13 +10,13 @@ using Microsoft.Extensions.Logging;
 using VirtoCommerce.CustomerModule.Core.Services;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
-using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Notifications;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
 using VirtoCommerce.NotificationsModule.Core.Extensions;
 using VirtoCommerce.NotificationsModule.Core.Services;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.PushNotifications;
 using VirtoCommerce.Platform.Core.Security;
 
@@ -34,7 +34,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
         private readonly INotificationSender _notificationSender;
         private readonly IImportProfileCrudService _importProfileCrudService;
         private readonly IImportRunHistoryCrudService _importRunHistoryCrudService;
-        private readonly IImportRunHistorySearchService _importRunHistorySearchService;
         private readonly IDataImportProcessManager _dataImportManager;
         private readonly ILogger<ImportRunService> _logger;
 
@@ -48,7 +47,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
             INotificationSender notificationSender,
             IImportProfileCrudService importProfileCrudService,
             IImportRunHistoryCrudService importRunHistoryCrudService,
-            IImportRunHistorySearchService importRunHistorySearchService,
             IDataImporterFactory dataImporterFactory,
             IDataImportProcessManager dataImportManager,
             ILogger<ImportRunService> logger
@@ -64,7 +62,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _notificationSender = notificationSender;
             _importProfileCrudService = importProfileCrudService;
             _importRunHistoryCrudService = importRunHistoryCrudService;
-            _importRunHistorySearchService = importRunHistorySearchService;
             _dataImportManager = dataImportManager;
             _logger = logger;
         }
@@ -100,29 +97,33 @@ namespace VirtoCommerce.ImportModule.Data.Services
             BackgroundJob.Delete(cancellationRequest.JobId);
         }
 
-        public virtual async Task<ResumeImportResult> ResumeImportAsync(string jobId)
+        public virtual async Task<ImportPushNotification> ResumeImportAsync(string runHistoryId)
         {
-            var searchResult = await _importRunHistorySearchService.SearchAsync(new SearchImportRunHistoryCriteria
-            {
-                JobId = jobId,
-                Take = 1,
-                Sort = $"{nameof(ImportRunHistory.CreatedDate)}:desc",
-            });
-            var history = searchResult?.Results?.FirstOrDefault();
-
+            var history = await _importRunHistoryCrudService.GetByIdAsync(runHistoryId);
             if (history is null)
             {
-                return ResumeImportResult.HistoryNotFound;
+                throw new OperationCanceledException($"Import run history {runHistoryId} is not found");
             }
             if (!history.IsResumable())
             {
-                return ResumeImportResult.NotResumable;
+                throw new InvalidOperationException($"Import run {runHistoryId} is not resumable");
             }
-            if (!RequeueHangfireJob(jobId))
+            if (string.IsNullOrEmpty(history.JobId) || !RequeueHangfireJob(history.JobId))
             {
-                return ResumeImportResult.RequeueFailed;
+                throw new InvalidOperationException($"Could not re-queue import run {runHistoryId}");
             }
-            return ResumeImportResult.Resumed;
+
+            return new ImportPushNotification(_userNameResolver.GetCurrentUserName())
+            {
+                Title = "Import process",
+                ProfileId = history.ProfileId,
+                ProfileName = history.ProfileName,
+                JobId = history.JobId,
+                ProcessedCount = history.ProcessedCount,
+                TotalCount = history.TotalCount,
+                Errors = history.Errors,
+                ReportUrl = history.ReportUrl,
+            };
         }
 
         protected virtual bool RequeueHangfireJob(string jobId) => BackgroundJob.Requeue(jobId);
