@@ -171,23 +171,27 @@ export default (): IUseImport => {
   });
 
   async function resume(jobId: string): Promise<ImportPushNotification | undefined> {
+    // TODO: replace this hand-rolled bypass with `client.resumeImport(jobId)` once the
+    // `@virtocommerce/import-app-api` package is regenerated to include the resume endpoint.
+    // Current code reaches through three internal NSwag properties (transformOptions,
+    // http.fetch, baseUrl) to preserve Bearer-token injection; a regenerated typed client
+    // removes the need for any cast.
     try {
       const client = await getApiClient();
-      // Bypass: the generated ImportClient has no typed resume() yet. Route the request
-      // through the client's own transformOptions so the Bearer token injected by
-      // AuthApiBase is present — otherwise the per-importer authorization check on the
-      // server sees an anonymous principal.
-      const clientInternals = client as unknown as {
+      const internals = client as unknown as Partial<{
         http: { fetch: (url: string, init: RequestInit) => Promise<Response> };
         baseUrl: string;
         transformOptions: (options: RequestInit) => Promise<RequestInit>;
-      };
-      const options = await clientInternals.transformOptions({
+      }>;
+      if (typeof internals.transformOptions !== "function" || !internals.http || typeof internals.http.fetch !== "function") {
+        throw new Error("Generated ImportClient shape has changed — regenerate @virtocommerce/import-app-api to add resumeImport()");
+      }
+      const options = await internals.transformOptions({
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
-      const response = await clientInternals.http.fetch(
-        `${clientInternals.baseUrl}/api/import/runs/${encodeURIComponent(jobId)}/resume`,
+      const response = await internals.http.fetch(
+        `${internals.baseUrl ?? ""}/api/import/runs/${encodeURIComponent(jobId)}/resume`,
         options,
       );
       if (!response.ok) {
@@ -196,7 +200,7 @@ export default (): IUseImport => {
       const data = await response.json();
       return ImportPushNotification.fromJS(data);
     } catch (e) {
-      console.error(e);
+      console.error("Import resume failed:", e);
       return undefined;
     }
   }

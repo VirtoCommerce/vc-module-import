@@ -90,8 +90,12 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Reader_restore_throws_falls_through_to_reset_with_error_log()
+        public async Task Reader_restore_throws_propagates_so_pipeline_aborts()
         {
+            // RestoreCursor may have partially advanced the reader before throwing; silently
+            // resetting the history row and continuing would make ReadNextPageAsync skip the
+            // already-consumed rows. The exception must propagate so the pipeline's outer
+            // catch surfaces the failure via the ErrorCallback.
             var cursor = new TestCursor(100) { ProcessedCount = 500 };
             var history = new ImportRunHistory { Id = "H1", Cursor = cursor.Serialize(), ProcessedCount = 500 };
             var profile = MakeProfile(history, lifetimeDays: 7);
@@ -100,11 +104,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var crud = new Mock<IImportRunHistoryCrudService>();
             var manager = TestHelperFactory.CreateManager(historyCrud: crud.Object);
 
-            var result = await manager.TryRestoreCursorAsync(reader, context);
-
-            Assert.False(result);
-            Assert.Null(history.Cursor);
-            crud.Verify(x => x.SaveChangesAsync(It.IsAny<IList<ImportRunHistory>>()), Times.Once);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => manager.TryRestoreCursorAsync(reader, context));
+            Assert.Equal(cursor.Serialize(), history.Cursor);
+            crud.Verify(x => x.SaveChangesAsync(It.IsAny<IList<ImportRunHistory>>()), Times.Never);
         }
 
         private static ImportProfile MakeProfile(ImportRunHistory history, int lifetimeDays) =>

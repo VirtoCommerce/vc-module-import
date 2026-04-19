@@ -66,15 +66,21 @@ namespace VirtoCommerce.ImportModule.Data.Services
                         history.Id, context.ProgressInfo?.ProcessedCount ?? 0);
                     return true;
                 }
-                _logger.LogWarning(
-                    "Cursor from import run history '{HistoryId}' is expired or invalid, restarting from zero",
-                    history.Id);
             }
             catch (Exception ex)
             {
+                // RestoreCursor may have partially advanced the reader before throwing
+                // (read header, skipped N rows). Resetting and continuing would make the
+                // pipeline skip those rows silently. Surface the error so the run fails
+                // explicitly; the user can investigate and restart manually.
                 _logger.LogError(ex,
                     "Failed to restore cursor from import run history '{HistoryId}'", history.Id);
+                throw;
             }
+
+            _logger.LogWarning(
+                "Cursor from import run history '{HistoryId}' is expired or invalid, restarting from zero",
+                history.Id);
 
             history.Cursor = null;
             history.ProcessedCount = 0;
