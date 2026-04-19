@@ -201,11 +201,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                     await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
 
-                    _logger?.LogDebug("Saved import run history checkpoint {HistoryId} at {ProcessedCount}", importRunHistory.Id, importRunHistory.ProcessedCount);
+                    _logger.LogDebug("Saved import run history checkpoint {HistoryId} at {ProcessedCount}", importRunHistory.Id, importRunHistory.ProcessedCount);
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogError(ex, "Failed to save import run history checkpoint {HistoryId} at {ProcessedCount}", importRunHistory.Id, importRunHistory.ProcessedCount);
+                    _logger.LogError(ex, "Failed to save import run history checkpoint {HistoryId} at {ProcessedCount}", importRunHistory.Id, importRunHistory.ProcessedCount);
                 }
             }
         }

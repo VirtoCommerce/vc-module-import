@@ -10,7 +10,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
         // Pipeline's ProcessedCount at cursor capture; authoritative on restore.
-        // Populated by IImportDataReader<TCursor> DIM bridge (Task 3), not by concrete readers.
+        // Populated by IImportDataReader<TCursor> DIM bridge, not by concrete readers.
         public int ProcessedCount { get; init; }
 
         public virtual string Serialize(JsonSerializerSettings settings = null)

@@ -91,7 +91,6 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             {
                 JobId = jobId,
                 Take = 1,
-                Sort = "CreatedDate:desc",
             });
             var history = searchResult?.Results?.FirstOrDefault();
 
@@ -99,7 +98,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             {
                 return NotFound(new { message = "Import run history not found for the given jobId" });
             }
-            if (history.Finished is null || history.ProcessedCount >= history.TotalCount)
+            if (!history.IsResumable())
             {
                 return Conflict(new { message = "Run is not resumable (still running or already completed)" });
             }
