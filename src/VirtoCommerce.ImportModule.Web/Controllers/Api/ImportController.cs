@@ -91,6 +91,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             {
                 JobId = jobId,
                 Take = 1,
+                Sort = $"{nameof(ImportRunHistory.CreatedDate)}:desc",
             });
             var history = searchResult?.Results?.FirstOrDefault();
 

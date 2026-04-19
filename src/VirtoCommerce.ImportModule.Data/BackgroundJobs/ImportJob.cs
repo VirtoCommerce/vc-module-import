@@ -32,6 +32,7 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
                 {
                     JobId = pushNotification.JobId,
                     Take = 1,
+                    Sort = $"{nameof(ImportRunHistory.CreatedDate)}:desc",
                 };
 
                 var searchResult = await _historySearch.SearchAsync(criteria);
