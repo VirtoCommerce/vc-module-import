@@ -52,7 +52,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
             }
             var importStream = _blobStorageProvider.OpenRead(context.ImportProfile.ImportFileUrl);
 
-            return new CsvDataReader<ShopifyProductLine, ShopifyProductClassMap>(importStream, context);
+            return new ShopifyProductDataReader(importStream, context);
         }
 
         public IImportDataWriter OpenWriter(ImportContext context)

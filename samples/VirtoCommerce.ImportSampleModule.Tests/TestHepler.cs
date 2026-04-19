@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
 using VirtoCommerce.ImportSampleModule.Tests.Functional.Shared;
 using VirtoCommerce.ImportSampleModule.Web.Importers;
@@ -32,7 +33,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests
             Mock<ILoggerFactory> _loggerFactoryMock = new();
             _loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(() => _loggerMock.Object);
 
-            var result = new DataImportProcessManager(dataImporterRegistrar, importRemainingEstimatorRegistrar, importReporterRegistrar, settingsManager, _loggerFactoryMock.Object);
+            var result = new DataImportProcessManager(dataImporterRegistrar, importRemainingEstimatorRegistrar, importReporterRegistrar, settingsManager, new Mock<IImportRunHistoryCrudService>().Object, _loggerFactoryMock.Object);
             return result;
         }
 

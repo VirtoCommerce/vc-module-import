@@ -15,6 +15,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
     public class ImportJobTests
     {
         private readonly Mock<IImportRunService> _importRunService = new();
+        private readonly Mock<IImportRunHistorySearchService> _historySearch = new();
         private readonly ImportProfile _profile = new();
         private readonly ImportPushNotification _pushNotification = new("TestUser");
 
@@ -22,7 +23,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         public async Task Import_job_normal_flow()
         {
             // Arrange
-            var importJob = new ImportJob(_importRunService.Object);
+            var importJob = new ImportJob(_importRunService.Object, _historySearch.Object);
 
             // Act
             await importJob.ImportBackgroundAsync(_profile, _pushNotification, new JobCancellationToken(false), null);
@@ -35,7 +36,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         public async Task Import_job_aborted_flow()
         {
             // Arrange
-            var importJob = new ImportJob(_importRunService.Object);
+            var importJob = new ImportJob(_importRunService.Object, _historySearch.Object);
 
             // Act
             try
