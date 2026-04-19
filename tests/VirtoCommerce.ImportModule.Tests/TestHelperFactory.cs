@@ -1,9 +1,12 @@
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.Platform.Core.PushNotifications;
 using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Tests
@@ -51,6 +54,43 @@ namespace VirtoCommerce.ImportModule.Tests
                 factory: factory.Object,
                 estimator: estimator.Object,
                 reporter: reporter.Object);
+        }
+
+        public sealed class TestableRunService : ImportRunService
+        {
+            public TestableRunService(IImportRunHistoryCrudService historyCrud, IPushNotificationManager pushNotificationManager)
+                : base(
+                    /* UserManager */                 null!,
+                    /* IUserNameResolver */           null!,
+                    /* IMemberService */              null!,
+                    /* IBackgroundJobExecutor */      null!,
+                    /* IPushNotificationManager */    pushNotificationManager,
+                    /* INotificationSearchService */  null!,
+                    /* INotificationSender */         null!,
+                    /* IImportProfileCrudService */   null!,
+                    /* IImportRunHistoryCrudService */ historyCrud,
+                    /* IDataImporterFactory */        null!,
+                    /* IDataImportProcessManager */   null!,
+                    /* ILogger<ImportRunService> */   NullLogger<ImportRunService>.Instance)
+            {
+            }
+
+            public Task InvokeCallbackForTesting(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory history)
+            {
+                return ProgressInfoCallbackImpl(progressInfo, pushNotification, history);
+            }
+        }
+
+        public static TestableRunService CreateTestableRunService(
+            IImportRunHistoryCrudService historyCrud,
+            out ImportRunHistory history,
+            out ImportPushNotification notif)
+        {
+            history = new ImportRunHistory { Id = "run-1" };
+            notif = new ImportPushNotification("tester");
+            var pushManager = new Mock<IPushNotificationManager>();
+            pushManager.Setup(x => x.SendAsync(It.IsAny<PushNotification>())).Returns(Task.CompletedTask);
+            return new TestableRunService(historyCrud, pushManager.Object);
         }
     }
 }

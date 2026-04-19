@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.Server;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using VirtoCommerce.CustomerModule.Core.Services;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
@@ -33,6 +34,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         private readonly IImportProfileCrudService _importProfileCrudService;
         private readonly IImportRunHistoryCrudService _importRunHistoryCrudService;
         private readonly IDataImportProcessManager _dataImportManager;
+        private readonly ILogger<ImportRunService> _logger;
 
         public ImportRunService(
             UserManager<ApplicationUser> userManager,
@@ -45,7 +47,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
             IImportProfileCrudService importProfileCrudService,
             IImportRunHistoryCrudService importRunHistoryCrudService,
             IDataImporterFactory dataImporterFactory,
-            IDataImportProcessManager dataImportManager
+            IDataImportProcessManager dataImportManager,
+            ILogger<ImportRunService> logger
         )
         {
             _userManager = userManager;
@@ -59,6 +62,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _importProfileCrudService = importProfileCrudService;
             _importRunHistoryCrudService = importRunHistoryCrudService;
             _dataImportManager = dataImportManager;
+            _logger = logger;
         }
 
         public virtual ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile)
@@ -107,33 +111,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             var importRunHistory = importProfile.RunHistory ?? ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
 
-            async Task ProgressInfoCallback(ImportProgressInfo progressInfo)
-            {
-                pushNotification.Description = progressInfo.Description;
-
-                pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
-                pushNotification.EstimatedRemaining = progressInfo.EstimatedRemaining;
-
-                pushNotification.ProcessedCount = progressInfo.ProcessedCount;
-                pushNotification.Finished = progressInfo.Finished;
-                pushNotification.TotalCount = progressInfo.TotalCount;
-
-                pushNotification.Errors = progressInfo.Errors;
-                pushNotification.ReportUrl = progressInfo.ReportUrl;
-
-                if (pushNotification.ProcessedCount > 0 && pushNotification.Finished is null)
-                {
-                    pushNotification.Description = pushNotification.TotalCount > 0
-                        ? $"{pushNotification.ProcessedCount} of {pushNotification.TotalCount} have been imported"
-                        : $"{pushNotification.ProcessedCount} have been imported";
-                }
-
-                await _pushNotificationManager.SendAsync(pushNotification);
-
-                importRunHistory.UpdateProgress(pushNotification);
-                //Uncomment when needed
-                //await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
-            }
+            async Task ProgressInfoCallback(ImportProgressInfo info) => await ProgressInfoCallbackImpl(info, pushNotification, importRunHistory);
 
             try
             {
@@ -181,6 +159,51 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
 
             return pushNotification;
+        }
+
+        internal async Task ProgressInfoCallbackImpl(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            pushNotification.Description = progressInfo.Description;
+
+            pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
+            pushNotification.EstimatedRemaining = progressInfo.EstimatedRemaining;
+
+            pushNotification.ProcessedCount = progressInfo.ProcessedCount;
+            pushNotification.Finished = progressInfo.Finished;
+            pushNotification.TotalCount = progressInfo.TotalCount;
+
+            pushNotification.Errors = progressInfo.Errors;
+            pushNotification.ReportUrl = progressInfo.ReportUrl;
+
+            if (pushNotification.ProcessedCount > 0 && pushNotification.Finished is null)
+            {
+                pushNotification.Description = pushNotification.TotalCount > 0
+                    ? $"{pushNotification.ProcessedCount} of {pushNotification.TotalCount} have been imported"
+                    : $"{pushNotification.ProcessedCount} have been imported";
+            }
+
+            await _pushNotificationManager.SendAsync(pushNotification);
+
+            importRunHistory.UpdateProgress(pushNotification);
+
+            if (progressInfo.ShouldSaveHistory)
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(progressInfo.Cursor))
+                    {
+                        importRunHistory.Cursor = progressInfo.Cursor;
+                    }
+
+                    await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
+
+                    _logger?.LogDebug("Saved import run history checkpoint {HistoryId} at {ProcessedCount}", importRunHistory.Id, importRunHistory.ProcessedCount);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Failed to save import run history checkpoint {HistoryId} at {ProcessedCount}", importRunHistory.Id, importRunHistory.ProcessedCount);
+                }
+            }
         }
 
         public virtual async Task<ImportDataPreview> PreviewAsync(ImportProfile importProfile)
