@@ -173,11 +173,23 @@ export default (): IUseImport => {
   async function resume(jobId: string): Promise<ImportPushNotification | undefined> {
     try {
       const client = await getApiClient();
-      const response = await (client as unknown as { http: { fetch: (url: string, init: RequestInit) => Promise<Response> }; baseUrl: string })
-        .http.fetch(`${(client as unknown as { baseUrl: string }).baseUrl}/api/import/runs/${encodeURIComponent(jobId)}/resume`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
+      // Bypass: the generated ImportClient has no typed resume() yet. Route the request
+      // through the client's own transformOptions so the Bearer token injected by
+      // AuthApiBase is present — otherwise the per-importer authorization check on the
+      // server sees an anonymous principal.
+      const clientInternals = client as unknown as {
+        http: { fetch: (url: string, init: RequestInit) => Promise<Response> };
+        baseUrl: string;
+        transformOptions: (options: RequestInit) => Promise<RequestInit>;
+      };
+      const options = await clientInternals.transformOptions({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const response = await clientInternals.http.fetch(
+        `${clientInternals.baseUrl}/api/import/runs/${encodeURIComponent(jobId)}/resume`,
+        options,
+      );
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }

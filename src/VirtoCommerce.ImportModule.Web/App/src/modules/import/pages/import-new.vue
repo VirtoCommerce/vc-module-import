@@ -493,9 +493,9 @@ async function onResumeClick(row: ImportRunHistory): Promise<void> {
   }
   resumingJobId.value = row.jobId;
   try {
-    const notification = await resume(row.jobId);
-    if (notification) {
-      updateStatus(notification);
+    const resumedNotification = await resume(row.jobId);
+    if (resumedNotification) {
+      updateStatus(resumedNotification);
       await fetchImportHistory({ profileId: profile.value.id });
     } else {
       setErrorMessage(t("IMPORT.PAGES.RESUME.ERROR"));

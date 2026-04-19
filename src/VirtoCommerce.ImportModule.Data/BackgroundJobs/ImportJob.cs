@@ -38,7 +38,7 @@ namespace VirtoCommerce.ImportModule.Data.BackgroundJobs
                 var searchResult = await _historySearch.SearchAsync(criteria);
                 var existing = searchResult?.Results?.FirstOrDefault();
 
-                if (existing.IsResumable())
+                if (existing?.IsResumable() == true)
                 {
                     existing.Finished = null;
                     importProfile.RunHistory = existing;
