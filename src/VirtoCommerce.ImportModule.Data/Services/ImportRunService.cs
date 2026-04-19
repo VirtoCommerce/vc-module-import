@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using VirtoCommerce.CustomerModule.Core.Services;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Notifications;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
@@ -33,6 +34,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         private readonly INotificationSender _notificationSender;
         private readonly IImportProfileCrudService _importProfileCrudService;
         private readonly IImportRunHistoryCrudService _importRunHistoryCrudService;
+        private readonly IImportRunHistorySearchService _importRunHistorySearchService;
         private readonly IDataImportProcessManager _dataImportManager;
         private readonly ILogger<ImportRunService> _logger;
 
@@ -46,6 +48,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             INotificationSender notificationSender,
             IImportProfileCrudService importProfileCrudService,
             IImportRunHistoryCrudService importRunHistoryCrudService,
+            IImportRunHistorySearchService importRunHistorySearchService,
             IDataImporterFactory dataImporterFactory,
             IDataImportProcessManager dataImportManager,
             ILogger<ImportRunService> logger
@@ -61,6 +64,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _notificationSender = notificationSender;
             _importProfileCrudService = importProfileCrudService;
             _importRunHistoryCrudService = importRunHistoryCrudService;
+            _importRunHistorySearchService = importRunHistorySearchService;
             _dataImportManager = dataImportManager;
             _logger = logger;
         }
@@ -96,7 +100,30 @@ namespace VirtoCommerce.ImportModule.Data.Services
             BackgroundJob.Delete(cancellationRequest.JobId);
         }
 
-        public virtual bool RequeueImportBackgroundJob(string jobId) => RequeueHangfireJob(jobId);
+        public virtual async Task<ResumeImportResult> ResumeImportAsync(string jobId)
+        {
+            var searchResult = await _importRunHistorySearchService.SearchAsync(new SearchImportRunHistoryCriteria
+            {
+                JobId = jobId,
+                Take = 1,
+                Sort = $"{nameof(ImportRunHistory.CreatedDate)}:desc",
+            });
+            var history = searchResult?.Results?.FirstOrDefault();
+
+            if (history is null)
+            {
+                return ResumeImportResult.HistoryNotFound;
+            }
+            if (!history.IsResumable())
+            {
+                return ResumeImportResult.NotResumable;
+            }
+            if (!RequeueHangfireJob(jobId))
+            {
+                return ResumeImportResult.RequeueFailed;
+            }
+            return ResumeImportResult.Resumed;
+        }
 
         protected virtual bool RequeueHangfireJob(string jobId) => BackgroundJob.Requeue(jobId);
 
