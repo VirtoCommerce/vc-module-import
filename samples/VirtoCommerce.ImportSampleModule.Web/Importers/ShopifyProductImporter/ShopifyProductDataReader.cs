@@ -31,13 +31,19 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
 
         public void RestoreCursor(ImportContext context, ShopifyProductDataCursor cursor)
         {
-            while (_rowsRead < cursor.RowsRead && HasMoreResults)
+            if (cursor.RowsRead <= 0)
             {
-                var batch = ReadNextPageAsync(context).GetAwaiter().GetResult();
-                if (batch.Length == 0)
-                {
-                    break;
-                }
+                return;
+            }
+            if (!CsvReader.Read())
+            {
+                return;
+            }
+            CsvReader.ReadHeader();
+            CsvReader.ValidateHeader<ShopifyProductLine>();
+            while (_rowsRead < cursor.RowsRead && CsvReader.Read())
+            {
+                _rowsRead++;
             }
         }
     }
