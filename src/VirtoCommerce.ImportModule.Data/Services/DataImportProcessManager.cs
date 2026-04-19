@@ -200,20 +200,29 @@ namespace VirtoCommerce.ImportModule.Data.Services
             finally
             {
                 await FlushWriterInFinallyAsync(writer, context);
-
-                var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
-
-                importRemainingEstimator.Stop(context);
-
-                // Import finished
-                importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
-                importProgress.Finished = DateTime.UtcNow;
-                importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
-
-                await dataImporter.OnImportCompletedAsync(context);
-
-                await progressCallback(importProgress);
+                await FinalizeImportAsync(dataImporter, importReporter, importRemainingEstimator,
+                    fixedSizeErrorsQueue, context, importProgress, progressCallback);
             }
+        }
+
+        private static async Task FinalizeImportAsync(
+            IDataImporter dataImporter,
+            IImportReporter importReporter,
+            IImportRemainingEstimator importRemainingEstimator,
+            FixedSizeQueue<ErrorInfo> fixedSizeErrorsQueue,
+            ImportContext context,
+            ImportProgressInfo importProgress,
+            Func<ImportProgressInfo, Task> progressCallback)
+        {
+            var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
+            importRemainingEstimator.Stop(context);
+
+            importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
+            importProgress.Finished = DateTime.UtcNow;
+            importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
+
+            await dataImporter.OnImportCompletedAsync(context);
+            await progressCallback(importProgress);
         }
 
         /// <summary>
