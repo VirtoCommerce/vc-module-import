@@ -483,7 +483,6 @@ const resumingJobId = ref<string>();
 function canResume(row: ImportRunHistory): boolean {
   return !!row.jobId
     && !!row.finished
-    && (row.processedCount ?? 0) > 0
     && (row.processedCount ?? 0) < (row.totalCount ?? 0);
 }
 

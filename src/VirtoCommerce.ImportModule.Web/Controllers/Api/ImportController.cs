@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -79,12 +80,30 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         [HttpPost]
         [Route("runs/{jobId}/resume")]
         [Authorize(ModuleConstants.Security.Permissions.Execute)]
-        public ActionResult<bool> ResumeImport([FromRoute] string jobId)
+        public async Task<ActionResult<bool>> ResumeImport([FromRoute] string jobId)
         {
             if (string.IsNullOrWhiteSpace(jobId))
             {
                 return BadRequest("jobId is required");
             }
+
+            var searchResult = await _importRunHistorySearchService.SearchAsync(new SearchImportRunHistoryCriteria
+            {
+                JobId = jobId,
+                Take = 1,
+                Sort = "CreatedDate:desc",
+            });
+            var history = searchResult?.Results?.FirstOrDefault();
+
+            if (history is null)
+            {
+                return NotFound(new { message = "Import run history not found for the given jobId" });
+            }
+            if (history.Finished is null || history.ProcessedCount >= history.TotalCount)
+            {
+                return Conflict(new { message = "Run is not resumable (still running or already completed)" });
+            }
+
             var ok = _importRunService.RequeueImportBackgroundJob(jobId);
             if (!ok)
             {
