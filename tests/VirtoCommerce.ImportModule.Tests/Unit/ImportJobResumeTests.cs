@@ -28,6 +28,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 Finished = DateTime.UtcNow,
                 TotalCount = 1000,
                 ProcessedCount = 500,
+                Cursor = "dummy-cursor",
             };
             var (job, run, profile, notification) = CreateJob(existing, "job-42");
             var context = MakePerformContext("job-42");

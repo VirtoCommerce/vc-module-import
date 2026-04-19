@@ -481,6 +481,9 @@ const columns = ref<ITableColumns[]>([
 
 const resumingJobId = ref<string>();
 
+// Soft hint — the generated ImportRunHistory TS class does not expose `cursor`, so
+// cursor-absence cannot be checked client-side. The backend IsResumable() is the
+// authoritative guard; clicking Resume on a cursor-less run returns an error.
 function canResume(row: ImportRunHistory): boolean {
   return !!row.jobId
     && !!row.finished

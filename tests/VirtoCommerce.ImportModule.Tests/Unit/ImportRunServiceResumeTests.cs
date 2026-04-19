@@ -67,8 +67,19 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         [Fact]
         public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_has_no_JobId()
         {
-            var noJob = new ImportRunHistory { Id = "h", JobId = null, Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 42 };
+            var noJob = new ImportRunHistory { Id = "h", JobId = null, Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 42, Cursor = "c" };
             var service = new TestableResumeService(noJob, requeueReturns: true);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.ResumeImportAsync("h"));
+            Assert.Null(service.RequeuedJobId);
+        }
+
+        [Fact]
+        public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_has_no_Cursor()
+        {
+            var noCursor = new ImportRunHistory { Id = "h", JobId = "job", Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 42, Cursor = null };
+            var service = new TestableResumeService(noCursor, requeueReturns: true);
 
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => service.ResumeImportAsync("h"));
@@ -95,6 +106,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             TotalCount = 100,
             ProcessedCount = 42,
             ErrorsCount = 0,
+            Cursor = "dummy-cursor",
         };
 
         private sealed class TestableResumeService : ImportRunService

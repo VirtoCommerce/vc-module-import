@@ -157,8 +157,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             await progressCallback(importProgress);
 
-            var saveIntervalPages = context.ImportProfile.Settings
-                .GetValue<int>(ImportCursorSettings.SaveIntervalPages);
+            var saveIntervalPages = context.ImportProfile.Settings.GetValue<int>(ImportCursorSettings.SaveIntervalPages);
             var pagesSinceLastSave = 0;
             var cursorReader = reader as IResumableImportDataReader;
 

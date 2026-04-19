@@ -4,7 +4,9 @@ namespace VirtoCommerce.ImportModule.Core.Models
     {
         public static bool IsResumable(this ImportRunHistory history)
         {
-            return history is { Finished: not null } && history.ProcessedCount < history.TotalCount;
+            return history is { Finished: not null }
+                && history.ProcessedCount < history.TotalCount
+                && !string.IsNullOrEmpty(history.Cursor);
         }
     }
 }
