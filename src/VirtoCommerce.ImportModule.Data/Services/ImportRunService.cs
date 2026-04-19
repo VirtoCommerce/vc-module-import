@@ -96,6 +96,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
             BackgroundJob.Delete(cancellationRequest.JobId);
         }
 
+        public virtual bool RequeueImportBackgroundJob(string jobId) => RequeueHangfireJob(jobId);
+
+        protected virtual bool RequeueHangfireJob(string jobId) => BackgroundJob.Requeue(jobId);
+
         public virtual Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken)
         {
             var pushNotification = new ImportPushNotification(_userNameResolver.GetCurrentUserName())

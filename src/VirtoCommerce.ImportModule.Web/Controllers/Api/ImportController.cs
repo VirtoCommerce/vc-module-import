@@ -77,6 +77,23 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         }
 
         [HttpPost]
+        [Route("runs/{jobId}/resume")]
+        [Authorize(ModuleConstants.Security.Permissions.Execute)]
+        public ActionResult<bool> ResumeImport([FromRoute] string jobId)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+            {
+                return BadRequest("jobId is required");
+            }
+            var ok = _importRunService.RequeueImportBackgroundJob(jobId);
+            if (!ok)
+            {
+                return Conflict(new { message = "Job not found or cannot be re-queued" });
+            }
+            return Ok(true);
+        }
+
+        [HttpPost]
         [Route("preview")]
         [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<ImportDataPreview>> Preview([FromBody] ImportProfile importProfile)

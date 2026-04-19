@@ -10,6 +10,7 @@ namespace VirtoCommerce.ImportModule.Core.Services
         ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile, ImportPushNotification pushNotification);
         ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile);
         void CancelRunBackgroundJob(ImportCancellationRequest cancellationRequest);
+        bool RequeueImportBackgroundJob(string jobId);
         Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken);
         Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken);
         Task<ImportDataPreview> PreviewAsync(ImportProfile importProfile);
