@@ -176,6 +176,20 @@
               <template #item_finished="itemData">
                 <ImportStatus :item="itemData.item" />
               </template>
+              <!-- Resume action for interrupted runs -->
+              <template #item_resume="itemData">
+                <VcButton
+                  v-if="canResume(itemData.item)"
+                  icon="material-refresh"
+                  :loading="resumingJobId === itemData.item.jobId"
+                  :title="$t('IMPORT.PAGES.RESUME.TOOLTIP')"
+                  outline
+                  size="sm"
+                  @click.stop="onResumeClick(itemData.item)"
+                >
+                  {{ $t("IMPORT.PAGES.RESUME.BUTTON") }}
+                </VcButton>
+              </template>
             </VcTable>
           </VcCard>
         </VcCol>
@@ -294,6 +308,7 @@ const {
   clearErrorMessage,
   init,
   getTasks,
+  resume,
 } = useImport();
 const { moduleNotifications, markAsRead } = useNotifications("ImportPushNotification");
 const fileLoading = ref(false);
@@ -456,7 +471,38 @@ const columns = ref<ITableColumns[]>([
     width: 118,
     sortable: true,
   },
+  {
+    id: "resume",
+    title: "",
+    width: 120,
+  },
 ]);
+
+const resumingJobId = ref<string>();
+
+function canResume(row: ImportRunHistory): boolean {
+  return !!row.jobId
+    && !!row.finished
+    && (row.processedCount ?? 0) > 0
+    && (row.processedCount ?? 0) < (row.totalCount ?? 0);
+}
+
+async function onResumeClick(row: ImportRunHistory): Promise<void> {
+  if (!row.jobId) {
+    return;
+  }
+  resumingJobId.value = row.jobId;
+  try {
+    const ok = await resume(row.jobId);
+    if (ok) {
+      await fetchImportHistory({ profileId: profile.value.id });
+    } else {
+      setErrorMessage(t("IMPORT.PAGES.RESUME.ERROR"));
+    }
+  } finally {
+    resumingJobId.value = undefined;
+  }
+}
 
 const uploadActions = ref<INotificationActions[]>([
   {

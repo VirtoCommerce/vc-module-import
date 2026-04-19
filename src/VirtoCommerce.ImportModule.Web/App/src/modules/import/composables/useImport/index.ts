@@ -94,6 +94,7 @@ interface IUseImport {
   clearErrorMessage(): void;
   init(args: { profileId?: string; importJobId?: string }): Promise<void>;
   getTasks(args: { profileId?: string; importJobId?: string }): void;
+  resume(jobId: string): Promise<boolean>;
 }
 
 const { getApiClient } = useApiClient(ImportClient);
@@ -167,6 +168,24 @@ export default (): IUseImport => {
       throw e;
     }
   });
+
+  async function resume(jobId: string): Promise<boolean> {
+    try {
+      const client = await getApiClient();
+      const response = await (client as unknown as { http: { fetch: (url: string, init: RequestInit) => Promise<Response> }; baseUrl: string })
+        .http.fetch(`${(client as unknown as { baseUrl: string }).baseUrl}/api/import/runs/${encodeURIComponent(jobId)}/resume`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
 
   function getLongRunning(args?: { id: string }) {
     const job = notifications.value.find(
@@ -255,5 +274,6 @@ export default (): IUseImport => {
     clearErrorMessage,
     init,
     getTasks,
+    resume,
   };
 };
