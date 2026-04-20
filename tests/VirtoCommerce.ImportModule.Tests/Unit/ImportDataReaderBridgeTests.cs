@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
@@ -96,6 +98,52 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.False(ok);
             Assert.Null(reader.Restored);
             Assert.Equal(77, context.ProgressInfo.ProcessedCount);
+        }
+
+        [Fact]
+        public void GetSerializedCursor_uses_JsonSerializerSettings_from_context()
+        {
+            var reader = new FakeReader { Position = new FakeCursor(42) };
+            var profile = new ImportProfile { Settings = new List<ObjectSettingEntry>() };
+            var context = new ImportContext(profile)
+            {
+                ProgressInfo = new ImportProgressInfo { ProcessedCount = 1 },
+                JsonSerializerSettings = new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.All,
+                },
+            };
+            IResumableImportDataReader bridge = reader;
+
+            var serialized = bridge.GetSerializedCursor(context);
+
+            // TypeNameHandling.All embeds "$type" in the JSON — observable proof settings were honored.
+            var decodedJson = Encoding.UTF8.GetString(Convert.FromBase64String(serialized));
+            Assert.Contains("\"$type\":", decodedJson);
+        }
+
+        [Fact]
+        public void TryRestoreFromSerializedCursor_uses_JsonSerializerSettings_from_context()
+        {
+            var reader = new FakeReader();
+            var profile = MakeProfile(lifetimeDays: 7);
+
+            var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+            var cursor = new FakeCursor(7) { ProcessedCount = 11 };
+            var serialized = cursor.Serialize(settings);
+
+            var context = new ImportContext(profile)
+            {
+                ProgressInfo = new ImportProgressInfo { ProcessedCount = 0 },
+                JsonSerializerSettings = settings,
+            };
+            IResumableImportDataReader bridge = reader;
+
+            var ok = bridge.TryRestoreFromSerializedCursor(context, serialized);
+
+            Assert.True(ok);
+            Assert.Equal(7, reader.Restored.Skip);
+            Assert.Equal(11, context.ProgressInfo.ProcessedCount);
         }
 
         [Fact]

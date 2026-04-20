@@ -20,7 +20,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Functional
             var profile = CreateImportProfile(filePath);
 
             var context1 = new ImportContext(profile);
-            using var stream1 = File.OpenRead(filePath);
+            await using var stream1 = File.OpenRead(filePath);
             using var reader1 = new ShopifyProductDataReader(stream1, context1);
 
             var firstPage = await reader1.ReadNextPageAsync(context1);
@@ -33,7 +33,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Functional
 
             // Act — phase 2: fresh reader on fresh stream, restore cursor, read next page
             var context2 = new ImportContext(profile);
-            using var stream2 = File.OpenRead(filePath);
+            await using var stream2 = File.OpenRead(filePath);
             using var reader2 = new ShopifyProductDataReader(stream2, context2);
 
             var ok = ((IResumableImportDataReader)reader2).TryRestoreFromSerializedCursor(context2, serialized);
@@ -54,16 +54,8 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Functional
                 ImportFileUrl = fileName,
                 Settings = new List<ObjectSettingEntry>
                 {
-                    new()
-                    {
-                        Name = "Import.Csv.Delimiter",
-                        Value = ";",
-                    },
-                    new()
-                    {
-                        Name = "Import.Csv.PageSize",
-                        Value = 2,
-                    },
+                    new() { Name = "Import.Csv.Delimiter", Value = ";" },
+                    new() { Name = "Import.Csv.PageSize", Value = 2 },
                 },
             };
         }

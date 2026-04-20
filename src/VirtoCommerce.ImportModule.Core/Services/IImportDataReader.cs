@@ -7,7 +7,9 @@ namespace VirtoCommerce.ImportModule.Core.Services
     public interface IImportDataReader : IDisposable
     {
         Task<int> GetTotalCountAsync(ImportContext context);
+
         Task<object[]> ReadNextPageAsync(ImportContext context);
+
         bool HasMoreResults { get; }
     }
 
@@ -29,22 +31,22 @@ namespace VirtoCommerce.ImportModule.Core.Services
                 return null;
             }
             var snapshot = cursor with { ProcessedCount = context.ProgressInfo?.ProcessedCount ?? 0 };
-            return snapshot.Serialize();
+
+            return snapshot.Serialize(context.JsonSerializerSettings);
         }
 
         // DIM: restores reader state, then injects cursor's embedded PC back into pipeline.
         bool IResumableImportDataReader.TryRestoreFromSerializedCursor(ImportContext context, string serializedCursor)
         {
-            var cursor = ImportDataCursor.Deserialize<TCursor>(serializedCursor);
+            var cursor = ImportDataCursor.Deserialize<TCursor>(serializedCursor, context.JsonSerializerSettings);
             if (cursor is null || !cursor.IsValid(context))
             {
                 return false;
             }
+
             RestoreCursor(context, cursor);
-            if (context.ProgressInfo is not null)
-            {
-                context.ProgressInfo.ProcessedCount = cursor.ProcessedCount;
-            }
+            context.ProgressInfo?.ProcessedCount = cursor.ProcessedCount;
+
             return true;
         }
     }

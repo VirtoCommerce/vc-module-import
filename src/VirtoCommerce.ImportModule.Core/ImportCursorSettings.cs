@@ -5,7 +5,7 @@ namespace VirtoCommerce.ImportModule.Core
 {
     public static class ImportCursorSettings
     {
-        private const int DefaultSaveIntervalPages = 5;
+        private const int DefaultSaveIntervalPages = 10;
         private const int DefaultLifetimeDays = 7;
 
         public static SettingDescriptor SaveIntervalPages { get; } = new()

@@ -10,12 +10,12 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
         // Pipeline's ProcessedCount at cursor capture; authoritative on restore.
-        // Populated by IImportDataReader<TCursor> DIM bridge, not by concrete readers.
         public int ProcessedCount { get; init; }
 
         public virtual string Serialize(JsonSerializerSettings settings = null)
         {
             var json = JsonConvert.SerializeObject(this, settings);
+
             return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
         }
 
@@ -30,13 +30,10 @@ namespace VirtoCommerce.ImportModule.Core.Models
             try
             {
                 var json = Encoding.UTF8.GetString(Convert.FromBase64String(cursor));
+
                 return JsonConvert.DeserializeObject<T>(json, settings);
             }
-            catch (FormatException)
-            {
-                return null;
-            }
-            catch (JsonException)
+            catch (Exception ex) when (ex is FormatException or JsonException)
             {
                 return null;
             }
@@ -44,8 +41,8 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public virtual bool IsValid(ImportContext context)
         {
-            var lifetimeDays = context.ImportProfile.Settings
-                .GetValue<int>(ImportCursorSettings.LifetimeDays);
+            var lifetimeDays = (context.ImportProfile.Settings ?? []).GetValue<int>(ImportCursorSettings.LifetimeDays);
+
             return DateTime.UtcNow - CreatedAt <= TimeSpan.FromDays(lifetimeDays);
         }
     }

@@ -85,23 +85,24 @@ namespace VirtoCommerce.ImportModule.Data.Services
             history.Cursor = null;
             history.ProcessedCount = 0;
             history.ErrorsCount = 0;
-            await _runHistoryCrudService.SaveChangesAsync(new[] { history });
+            await _runHistoryCrudService.SaveChangesAsync([history]);
+
             return false;
         }
 
         public async Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken token)
         {
-            var maxErrorsCountThreshold = await _settingsManager.GetValueAsync<int>(Core.ModuleConstants.Settings.General.MaxErrorsCountThreshold);
+            var maxErrorsCountThreshold = await _settingsManager.GetValueAsync<int>(ModuleConstants.Settings.General.MaxErrorsCountThreshold);
 
             // Create importer
             var dataImporter = _dataImporterFactory.Create(importProfile.DataImporterType);
 
             // Create remaining estimator
-            var remainingEstimatorType = await _settingsManager.GetValueAsync<string>(Core.ModuleConstants.Settings.General.RemainingEstimator);
+            var remainingEstimatorType = await _settingsManager.GetValueAsync<string>(ModuleConstants.Settings.General.RemainingEstimator);
             var importRemainingEstimator = _importRemainingEstimatorFactory.Create(remainingEstimatorType);
 
             // Create reporter
-            var defaultImportReporterType = await _settingsManager.GetValueAsync<string>(Core.ModuleConstants.Settings.General.DefaultImportReporter);
+            var defaultImportReporterType = await _settingsManager.GetValueAsync<string>(ModuleConstants.Settings.General.DefaultImportReporter);
             var importReporterType = !string.IsNullOrEmpty(importProfile.ImportReporterType) ? importProfile.ImportReporterType : defaultImportReporterType;
             using var importReporter = _importReporterFactory.Create(importReporterType);
             importReporter.SetContext(importProfile);
@@ -163,7 +164,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             await progressCallback(importProgress);
 
-            var saveIntervalPages = context.ImportProfile.Settings.GetValue<int>(ImportCursorSettings.SaveIntervalPages);
+            var saveIntervalPages = (context.ImportProfile.Settings ?? []).GetValue<int>(ImportCursorSettings.SaveIntervalPages);
             var pagesSinceLastSave = 0;
             var cursorReader = reader as IResumableImportDataReader;
 

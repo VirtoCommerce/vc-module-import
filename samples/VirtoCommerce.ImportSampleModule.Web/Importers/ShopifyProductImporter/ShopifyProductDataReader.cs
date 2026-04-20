@@ -6,8 +6,7 @@ using VirtoCommerce.ImportModule.CsvHelper;
 namespace VirtoCommerce.ImportSampleModule.Web.Importers
 {
     public class ShopifyProductDataReader
-        : CsvDataReader<ShopifyProductLine, ShopifyProductClassMap>,
-          IImportDataReader<ShopifyProductDataCursor>
+        : CsvDataReader<ShopifyProductLine, ShopifyProductClassMap>, IImportDataReader<ShopifyProductDataCursor>
     {
         public ShopifyProductDataReader(Stream stream, ImportContext context)
             : base(stream, context)
