@@ -139,17 +139,16 @@ namespace VirtoCommerce.ImportModule.Data.Services
             context.ErrorCallback = ErrorCallback;
 
             importRemainingEstimator.Start(context);
-
             await progressCallback(importProgress);
 
             // Reading & writing
             using var reader = await dataImporter.OpenReaderAsync(context);
             using var writer = await dataImporter.OpenWriterAsync(context);
 
-            // Attempt to restore the cursor from the run history. On success, IsResume flips to true
-            // and context.ProgressInfo.ProcessedCount is repopulated from the cursor. On failure,
-            // the history row is reset so the run starts fresh.
+            // Attempt to restore the cursor from the run history.
+            // On failure, the history row is reset so the run starts fresh.
             context.IsResume = await TryRestoreCursorAsync(reader, context);
+
             await dataImporter.OnImportStartedAsync(context);
 
             // Calculate total count
@@ -161,11 +160,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             // Start import
             importProgress.Description = "Import in progress";
-
             await progressCallback(importProgress);
 
             var saveIntervalPages = (context.ImportProfile.Settings ?? []).GetValue<int>(ImportCursorSettings.SaveIntervalPages);
-            var pagesSinceLastSave = 0;
+            var checkpointTracker = new CursorCheckpointTracker(saveIntervalPages);
             var cursorReader = reader as IResumableImportDataReader;
 
             try
@@ -174,8 +172,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 {
                     token.ThrowIfCancellationRequested();
 
-                    pagesSinceLastSave = await TrySaveCursorCheckpointAsync(
-                        cursorReader, writer, context, importProgress, pagesSinceLastSave, saveIntervalPages);
+                    await checkpointTracker.TrySaveCursorAsync(context, cursorReader, writer);
 
                     var items = await reader.ReadNextPageAsync(context);
 
@@ -189,9 +186,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                     await progressCallback(importProgress);
 
-                    // One-shot flags — consumed by the callback above, cleared before next iteration.
-                    importProgress.Cursor = null;
-                    importProgress.ShouldSaveHistory = false;
+                    CursorCheckpointTracker.ClearSaveState(context);
 
                 } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
             }
@@ -205,76 +200,26 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                await FlushWriterInFinallyAsync(writer, context);
-                await FinalizeImportAsync(dataImporter, importReporter, importRemainingEstimator,
-                    fixedSizeErrorsQueue, context, importProgress, progressCallback);
+                try
+                {
+                    await writer.FlushAsync(context);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "FlushAsync failed for import profile '{ProfileName}'", context.ImportProfile.Name);
+                }
+
+                var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
+                importRemainingEstimator.Stop(context);
+
+                importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
+                importProgress.Finished = DateTime.UtcNow;
+                importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
+
+                await dataImporter.OnImportCompletedAsync(context);
+                await progressCallback(importProgress);
             }
         }
 
-        private static async Task FinalizeImportAsync(
-            IDataImporter dataImporter,
-            IImportReporter importReporter,
-            IImportRemainingEstimator importRemainingEstimator,
-            FixedSizeQueue<ErrorInfo> fixedSizeErrorsQueue,
-            ImportContext context,
-            ImportProgressInfo importProgress,
-            Func<ImportProgressInfo, Task> progressCallback)
-        {
-            var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
-            importRemainingEstimator.Stop(context);
-
-            importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
-            importProgress.Finished = DateTime.UtcNow;
-            importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
-
-            await dataImporter.OnImportCompletedAsync(context);
-            await progressCallback(importProgress);
-        }
-
-        /// <summary>
-        /// Top-of-iteration cursor snapshot. Flushes the writer (durability barrier) before
-        /// capturing the cursor so ProcessedCount embedded in the serialized payload is
-        /// guaranteed to cover committed work.
-        /// </summary>
-        private static async Task<int> TrySaveCursorCheckpointAsync(
-            IResumableImportDataReader cursorReader,
-            IImportDataWriter writer,
-            ImportContext context,
-            ImportProgressInfo importProgress,
-            int pagesSinceLastSave,
-            int saveIntervalPages)
-        {
-            if (cursorReader is null || importProgress.ProcessedCount <= 0)
-            {
-                return pagesSinceLastSave;
-            }
-            pagesSinceLastSave++;
-            if (pagesSinceLastSave < saveIntervalPages)
-            {
-                return pagesSinceLastSave;
-            }
-            await writer.FlushAsync(context);
-            importProgress.Cursor = cursorReader.GetSerializedCursor(context);
-            importProgress.ShouldSaveHistory = !string.IsNullOrEmpty(importProgress.Cursor);
-            return 0;
-        }
-
-        /// <summary>
-        /// Final durability barrier invoked from the finally block. Isolated so a flush
-        /// failure here cannot swallow the original exception already captured above.
-        /// </summary>
-        private async Task FlushWriterInFinallyAsync(IImportDataWriter writer, ImportContext context)
-        {
-            try
-            {
-                await writer.FlushAsync(context);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "FlushAsync failed in finally block for import profile '{ProfileName}'",
-                    context.ImportProfile.Name);
-            }
-        }
     }
 }

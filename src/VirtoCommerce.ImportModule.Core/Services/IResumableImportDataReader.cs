@@ -10,6 +10,17 @@ namespace VirtoCommerce.ImportModule.Core.Services
     public interface IResumableImportDataReader
     {
         /// <summary>
+        /// True when the current cursor represents a position from which a subsequent
+        /// <see cref="TryRestoreFromSerializedCursor"/> will produce correct continuation.
+        /// The pipeline gates cursor serialization on this: throttled saves are deferred while
+        /// the reader is in a transient state (e.g. mid-slice of a pre-fetched batch).
+        /// Default: true — most readers have a stable cursor after every ReadNextPageAsync.
+        /// Readers that slice a pre-fetched batch across multiple ReadNextPageAsync calls
+        /// should return false mid-slice, true at batch boundaries.
+        /// </summary>
+        bool HasStableCursor => true;
+
+        /// <summary>
         /// Serialized cursor for the NEXT page the reader will produce. Stable between calls to
         /// ReadNextPageAsync. Embeds pipeline's current ProcessedCount (handled by DIM bridge).
         /// Returns null if the reader has not yet returned any page.
