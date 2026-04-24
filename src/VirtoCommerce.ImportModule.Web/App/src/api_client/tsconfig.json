@@ -2,14 +2,10 @@
   "extends": "@vc-shell/ts-config/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "declarationDir": ".",
-    "rootDir": "."
+    "declarationDir": "dist/types",
+    "outDir": "dist",
+    "rootDir": "./"
   },
-  "files": [
-    "package.json",
-  ],
-  "include": [
-    "*.ts",
-  ],
-  "exclude": ["./marketplacevendor.d.ts", "./marketplacevendor.d.ts.map"]
+  "files": ["virtocommerce.import.ts"],
+  "include": ["*.ts"]
 }

@@ -18,49 +18,51 @@
 </template>
 
 <script lang="ts" setup>
-import { useBladeNavigation, useNotificationContext, NotificationTemplate } from "@vc-shell/framework";
-import { ImportPushNotification } from "@virtocommerce/import-app-api";
+import { useBlade, useNotificationContext, NotificationTemplate } from "@vc-shell/framework";
+import { ImportPushNotification } from "../../../../api_client/virtocommerce.import";
 import { computed } from "vue";
+
+import { VcHint } from "@vc-shell/framework/ui";
 
 const notification = useNotificationContext<ImportPushNotification>();
 
-const { openBlade, resolveBladeByName } = useBladeNavigation();
+const {
+  openBlade
+} = useBlade();
 
 const notificationStyle = computed(() => {
   const n = notification.value;
   if (n.finished && !(n.errors && n.errors.length)) {
     return {
-      color: 'var(--import-notification-success-color)',
-      icon: "material-check_circle",
+      color: "var(--import-notification-success-color)",
+      icon: "lucide-check-circle",
     };
   } else if (!(n.errors && n.errors.length) && !n.finished) {
     return {
-      color: 'var(--import-notification-info-color)',
-      icon: "material-info",
+      color: "var(--import-notification-info-color)",
+      icon: "lucide-info",
     };
   } else {
     return {
-      color: 'var(--import-notification-error-color)',
-      icon: "material-error",
+      color: "var(--import-notification-error-color)",
+      icon: "lucide-alert-circle",
     };
   }
 });
 
 async function onClick() {
   if (notification.value.notifyType === "ImportPushNotification") {
-    await openBlade(
-      {
-        blade: resolveBladeByName("ImportProfileSelector"),
-        param: notification.value.profileId,
-      },
-      true,
-    );
     await openBlade({
-      blade: resolveBladeByName("ImportProcess"),
+      name: "ImportProfileSelector",
+      param: notification.value.profileId
+    });
+    await openBlade({
+      name: "ImportProcess",
       param: notification.value.profileId,
+
       options: {
         importJobId: notification.value.jobId,
-      },
+      }
     });
   }
 }

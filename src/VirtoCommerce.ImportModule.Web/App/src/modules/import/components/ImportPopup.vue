@@ -34,15 +34,22 @@
           <pre class="import-popup__json">{{ formattedJson }}</pre>
         </div>
         <!-- Table mode: classic CSV-like preview -->
-        <VcTable
+        <VcDataTable
           v-else
           class="tw-flex-auto"
-          :columns="columns"
           :items="items"
           :header="false"
           :footer="false"
           state-key="import_popup"
-        ></VcTable>
+        >
+          <VcColumn
+            v-for="col in columns"
+            :key="col.id"
+            :id="col.id"
+            :title="typeof col.title === 'string' ? col.title : col.title?.value"
+            :width="col.width ? String(col.width) : undefined"
+          />
+        </VcDataTable>
       </div>
     </template>
     <template #footer="{ close }">
@@ -64,7 +71,9 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { VcTable, VcButton, VcPopup, ITableColumns } from "@vc-shell/framework";
+import { ITableColumns } from "@vc-shell/framework";
+
+import { VcButton, VcColumn, VcDataTable, VcPopup } from "@vc-shell/framework/ui";
 
 export interface Props {
   columns: ITableColumns[];

@@ -1,15 +1,9 @@
 <template>
   <VcBlade
-    v-loading:1000="bladeLoading"
+    :loading="bladeLoading"
     :title="param && profileDetails ? profileDetails.name : $t('IMPORT.PAGES.PROFILE_DETAILS.TITLE')"
     width="50%"
     :toolbar-items="bladeToolbar"
-    :closable="closable"
-    :expanded="expanded"
-    :modified="modified"
-    @close="$emit('close:blade')"
-    @expand="$emit('expand:blade')"
-    @collapse="$emit('collapse:blade')"
   >
     <VcContainer class="import-profile-details">
       <VcRow>
@@ -108,56 +102,31 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, unref } from "vue";
-import {
-  IParentCallArgs,
-  IBladeToolbar,
-  VcInput,
-  VcSelect,
-  VcBlade,
-  VcContainer,
-  VcRow,
-  VcCol,
-  VcDynamicProperty,
-  usePopup,
-  useBladeNavigation,
-  useBeforeUnload,
-} from "@vc-shell/framework";
+import { computed, onMounted, ref } from "vue";
+import { IBladeToolbar, usePopup, useBladeForm, useBlade } from "@vc-shell/framework";
 import useImport from "../composables/useImport";
-import { IDataImporter, ObjectSettingEntry } from "@virtocommerce/import-app-api";
-import { useIsFormValid, Field, useForm, useIsFormDirty } from "vee-validate";
+import { IDataImporter, ObjectSettingEntry } from "../../../api_client/virtocommerce.import";
+import { Field } from "vee-validate";
 import { useI18n } from "vue-i18n";
 
-export interface Props {
-  expanded?: boolean;
-  closable?: boolean;
-  param?: string;
-  options?: {
-    importer: IDataImporter;
-  };
-}
+import {
+  VcBlade,
+  VcCard,
+  VcCol,
+  VcContainer,
+  VcDynamicProperty,
+  VcInput,
+  VcRow,
+  VcSelect,
+} from "@vc-shell/framework/ui";
 
-export interface Emits {
-  (event: "close:blade"): void;
-  (event: "collapse:blade"): void;
-  (event: "expand:blade"): void;
-  (event: "parent:call", args: IParentCallArgs): void;
-}
-
-defineOptions({
+const { callParent, closeSelf, options, param, exposeToChildren } = useBlade();
+defineBlade({
   url: "/import-profile-details",
   name: "ImportProfileDetails",
   routable: false,
 });
 
-const props = withDefaults(defineProps<Props>(), {
-  expanded: true,
-  closable: true,
-  param: undefined,
-  options: undefined,
-});
-
-const emit = defineEmits<Emits>();
 const { showConfirmation } = usePopup();
 const { t } = useI18n({ useScope: "global" });
 const {
@@ -176,58 +145,48 @@ const {
   setImporter,
 } = useImport();
 
-useForm({ validateOnMount: false });
-const isValid = useIsFormValid();
-const isDirty = useIsFormDirty();
-const { onBeforeClose } = useBladeNavigation();
-
-useBeforeUnload(computed(() => !isDisabled.value || modified.value));
+const { canSave, isModified, setBaseline, setFieldError, errorBag } = useBladeForm({
+  data: profileDetails,
+  closeConfirmMessage: () => t("IMPORT.PAGES.PROFILE_DETAILS.ALERTS.CLOSE_CONFIRMATION"),
+});
 
 const bladeLoading = computed(() => loading.value || updateImportProfileLoading.value || dataImportersLoading.value);
-
-const isDisabled = computed(() => {
-  return !isDirty.value || !isValid.value;
-});
 
 const bladeToolbar = ref<IBladeToolbar[]>([
   {
     id: "save",
     title: computed(() => t("IMPORT.PAGES.PROFILE_DETAILS.TOOLBAR.SAVE")),
-    icon: "material-save",
+    icon: "lucide-save",
     async clickHandler() {
-      if (isValid.value) {
-        if (props.param) {
+      if (canSave.value) {
+        if (param.value) {
           await updateImportProfile(profileDetails.value);
-          emit("parent:call", {
-            method: "reloadParent",
-          });
+          setBaseline();
+          callParent("reloadParent");
         } else {
           await createImportProfile(profileDetails.value);
-          emit("parent:call", {
-            method: "reload",
-          });
+          setBaseline();
+          callParent("reload");
         }
-        emit("close:blade");
+        closeSelf();
       }
     },
-    disabled: computed(() => {
-      return isDisabled.value || !modified.value;
-    }),
+    disabled: computed(() => !canSave.value),
   },
   {
     id: "cancel",
     title: computed(() => t("IMPORT.PAGES.PROFILE_DETAILS.TOOLBAR.CANCEL")),
-    icon: "material-cancel",
+    icon: "lucide-x",
     clickHandler() {
-      emit("close:blade");
+      closeSelf();
     },
-    isVisible: computed(() => !props.param),
+    isVisible: computed(() => !param.value),
   },
   {
     id: "delete",
     title: computed(() => t("IMPORT.PAGES.PROFILE_DETAILS.TOOLBAR.DELETE")),
-    icon: "material-delete",
-    isVisible: computed(() => !!props.param),
+    icon: "lucide-trash-2",
+    isVisible: computed(() => !!param.value),
     async clickHandler() {
       if (
         await showConfirmation(
@@ -253,20 +212,23 @@ const sampleTemplateUrl = computed(() => {
 });
 
 const title = computed(() =>
-  props.options?.importer ? props.options?.importer.typeName : t("IMPORT.PAGES.PROFILE_DETAILS.TITLE"),
+  options.value?.importer
+    ? (options.value.importer as IDataImporter).typeName
+    : t("IMPORT.PAGES.PROFILE_DETAILS.TITLE"),
 );
 
 onMounted(async () => {
   await fetchDataImporters();
-  if (props.param) {
-    await loadImportProfile({ id: props.param });
+  if (param.value) {
+    await loadImportProfile({ id: param.value });
   }
+  setBaseline();
 });
 
 function setSettingsValue(data: { property: ObjectSettingEntry; value: string | boolean }) {
   const { property, value } = data;
 
-  const mutatedSetting = new ObjectSettingEntry({ ...property, value });
+  const mutatedSetting: ObjectSettingEntry = { ...property, value };
 
   profileDetails.value.settings?.forEach((x) => {
     if ((x.id && property.id && x.id === property.id) || x.name === property.name) {
@@ -286,25 +248,13 @@ function loadDictionaries(settingId: string) {
 }
 
 async function deleteProfile() {
-  if (props.param) {
-    await deleteImportProfile({ id: props.param });
+  if (param.value) {
+    await deleteImportProfile({ id: param.value });
 
-    emit("parent:call", {
-      method: "reloadParent",
-    });
-    emit("close:blade");
+    callParent("reloadParent");
+    closeSelf();
   }
 }
-
-onBeforeClose(async () => {
-  if (modified.value) {
-    return await showConfirmation(unref(computed(() => t("IMPORT.PAGES.PROFILE_DETAILS.ALERTS.CLOSE_CONFIRMATION"))));
-  }
-});
-
-defineExpose({
-  title,
-});
 </script>
 
 <style lang="scss">

@@ -1,9 +1,20 @@
 import * as pages from "./pages";
 import * as locales from "./locales";
-import * as notificationTemplates from "./components/notifications";
-import { createAppModule } from "@vc-shell/framework";
+import ImportPushNotification from "./components/notifications/ImportPushNotification.vue";
+import { defineAppModule } from "@vc-shell/framework";
 
-export default createAppModule(pages, locales, notificationTemplates);
+export default defineAppModule({
+  blades: pages,
+  locales,
+  notifications: {
+    ImportPushNotification: {
+      template: ImportPushNotification,
+      toast: {
+        mode: "progress",
+      },
+    },
+  },
+});
 
 export * from "./pages";
 export * from "./components";

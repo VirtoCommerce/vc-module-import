@@ -18,6 +18,7 @@
 </template>
 
 <script setup lang="ts">
+import { VcHint } from "@vc-shell/framework/ui";
 export interface Props {
   uploadedFile: {
     name?: string;
