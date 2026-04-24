@@ -169,7 +169,7 @@ export default (): IUseImport => {
   async function resume(jobId: string): Promise<ImportPushNotification | undefined> {
     try {
       const client = await getApiClient();
-      return await client.resumeImport(jobId);
+      return await client.resumeImport({ jobId });
     } catch (e) {
       console.error("Import resume failed:", e);
       return undefined;

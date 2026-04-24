@@ -78,25 +78,24 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         }
 
         [HttpPost]
-        [Route("runs/{jobId}/resume")]
-        public async Task<ActionResult<ImportPushNotification>> ResumeImport([FromRoute] string jobId)
+        [Route("runs/resume")]
+        public async Task<ActionResult<ImportPushNotification>> ResumeImport([FromBody] ImportResumeRequest request)
         {
-            if (string.IsNullOrWhiteSpace(jobId))
-            {
-                throw new InvalidOperationException("jobId is required");
-            }
+            await ExType<ImportResumeRequestValidator>.New().ValidateAndThrowAsync(request);
 
-            var searchResult = await _importRunHistorySearchService.SearchAsync(new SearchImportRunHistoryCriteria
+            var jobId = request.JobId;
+
+            var criteria = new SearchImportRunHistoryCriteria
             {
                 JobId = jobId,
                 Take = 1,
                 Sort = $"{nameof(ImportRunHistory.CreatedDate)}:desc",
-            });
-            var history = searchResult?.Results?.FirstOrDefault()
-                ?? throw new OperationCanceledException($"Import run history for jobId {jobId} is not found");
+            };
+            var runHistory = (await _importRunHistorySearchService.SearchAsync(criteria))?.Results?.FirstOrDefault()
+                          ?? throw new OperationCanceledException($"Import run history for jobId {jobId} is not found");
 
-            var importProfile = await _importProfileCrudService.GetByIdAsync(history.ProfileId)
-                ?? throw new OperationCanceledException($"ImportProfile with {history.ProfileId} is not found");
+            var importProfile = await _importProfileCrudService.GetByIdAsync(runHistory.ProfileId)
+                                ?? throw new OperationCanceledException($"ImportProfile with {runHistory.ProfileId} is not found");
 
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
             if (importer.AuthorizationRequirement != null)
@@ -108,7 +107,8 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 }
             }
 
-            var notification = await _importRunService.ResumeImportAsync(history.Id);
+            var notification = await _importRunService.ResumeImportAsync(runHistory.Id);
+
             return Ok(notification);
         }
 
@@ -163,15 +163,15 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 Name = importProfile.Name
             });
 
-            if (searchResult.TotalCount == 0)
-            {
-                await _importProfileCrudService.SaveChangesAsync(new[] { importProfile });
-                return Ok(importProfile);
-            }
-            else
+            if (searchResult.TotalCount != 0)
             {
                 throw new InvalidOperationException("This profile already exists");
             }
+
+            await _importProfileCrudService.SaveChangesAsync([importProfile]);
+
+            return Ok(importProfile);
+
         }
 
         [HttpPut]
@@ -179,18 +179,14 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         [Authorize(ModuleConstants.Security.Permissions.Update)]
         public async Task<ActionResult<ImportProfile>> UpdateImportProfile([FromBody] ImportProfile importProfile)
         {
-            string profileId = importProfile.Id;
+            var profileId = importProfile.Id;
             await ExType<UpdateProfileValidator>.New().ValidateAndThrowAsync(importProfile);
 
-            var existedImportProfile = await _importProfileCrudService.GetByIdAsync(profileId);
-
-            if (existedImportProfile == null)
-            {
-                throw new OperationCanceledException($"ImportProfile with {profileId} is not found");
-            }
+            var existedImportProfile = await _importProfileCrudService.GetByIdAsync(profileId)
+                                       ?? throw new OperationCanceledException($"ImportProfile with {profileId} is not found");
 
             existedImportProfile.Update(importProfile);
-            await _importProfileCrudService.SaveChangesAsync(new[] { existedImportProfile });
+            await _importProfileCrudService.SaveChangesAsync([existedImportProfile]);
 
             return Ok(existedImportProfile);
         }
@@ -206,7 +202,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 return Unauthorized();
             }
 
-            if (authorizationInfo != null && !string.IsNullOrEmpty(authorizationInfo.OrganizationId))
+            if (!string.IsNullOrEmpty(authorizationInfo.OrganizationId))
             {
                 criteria.UserId = authorizationInfo.OrganizationId;
             }
@@ -221,13 +217,10 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         [Authorize(ModuleConstants.Security.Permissions.Delete)]
         public async Task<ActionResult> DeleteProfile([FromQuery] string profileId)
         {
-            var importProfile = await _importProfileCrudService.GetByIdAsync(profileId);
+            var importProfile = await _importProfileCrudService.GetByIdAsync(profileId)
+                                ?? throw new OperationCanceledException($"ImportProfile with {profileId} is not found");
 
-            if (importProfile == null)
-            {
-                throw new OperationCanceledException($"ImportProfile with {profileId} is not found");
-            }
-            await _importProfileCrudService.DeleteAsync(new[] { importProfile.Id });
+            await _importProfileCrudService.DeleteAsync([importProfile.Id]);
 
             return Ok();
         }
@@ -243,7 +236,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 return Unauthorized();
             }
 
-            if (authorizationInfo != null && !string.IsNullOrEmpty(authorizationInfo.OrganizationId))
+            if (!string.IsNullOrEmpty(authorizationInfo.OrganizationId))
             {
                 criteria.UserId = authorizationInfo.OrganizationId;
             }

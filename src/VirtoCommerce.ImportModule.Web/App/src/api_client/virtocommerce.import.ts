@@ -170,18 +170,20 @@ export class ImportClient extends AuthApiBase {
   }
 
   /**
-   * @param jobId Hangfire background-job id of the interrupted run.
+   * @param body (optional)
    * @return Success
    */
-  resumeImport(jobId: string): Promise<ImportPushNotification> {
-    if (jobId === undefined || jobId === null) throw new Error("The parameter 'jobId' must be defined.");
-    let url_ = this.baseUrl + "/api/import/runs/{jobId}/resume";
-    url_ = url_.replace("{jobId}", encodeURIComponent("" + jobId));
+  resumeImport(body?: ImportResumeRequest | undefined): Promise<ImportPushNotification> {
+    let url_ = this.baseUrl + "/api/import/runs/resume";
     url_ = url_.replace(/[?&]$/, "");
 
+    const content_ = JSON.stringify(body);
+
     let options_: RequestInit = {
+      body: content_,
       method: "POST",
       headers: {
+        "Content-Type": "application/json-patch+json",
         Accept: "application/json",
       },
     };
@@ -772,6 +774,10 @@ export interface IDataImporter {
 }
 
 export interface ImportCancellationRequest {
+  jobId?: string | undefined;
+}
+
+export interface ImportResumeRequest {
   jobId?: string | undefined;
 }
 
