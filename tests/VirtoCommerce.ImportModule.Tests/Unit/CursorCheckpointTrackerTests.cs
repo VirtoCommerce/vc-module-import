@@ -170,7 +170,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             var ctx = new ImportContext(new ImportProfile()); // ProgressInfo left null
 
-            CursorCheckpointTracker.ClearSaveState(ctx); // should not throw
+            var ex = Record.Exception(() => CursorCheckpointTracker.ClearSaveState(ctx));
+
+            Assert.Null(ex);
         }
     }
 }

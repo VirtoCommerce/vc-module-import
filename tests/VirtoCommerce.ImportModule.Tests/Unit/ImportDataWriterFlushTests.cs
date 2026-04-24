@@ -18,7 +18,10 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             IImportDataWriter writer = new NoopWriter();
             var profile = new ImportProfile();
-            await writer.FlushAsync(new ImportContext(profile));  // should not throw
+
+            var ex = await Record.ExceptionAsync(() => writer.FlushAsync(new ImportContext(profile)));
+
+            Assert.Null(ex);
         }
     }
 }
