@@ -12,6 +12,7 @@ using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Authorization;
 using VirtoCommerce.ImportModule.Data.Validators;
 using VirtoCommerce.ImportModule.Web.Authorization;
+using VirtoCommerce.ImportModule.Web.Filters;
 using VirtoCommerce.Platform.Core.Common;
 using ModuleConstants = VirtoCommerce.ImportModule.Core.ModuleConstants;
 
@@ -19,6 +20,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 {
     [ApiController]
     [Route("api/import")]
+    [TypeFilter(typeof(ProblemDetailsFilter))]
     public class ImportController : ControllerBase
     {
         private readonly IDataImporterRegistrar _importersRegistry;
