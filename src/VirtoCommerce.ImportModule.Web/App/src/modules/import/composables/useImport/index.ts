@@ -84,6 +84,7 @@ interface IUseImport {
   previewData(): Promise<ImportDataPreview>;
   startImport(extProfile?: ExtProfile): Promise<void>;
   cancelImport(): Promise<void>;
+  resume(jobId: string): Promise<ImportPushNotification | undefined>;
   clearImport(): void;
   fetchImportHistory(query?: SearchImportRunHistoryCriteria): Promise<void>;
   fetchImportProfiles(args?: SearchImportProfilesCriteria): Promise<void>;
