@@ -1,196 +1,231 @@
 <template>
   <VcBlade
-    v-loading:1001="bladeLoading"
+    :loading="bladeLoading"
     :title="title"
     width="50%"
     :toolbar-items="bladeToolbar"
-    :closable="closable"
-    :expanded="expanded"
-    @close="$emit('close:blade')"
-    @expand="$emit('expand:blade')"
-    @collapse="$emit('collapse:blade')"
   >
     <VcContainer class="import-new">
-      <VcCol>
-        <div class="tw-p-3">
-          <!-- File-based importer: file upload card -->
-          <VcRow v-if="!isApiSourceImporter">
-            <VcCard
-              :header="
-                importStarted
-                  ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.IMPORT_RESULTS')
-                  : uploadedFile && uploadedFile.url
-                    ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.TITLE_UPLOADED')
-                    : $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.TITLE')
-              "
+      <VcCol class="tw-gap-4 tw-grow tw-min-h-0">
+        <!-- File-based importer: file upload card -->
+        <VcRow v-if="!isApiSourceImporter">
+          <VcCard
+            icon="lucide-upload"
+            :header="
+              importStarted
+                ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.IMPORT_RESULTS')
+                : uploadedFile && uploadedFile.url
+                  ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.TITLE_UPLOADED')
+                  : $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.TITLE')
+            "
+          >
+            <!-- File upload -->
+            <VcCol
+              v-if="!importStarted && !(uploadedFile && uploadedFile.url)"
+              class="tw-p-5"
             >
-              <!-- File upload -->
-              <VcCol
-                v-if="!importStarted && !(uploadedFile && uploadedFile.url)"
-                class="tw-p-5"
+              <!-- Template download hint -->
+              <div
+                v-if="sampleTemplateUrl"
+                class="import-new__template-hint tw-mb-5"
               >
-                <VcRow
-                  v-if="sampleTemplateUrl"
-                  class="tw-mb-4"
-                >
+                <VcIcon
+                  icon="lucide-file-spreadsheet"
+                  size="l"
+                  class="tw-text-[color:var(--primary-500)] tw-shrink-0"
+                />
+                <span class="tw-text-sm tw-text-[color:var(--neutrals-600)]">
                   <a
-                    class="vc-link"
+                    class="vc-link tw-font-medium"
                     :href="sampleTemplateUrl"
-                    >{{ $t("IMPORT.PAGES.TEMPLATE.DOWNLOAD_TEMPLATE") }}</a
-                  >
-                  &nbsp;{{ $t("IMPORT.PAGES.TEMPLATE.FOR_REFERENCE") }}
-                </VcRow>
-                <VcRow>
-                  <VcCol>
-                    <VcRow class="tw-mb-4">
-                      <VcFileUpload
-                        variant="file-upload"
-                        :notification="true"
-                        accept="*.*"
-                        :loading="fileLoading"
-                        @upload="uploadCsv"
-                      ></VcFileUpload>
-                    </VcRow>
-                    <VcRow>
-                      <Field
-                        v-slot="{ field, errorMessage, handleChange, errors }"
-                        :model-value="profile.importFileUrl"
-                        :label="$t('IMPORT.PAGES.PRODUCT_IMPORTER.EXTERNAL_URL.TITLE')"
-                        rules="url"
-                        name="externalUrl"
-                      >
-                        <VcInput
-                          v-bind="field"
-                          v-model="profile.importFileUrl"
-                          class="tw-grow tw-basis-0"
-                          :placeholder="$t('IMPORT.PAGES.PRODUCT_IMPORTER.EXTERNAL_URL.PLACEHOLDER')"
-                          required
-                          clearable
-                          :error="!!errors.length"
-                          :error-message="errorMessage"
-                          @update:model-value="handleChange"
-                        >
-                          <template #append>
-                            <slot name="button">
-                              <VcButton
-                                :outline="true"
-                                @click="saveExternalUrl()"
-                              >
-                                {{ $t("IMPORT.PAGES.PRODUCT_IMPORTER.EXTERNAL_URL.SAVE") }}
-                              </VcButton>
-                            </slot>
-                          </template>
-                        </VcInput>
-                      </Field>
-                    </VcRow>
-                  </VcCol>
-                </VcRow>
-              </VcCol>
-              <!-- Uploaded file actions -->
-              <VcCol v-else>
-                <VcRow v-if="uploadedFile && uploadedFile.url">
-                  <import-upload-status
-                    :upload-actions="uploadActions"
-                    :uploaded-file="uploadedFile"
-                    :is-uploaded="isValid"
-                    :is-started="importStarted"
-                    class="tw-p-5"
-                  >
-                  </import-upload-status>
-                </VcRow>
-              </VcCol>
-              <!-- Uploaded file import status -->
-              <ImportStat :import-status="importStatus" />
-            </VcCard>
-          </VcRow>
-          <!-- API-based importer: no file upload needed -->
-          <VcRow v-else>
-            <VcCard
-              :header="
-                importStarted
-                  ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.IMPORT_RESULTS')
-                  : $t('IMPORT.PAGES.PRODUCT_IMPORTER.API_SOURCE.TITLE')
-              "
-            >
-              <VcCol
-                v-if="!importStarted"
-                class="tw-p-5"
+                  >{{ $t("IMPORT.PAGES.TEMPLATE.DOWNLOAD_TEMPLATE") }}</a>
+                  {{ $t("IMPORT.PAGES.TEMPLATE.FOR_REFERENCE") }}
+                </span>
+              </div>
+
+              <!-- File upload zone -->
+              <VcFileUpload
+                variant="file-upload"
+                :notification="true"
+                accept="*.*"
+                :loading="fileLoading"
+                @upload="uploadCsv"
+              />
+
+              <!-- OR divider -->
+              <div class="import-new__divider tw-my-5">
+                <span class="import-new__divider-text">{{ $t("IMPORT.PAGES.PRODUCT_IMPORTER.EXTERNAL_URL.TITLE") }}</span>
+              </div>
+
+              <!-- External URL input -->
+              <Field
+                v-slot="{ field, errorMessage, handleChange, errors }"
+                :model-value="profile.importFileUrl"
+                :label="$t('IMPORT.PAGES.PRODUCT_IMPORTER.EXTERNAL_URL.TITLE')"
+                rules="url"
+                name="externalUrl"
               >
-                <div class="tw-flex tw-flex-row tw-justify-end">
-                  <VcButton
-                    :outline="true"
-                    :small="true"
-                    class="tw-mr-3"
-                    :disabled="!isValid || previewLoading"
-                    @click="apiPreview"
-                  >
-                    {{ $t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.PREVIEW") }}
-                  </VcButton>
-                  <VcButton
-                    :small="true"
-                    :disabled="!isValid || (importStatus && importStatus.inProgress) || importLoading"
-                    @click="start()"
-                  >
-                    {{ $t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.START_IMPORT") }}
-                  </VcButton>
-                </div>
-              </VcCol>
-              <ImportStat :import-status="importStatus" />
-            </VcCard>
-          </VcRow>
-        </div>
+                <VcInput
+                  v-bind="field"
+                  v-model="profile.importFileUrl"
+                  class="tw-grow tw-basis-0"
+                  :placeholder="$t('IMPORT.PAGES.PRODUCT_IMPORTER.EXTERNAL_URL.PLACEHOLDER')"
+                  required
+                  clearable
+                  :error="!!errors.length"
+                  :error-message="errorMessage"
+                  @update:model-value="handleChange"
+                >
+                  <template #append>
+                    <VcButton
+                      :outline="true"
+                      @click="saveExternalUrl()"
+                    >
+                      {{ $t("IMPORT.PAGES.PRODUCT_IMPORTER.EXTERNAL_URL.SAVE") }}
+                    </VcButton>
+                  </template>
+                </VcInput>
+              </Field>
+            </VcCol>
+
+            <!-- Uploaded file actions -->
+            <VcCol v-else>
+              <VcRow v-if="uploadedFile && uploadedFile.url">
+                <import-upload-status
+                  :upload-actions="uploadActions"
+                  :uploaded-file="uploadedFile"
+                  :is-uploaded="isValid"
+                  :is-started="importStarted"
+                  class="tw-p-5"
+                />
+              </VcRow>
+            </VcCol>
+
+            <!-- Uploaded file import status -->
+            <ImportStat :import-status="importStatus" />
+          </VcCard>
+        </VcRow>
+
+        <!-- API-based importer: no file upload needed -->
+        <VcRow v-else>
+          <VcCard
+            icon="lucide-cloud-download"
+            :header="
+              importStarted
+                ? $t('IMPORT.PAGES.PRODUCT_IMPORTER.FILE_UPLOAD.IMPORT_RESULTS')
+                : $t('IMPORT.PAGES.PRODUCT_IMPORTER.API_SOURCE.TITLE')
+            "
+          >
+            <VcCol
+              v-if="!importStarted"
+              class="tw-p-5"
+            >
+              <div class="tw-flex tw-flex-row tw-items-center tw-justify-end tw-gap-3">
+                <VcButton
+                  :outline="true"
+                  :small="true"
+                  :disabled="!isValid || previewLoading"
+                  @click="apiPreview"
+                >
+                  {{ $t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.PREVIEW") }}
+                </VcButton>
+                <VcButton
+                  :small="true"
+                  :disabled="!isValid || (importStatus && importStatus.inProgress) || importLoading"
+                  @click="start()"
+                >
+                  {{ $t("IMPORT.PAGES.ACTIONS.UPLOADER.ACTIONS.START_IMPORT") }}
+                </VcButton>
+              </div>
+            </VcCol>
+            <ImportStat :import-status="importStatus" />
+          </VcCard>
+        </VcRow>
+
         <ImportErrorsCard :import-status="importStatus" />
-        <!-- History-->
+
+        <!-- History -->
         <VcCol
           v-if="!importStarted"
-          class="tw-p-3"
+          class="tw-grow tw-min-h-0"
         >
           <VcCard
+            icon="lucide-history"
             :header="$t('IMPORT.PAGES.LAST_EXECUTIONS')"
             :fill="true"
             class="import-new__history"
           >
-          <!-- @vue-generic {ImportRunHistory} -->
-            <VcTable
-              :columns="columns"
+            <VcDataTable
+              v-model:active-item-id="selectedItemId"
               :loading="importHistoryLoading"
               :items="importHistory ?? []"
               :header="false"
-              :total-count="totalHistoryCount"
-              :pages="historyPages"
-              :selected-item-id="selectedItemId"
-              :current-page="currentPage"
+              :total-count="pagination.totalCount"
+              :pagination="pagination"
               state-key="import_history"
-              @item-click="onItemClick"
-              @pagination-click="onPaginationClick"
+              @row-click="onItemClick"
+              @pagination-click="pagination.goToPage"
             >
-              <!-- Override name column template -->
-              <template #item_profileName="itemData">
-                <div class="tw-flex tw-flex-col">
-                  <div class="tw-truncate">
-                    {{ itemData.item.profileName }}
+              <VcColumn
+                id="profileName"
+                :title="$t('IMPORT.PAGES.LIST.TABLE.HEADER.PROFILE_NAME')"
+                :always-visible="true"
+              >
+                <template #body="{ data }">
+                  <div class="tw-flex tw-flex-col">
+                    <div class="tw-truncate tw-font-medium">
+                      {{ data.profileName }}
+                    </div>
                   </div>
-                </div>
-              </template>
-              <!-- Override finished column template -->
-              <template #item_finished="itemData">
-                <ImportStatus :item="itemData.item" />
-              </template>
-              <!-- Resume action for interrupted runs -->
-              <template #item_resume="itemData">
-                <VcButton
-                  v-if="canResume(itemData.item)"
-                  icon="material-refresh"
-                  :loading="resumingJobId === itemData.item.jobId"
-                  :title="$t('IMPORT.PAGES.RESUME.TOOLTIP')"
-                  outline
-                  size="sm"
-                  @click.stop="onResumeClick(itemData.item)"
-                >
-                  {{ $t("IMPORT.PAGES.RESUME.BUTTON") }}
-                </VcButton>
-              </template>
-            </VcTable>
+                </template>
+              </VcColumn>
+              <VcColumn
+                id="createdBy"
+                :title="$t('IMPORT.PAGES.LIST.TABLE.HEADER.CREATED_BY')"
+                :width="147"
+              />
+              <VcColumn
+                id="finished"
+                :title="$t('IMPORT.PAGES.LIST.TABLE.HEADER.STATUS')"
+                :width="147"
+              >
+                <template #body="{ data }">
+                  <ImportStatus :item="data" />
+                </template>
+              </VcColumn>
+              <VcColumn
+                id="createdDate"
+                :title="$t('IMPORT.PAGES.LIST.TABLE.HEADER.STARTED_AT')"
+                :width="160"
+                type="date"
+                format="L LT"
+              />
+              <VcColumn
+                id="errorsCount"
+                :title="$t('IMPORT.PAGES.LIST.TABLE.HEADER.ERROR_COUNT')"
+                :width="118"
+                :sortable="true"
+              />
+              <VcColumn
+                id="resume"
+                title=""
+                :width="120"
+              >
+                <template #body="{ data }">
+                  <VcButton
+                    v-if="canResume(data)"
+                    icon="material-refresh"
+                    :loading="resumingJobId === data.jobId"
+                    :title="$t('IMPORT.PAGES.RESUME.TOOLTIP')"
+                    outline
+                    size="sm"
+                    @click.stop="onResumeClick(data)"
+                  >
+                    {{ $t("IMPORT.PAGES.RESUME.BUTTON") }}
+                  </VcButton>
+                </template>
+              </VcColumn>
+            </VcDataTable>
           </VcCard>
         </VcCol>
       </VcCol>
@@ -204,7 +239,7 @@
       :json-mode="isApiSourceImporter"
       @close="importPreview = false"
       @start-import="initializeImporting"
-    ></ImportPopup>
+    />
   </VcBlade>
 </template>
 
@@ -212,52 +247,38 @@
 import { computed, onMounted, ref, watch, ComputedRef } from "vue";
 import * as _ from "lodash-es";
 import {
-  IParentCallArgs,
-  VcContainer,
-  VcCol,
-  VcRow,
-  VcBlade,
-  VcCard,
-  VcFileUpload,
-  VcProgress,
-  VcIcon,
-  VcHint,
-  VcTable,
   IBladeToolbar,
   ITableColumns,
   usePermissions,
-  useNotifications,
+  useBladeNotifications,
   notification,
-  useBladeNavigation,
-  VcButton,
+  useBlade,
 } from "@vc-shell/framework";
 import { UserPermissions } from "./../types";
 import useImport, { ExtProfile } from "../composables/useImport";
-import { ImportDataPreview, ImportPushNotification, ImportRunHistory } from "@virtocommerce/import-app-api";
+import { ImportDataPreview, ImportPushNotification, ImportRunHistory } from "../../../api_client/virtocommerce.import";
 import ImportPopup from "../components/ImportPopup.vue";
 import ImportUploadStatus from "../components/ImportUploadStatus.vue";
 import ImportStatus from "../components/ImportStatus.vue";
 import { Field } from "vee-validate";
 import { useI18n } from "vue-i18n";
-import { ImportStat, ImportErrorsCard, ImportUploadedFile } from "../components";
+import { ImportStat, ImportErrorsCard } from "../components";
 
-export interface Props {
-  expanded: boolean;
-  closable: boolean;
-  param?: string;
-  options?: {
-    importJobId?: string;
-    title?: string;
-  };
-}
+import {
+  VcBlade,
+  VcButton,
+  VcCard,
+  VcCol,
+  VcColumn,
+  VcContainer,
+  VcDataTable,
+  VcFileUpload,
+  VcIcon,
+  VcInput,
+  VcRow,
+} from "@vc-shell/framework/ui";
 
-export interface Emits {
-  (event: "close:blade"): void;
-  (event: "collapse:blade"): void;
-  (event: "expand:blade"): void;
-  (event: "parent:call", args: IParentCallArgs): void;
-}
-
+const { callParent, closeSelf, options, param, exposeToChildren } = useBlade();
 interface INotificationActions {
   name: string | ComputedRef<string>;
   clickHandler(): void;
@@ -267,19 +288,11 @@ interface INotificationActions {
   disabled?: boolean | ComputedRef<boolean>;
 }
 
-defineOptions({
-  // url: "/importer",
+defineBlade({
   name: "ImportNew",
 });
 
-const props = withDefaults(defineProps<Props>(), {
-  expanded: true,
-  closable: true,
-});
-
-const emit = defineEmits<Emits>();
-
-const { openBlade, resolveBladeByName } = useBladeNavigation();
+const { openBlade } = useBlade();
 
 const { t } = useI18n({ useScope: "global" });
 const { hasAccess } = usePermissions();
@@ -291,14 +304,13 @@ const {
   importStatus,
   isValid,
   profile,
-  historyPages,
-  totalHistoryCount,
-  currentPage,
+  pagination,
   importHistoryLoading,
   dataImportersLoading,
   previewDataLoading,
   profilesLoading,
   cancelImport,
+  resume,
   clearImport,
   previewData,
   setFile,
@@ -308,17 +320,62 @@ const {
   clearErrorMessage,
   init,
   getTasks,
-  resume,
   updateStatus,
 } = useImport();
-const { moduleNotifications, markAsRead } = useNotifications("ImportPushNotification");
+const { messages, markAsRead } = useBladeNotifications({
+  types: ["ImportPushNotification"],
+  onMessage: (message: ImportPushNotification) => {
+    const messageContent = message.profileName ? `${message.profileName}: ${message.title}` : message.title;
+
+    if (!importStarted.value && message.profileId === param.value) {
+      getTasks({
+        profileId: message.profileId,
+        importJobId: message.jobId,
+      });
+    }
+
+    if (!message.finished) {
+      if (!notificationId.value && messageContent) {
+        notificationId.value = notification(messageContent, {
+          timeout: false,
+        });
+      } else {
+        notification.update(notificationId.value, {
+          content: messageContent,
+        });
+      }
+    } else {
+      if (message.errorCount && message.errorCount > 0) {
+        notification.update(notificationId.value, {
+          timeout: 5000,
+          content: messageContent,
+          type: "error",
+          onClose() {
+            markAsRead(message);
+            notificationId.value = undefined;
+          },
+        });
+      } else {
+        notification.update(notificationId.value, {
+          timeout: 5000,
+          content: messageContent,
+          type: "success",
+          onClose() {
+            markAsRead(message);
+            notificationId.value = undefined;
+          },
+        });
+      }
+    }
+  },
+});
 const fileLoading = ref(false);
 const preview = ref<ImportDataPreview>();
 const importPreview = ref(false);
 const popupColumns = ref<ITableColumns[]>([]);
 const popupItems = ref<Record<string, unknown>[]>([]);
 const title = computed(() =>
-  props.param && profileDetails.value.name ? profileDetails.value.name : props.options?.title,
+  param.value && profileDetails.value.name ? profileDetails.value.name : (options.value?.title as string | undefined),
 );
 
 const cancelled = ref(false);
@@ -326,168 +383,13 @@ const notificationId = ref();
 const previewLoading = ref(false);
 const selectedItemId = ref();
 const bladeWidth = ref(70);
-
-watch(
-  moduleNotifications,
-  (newVal) => {
-    (newVal as ImportPushNotification[]).forEach((message) => {
-      const messageContent = message.profileName ? `${message.profileName}: ${message.title}` : message.title;
-
-      if (!importStarted.value && message.profileId === props.param) {
-        getTasks({
-          profileId: message.profileId,
-          importJobId: message.jobId,
-        });
-      }
-
-      if (!message.finished) {
-        if (!notificationId.value && messageContent) {
-          notificationId.value = notification(messageContent, {
-            timeout: false,
-          });
-        } else {
-          notification.update(notificationId.value, {
-            content: messageContent,
-          });
-        }
-      } else {
-        if (message.title === "Import failed") {
-          notification.update(notificationId.value, {
-            timeout: 5000,
-            content: messageContent,
-            type: "error",
-            onClose() {
-              markAsRead(message);
-              notificationId.value = undefined;
-            },
-          });
-        } else {
-          notification.update(notificationId.value, {
-            timeout: 5000,
-            content: messageContent,
-            type: "success",
-            onClose() {
-              markAsRead(message);
-              notificationId.value = undefined;
-            },
-          });
-        }
-      }
-    });
-  },
-  { deep: true },
-);
-
-const bladeToolbar = ref<IBladeToolbar[]>([
-  {
-    id: "edit",
-    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.EDIT")),
-    icon: "material-edit",
-    clickHandler() {
-      openBlade({
-        blade: resolveBladeByName("ImportProfileDetails"),
-        options: {
-          importer: profileDetails.value.importer,
-        },
-        param: profile.value.id,
-      });
-    },
-    isVisible: computed(() => !!(hasAccess(UserPermissions.SellerImportProfilesEdit) && profile.value)),
-    disabled: computed(() => importLoading.value || !profile.value.name || importStarted.value),
-  },
-  {
-    id: "cancel",
-    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.CANCEL")),
-    icon: "material-cancel",
-    async clickHandler() {
-      if (importStatus.value?.inProgress) {
-        try {
-          await cancelImport();
-          cancelled.value = true;
-        } catch (e) {
-          cancelled.value = false;
-          throw e;
-        }
-      }
-    },
-    disabled: computed(() => {
-      return !importStatus.value?.inProgress || cancelled.value;
-    }),
-    isVisible: computed(() => !!props.param),
-  },
-  {
-    id: "newRun",
-    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.NEW_RUN")),
-    icon: "material-add",
-    clickHandler() {
-      emit("parent:call", {
-        method: "openImporter",
-        args: props.param,
-      });
-    },
-    disabled: computed(() => importStatus.value?.inProgress),
-    isVisible: computed(() => !!(importStatus.value && profile.value.name)),
-  },
-]);
-
-async function reRunImport(importJobId?: string) {
-  const jobId = props.options?.importJobId || importJobId;
-  const historyItem = importHistory.value && importHistory.value.find((x) => x.jobId === jobId);
-
-  if (historyItem?.fileUrl) {
-    const correctedProfile = profile?.value;
-    correctedProfile.importFileUrl = historyItem.fileUrl;
-    correctedProfile.inProgress = false;
-    correctedProfile.jobId = undefined;
-    await start(correctedProfile);
-  }
-}
-
-const columns = ref<ITableColumns[]>([
-  {
-    id: "profileName", // temp
-    title: computed(() => t("IMPORT.PAGES.LIST.TABLE.HEADER.PROFILE_NAME")),
-    alwaysVisible: true,
-  },
-  {
-    id: "createdBy",
-    title: computed(() => t("IMPORT.PAGES.LIST.TABLE.HEADER.CREATED_BY")),
-    width: 147,
-  },
-  {
-    id: "finished",
-    title: computed(() => t("IMPORT.PAGES.LIST.TABLE.HEADER.STATUS")),
-    width: 147,
-  },
-  {
-    id: "createdDate",
-    title: computed(() => t("IMPORT.PAGES.LIST.TABLE.HEADER.STARTED_AT")),
-    width: 147,
-    type: "date",
-    format: "L LT",
-  },
-  {
-    id: "errorsCount",
-    title: computed(() => t("IMPORT.PAGES.LIST.TABLE.HEADER.ERROR_COUNT")),
-    width: 118,
-    sortable: true,
-  },
-  {
-    id: "resume",
-    title: "",
-    width: 120,
-  },
-]);
-
-const resumingJobId = ref<string>();
+const resumingJobId = ref<string | undefined>(undefined);
 
 // Soft hint — the generated ImportRunHistory TS class does not expose `cursor`, so
 // cursor-absence cannot be checked client-side. The backend IsResumable() is the
 // authoritative guard; clicking Resume on a cursor-less run returns an error.
 function canResume(row: ImportRunHistory): boolean {
-  return !!row.jobId
-    && !!row.finished
-    && (row.processedCount ?? 0) < (row.totalCount ?? 0);
+  return !!row.jobId && !!row.finished && !!row.totalCount && (row.processedCount ?? 0) < row.totalCount;
 }
 
 async function onResumeClick(row: ImportRunHistory): Promise<void> {
@@ -505,6 +407,70 @@ async function onResumeClick(row: ImportRunHistory): Promise<void> {
     }
   } finally {
     resumingJobId.value = undefined;
+  }
+}
+
+const bladeToolbar = ref<IBladeToolbar[]>([
+  {
+    id: "edit",
+    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.EDIT")),
+    icon: "lucide-pencil",
+    clickHandler() {
+      openBlade({
+        name: "ImportProfileDetails",
+
+        options: {
+          importer: profileDetails.value.importer,
+        },
+
+        param: profile.value.id,
+      });
+    },
+    isVisible: computed(() => !!(hasAccess(UserPermissions.SellerImportProfilesEdit) && profile.value)),
+    disabled: computed(() => importLoading.value || !profile.value.name || importStarted.value),
+  },
+  {
+    id: "cancel",
+    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.CANCEL")),
+    icon: "lucide-x",
+    async clickHandler() {
+      if (importStatus.value?.inProgress) {
+        try {
+          await cancelImport();
+          cancelled.value = true;
+        } catch (e) {
+          cancelled.value = false;
+          throw e;
+        }
+      }
+    },
+    disabled: computed(() => {
+      return !importStatus.value?.inProgress || cancelled.value;
+    }),
+    isVisible: computed(() => !!param.value),
+  },
+  {
+    id: "newRun",
+    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.TOOLBAR.NEW_RUN")),
+    icon: "lucide-plus",
+    clickHandler() {
+      callParent("openImporter", param.value);
+    },
+    disabled: computed(() => importStatus.value?.inProgress),
+    isVisible: computed(() => !!(importStatus.value && profile.value.name)),
+  },
+]);
+
+async function reRunImport(importJobId?: string) {
+  const jobId = options.value?.importJobId || importJobId;
+  const historyItem = importHistory.value && importHistory.value.find((x) => x.jobId === jobId);
+
+  if (historyItem?.fileUrl) {
+    const correctedProfile = profile?.value;
+    correctedProfile.importFileUrl = historyItem.fileUrl;
+    correctedProfile.inProgress = false;
+    correctedProfile.jobId = undefined;
+    await start(correctedProfile);
   }
 }
 
@@ -581,18 +547,23 @@ const importStarted = computed(() => !!(importStatus.value && importStatus.value
 
 const previewTotalNum = computed(() => preview.value?.totalCount);
 
-async function onItemClick(item: ImportRunHistory) {
+async function onItemClick(event: { data: ImportRunHistory; index: number; originalEvent: Event }) {
+  const item = event.data;
   if (item?.jobId && item.profileId) {
     openBlade({
-      blade: resolveBladeByName("ImportProcess"),
+      name: "ImportProcess",
+
       options: {
         importJobId: item?.jobId,
         title: item?.profileName,
       },
+
       param: item?.profileId,
+
       onOpen() {
         selectedItemId.value = item?.id;
       },
+
       onClose() {
         selectedItemId.value = undefined;
       },
@@ -604,7 +575,10 @@ async function onItemClick(item: ImportRunHistory) {
 
 onMounted(async () => {
   clearImport();
-  await init({ profileId: props.param, importJobId: props.options?.importJobId });
+  await init({
+    profileId: param.value as string | undefined,
+    importJobId: options.value?.importJobId as string | undefined,
+  });
 });
 
 async function uploadCsv(files: FileList | null) {
@@ -680,27 +654,17 @@ function initializeImporting() {
 }
 
 function reloadParent() {
-  emit("parent:call", {
-    method: "reload",
-  });
-  emit("close:blade");
+  callParent("reload");
+  closeSelf();
 }
 
 const sampleTemplateUrl = computed(() => {
   return profile.value?.importer?.metadata?.sampleCsvUrl;
 });
 
-async function onPaginationClick(page: number) {
-  await fetchImportHistory({
-    skip: (page - 1) * 15,
-    profileId: props.param,
-  });
-}
-
-defineExpose({
+exposeToChildren({
   reloadParent,
   reRunImport,
-  title,
 });
 </script>
 
@@ -724,6 +688,28 @@ defineExpose({
     @apply tw-flex tw-flex-col;
   }
 
+  &__template-hint {
+    @apply tw-flex tw-flex-row tw-items-center tw-gap-2
+      tw-rounded tw-bg-[color:var(--secondary-50)]
+      tw-border tw-border-solid tw-border-[color:var(--secondary-200)]
+      tw-px-4 tw-py-3;
+  }
+
+  &__divider {
+    @apply tw-flex tw-items-center tw-gap-3;
+
+    &::before,
+    &::after {
+      content: "";
+      @apply tw-flex-1 tw-h-px tw-bg-[color:var(--neutrals-200)];
+    }
+  }
+
+  &__divider-text {
+    @apply tw-text-xs tw-font-medium tw-uppercase tw-tracking-wider
+      tw-text-[color:var(--neutrals-400)] tw-whitespace-nowrap;
+  }
+
   &__error {
     --hint-color: var(--color-error);
   }
@@ -731,12 +717,6 @@ defineExpose({
   &__skipped {
     & .vc-card__body {
       @apply tw-flex tw-flex-col;
-    }
-  }
-
-  &__history {
-    .vc-table-adapter {
-      @apply tw-basis-auto;
     }
   }
 }

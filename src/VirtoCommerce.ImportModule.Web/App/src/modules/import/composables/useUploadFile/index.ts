@@ -1,7 +1,7 @@
 import { ref, computed, Ref, reactive } from "vue";
 import useImportProfiles from "../useImportProfiles";
 import { ExtProfile } from "../useImport";
-import { ImportProfile } from "@virtocommerce/import-app-api";
+import { ImportProfile } from "../../../../api_client/virtocommerce.import";
 
 export interface IUploadedFile {
   contentType?: string;
@@ -24,12 +24,10 @@ export default function useUploadedFile({
 
   function setFile(file: IUploadedFile) {
     setProfile(
-      reactive(
-        new ImportProfile({
-          ...profile.value,
-          importFileUrl: file.url,
-        }),
-      ),
+      reactive({
+        ...profile.value,
+        importFileUrl: file.url,
+      } as ImportProfile),
     );
     uploadedFile.value = file;
   }

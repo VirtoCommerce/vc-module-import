@@ -1,5 +1,5 @@
 import { useApiClient, useAsync } from "@vc-shell/framework";
-import { OrganizationClient } from "@virtocommerce/import-app-api";
+import { OrganizationClient } from "../../../api_client/virtocommerce.import";
 import { useRoute } from "vue-router";
 
 const { getApiClient: getOrgApiClient } = useApiClient(OrganizationClient);

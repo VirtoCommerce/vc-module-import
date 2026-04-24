@@ -17,16 +17,19 @@
 </template>
 
 <script lang="ts" setup>
-import { useSettings, useUser } from "@vc-shell/framework";
+import { useSettings, useUser, useBroadcastFilter } from "@vc-shell/framework";
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 // eslint-disable-next-line import/no-unresolved
 import logoImage from "/assets/logo.svg";
 import { useOrganizationDetails } from "../composables/useOrganizationDetails";
 
-const { isAuthenticated } = useUser();
+import { VcApp } from "@vc-shell/framework/ui";
+
+const { isAuthenticated, user } = useUser();
 const { uiSettings, applySettings } = useSettings();
 const { organizationDetails, getOrganizationInfo } = useOrganizationDetails();
+const { setBroadcastFilter } = useBroadcastFilter();
 const route = useRoute();
 const isReady = ref(false);
 const version = import.meta.env.PACKAGE_VERSION;
@@ -47,7 +50,12 @@ onMounted(async () => {
 console.debug(`Initializing App`);
 
 async function customizationHandler() {
-  await getOrganizationInfo(route?.params?.sellerId as string);
+  const sellerId = route?.params?.sellerId as string;
+  await getOrganizationInfo(sellerId);
+
+  if (sellerId) {
+    setBroadcastFilter((msg) => msg.creator === user.value?.userName);
+  }
 
   applySettings({
     logo: organizationDetails.value?.organizationLogoUrl || logoImage,

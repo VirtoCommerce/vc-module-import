@@ -1,11 +1,11 @@
 import { ref, computed, watch, Ref } from "vue";
 import {
-  ImportCancellationRequest,
+  type ImportCancellationRequest,
   ImportClient,
-  ImportProfile,
-  ImportPushNotification,
-} from "@virtocommerce/import-app-api";
-import { useNotifications, useApiClient, useAsync } from "@vc-shell/framework";
+  type ImportProfile,
+  type ImportPushNotification,
+} from "../../../../api_client/virtocommerce.import";
+import { useBladeNotifications, useApiClient, useAsync } from "@vc-shell/framework";
 import { IImportStatus, INotificationHistory, ExtProfile, IUploadedFile } from "../useImport";
 
 const { getApiClient } = useApiClient(ImportClient);
@@ -21,7 +21,9 @@ export default function useImportStatus({
   importProfiles: Ref<ExtProfile[]>;
   profile: Ref<ExtProfile>;
 }) {
-  const { notifications } = useNotifications();
+  const { messages } = useBladeNotifications({
+    types: ["ImportPushNotification"],
+  });
 
   const importStatus = ref<IImportStatus | undefined>({ inProgress: false });
   const importStarted = ref(false);
@@ -48,7 +50,7 @@ export default function useImportStatus({
   }
 
   watch(
-    [() => notifications, () => importStarted],
+    [() => messages, () => importStarted],
     ([newNotifications, isStarted]) => {
       if (isStarted.value && importStatus.value) {
         const notification = newNotifications.value.find(
@@ -83,9 +85,8 @@ export default function useImportStatus({
   const { loading, action: startImport } = useAsync(async (extProfile?: ExtProfile) => {
     const client = await getApiClient();
 
-    const importProfile = new ImportProfile(
-      extProfile && Object.keys(extProfile).length > 0 ? extProfile : profile.value,
-    );
+    const importProfile: ImportProfile =
+      extProfile && Object.keys(extProfile).length > 0 ? { ...extProfile } : { ...profile.value };
 
     const notification = await client.runImport(importProfile);
 
@@ -97,7 +98,7 @@ export default function useImportStatus({
     const client = await getApiClient();
 
     if (importStatus.value?.inProgress) {
-      await client.cancelJob(new ImportCancellationRequest({ jobId: importStatus.value?.jobId }));
+      await client.cancelJob({ jobId: importStatus.value?.jobId } as ImportCancellationRequest);
     }
   });
 

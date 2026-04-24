@@ -44,6 +44,8 @@ import { computed } from "vue";
 import { INotificationActions } from "../types";
 import ImportUploadedFile from "./ImportUploadedFile.vue";
 
+import { VcButton } from "@vc-shell/framework/ui";
+
 export interface Props {
   uploadActions: INotificationActions[];
   uploadedFile: {
