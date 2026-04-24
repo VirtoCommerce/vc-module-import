@@ -30,6 +30,7 @@ namespace VirtoCommerce.ImportModule.Core.Services
             {
                 return null;
             }
+
             var snapshot = cursor with { ProcessedCount = context.ProgressInfo?.ProcessedCount ?? 0 };
 
             return snapshot.Serialize(context.JsonSerializerSettings);

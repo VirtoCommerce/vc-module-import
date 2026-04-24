@@ -22,6 +22,7 @@ using VirtoCommerce.ImportModule.Data.SqlServer;
 using VirtoCommerce.ImportModule.Web.Authorization;
 using VirtoCommerce.NotificationsModule.Core.Services;
 using VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.JsonConverters;
 using VirtoCommerce.Platform.Core.Modularity;
 using VirtoCommerce.Platform.Core.Security;
@@ -137,6 +138,10 @@ namespace VirtoCommerce.ImportModule.Web
             notificationRegistrar.RegisterNotification<ImportCompletedEmailNotification>().WithTemplatesFromPath(defaultTemplatesDirectory);
 
             PolymorphJsonConverter.RegisterTypeForDiscriminator(typeof(ImportProfile), nameof(ImportProfile.ProfileType));
+
+            // Base-type registration enables downstream to override via AbstractTypeFactory.OverrideType<ImportContext, TDerived>().
+            // Without this, TryCreateInstance hits the fallback path, which requires a parameterless ctor ImportContext does not have.
+            AbstractTypeFactory<ImportContext>.RegisterType<ImportContext>();
 
             // Ensure that any pending migrations are applied
             using (var serviceScope = appBuilder.ApplicationServices.CreateScope())

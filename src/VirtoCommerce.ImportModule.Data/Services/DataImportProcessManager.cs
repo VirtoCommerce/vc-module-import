@@ -7,6 +7,7 @@ using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Exceptions;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -131,12 +132,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 progressCallback(importProgress).GetAwaiter().GetResult();
             }
 
-            // Import context
-            var context = new ImportContext(importProfile)
-            {
-                ProgressInfo = importProgress,
-                ErrorCallback = ErrorCallback,
-            };
+            // Import context — via AbstractTypeFactory so downstream can OverrideType with a derived context
+            // and attach extra state in OnImportStartedAsync.
+            var context = AbstractTypeFactory<ImportContext>.TryCreateInstance<ImportContext>(null, importProfile);
+            context.ProgressInfo = importProgress;
+            context.ErrorCallback = ErrorCallback;
 
             importRemainingEstimator.Start(context);
 
@@ -146,7 +146,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             using var reader = await dataImporter.OpenReaderAsync(context);
             using var writer = await dataImporter.OpenWriterAsync(context);
 
-            // Attempt to restore cursor from the run history. On success, IsResume flips to true
+            // Attempt to restore the cursor from the run history. On success, IsResume flips to true
             // and context.ProgressInfo.ProcessedCount is repopulated from the cursor. On failure,
             // the history row is reset so the run starts fresh.
             context.IsResume = await TryRestoreCursorAsync(reader, context);

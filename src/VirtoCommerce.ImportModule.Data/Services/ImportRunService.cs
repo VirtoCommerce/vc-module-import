@@ -246,7 +246,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
             }
 
-            var context = new ImportContext(importProfile);
+            var context = AbstractTypeFactory<ImportContext>.TryCreateInstance<ImportContext>(default, importProfile);
 
             var result = new ImportDataPreview();
 
@@ -284,7 +284,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
             }
 
-            var context = new ImportContext(importProfile);
+            var context = AbstractTypeFactory<ImportContext>.TryCreateInstance<ImportContext>(default, importProfile);
 
             var validationResult = await importer.ValidateAsync(context);
 
