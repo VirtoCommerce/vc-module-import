@@ -9,7 +9,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 {
     public class ImportDataCursorTests
     {
-        public sealed record TestCursor(int Skip, string PageToken) : ImportDataCursor;
+        private sealed record TestCursor(int Skip, string PageToken) : ImportDataCursor;
 
         [Fact]
         public void Serialize_Then_Deserialize_Round_Trip_Preserves_Fields()

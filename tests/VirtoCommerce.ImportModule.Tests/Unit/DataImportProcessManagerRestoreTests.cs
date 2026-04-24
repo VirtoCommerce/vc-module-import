@@ -12,26 +12,26 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 {
     public class DataImportProcessManagerRestoreTests
     {
-        public sealed record TestCursor(int Skip) : ImportDataCursor;
+        private sealed record TestCursor(int Skip) : ImportDataCursor;
 
         private sealed class FakeResumableReader : IImportDataReader<TestCursor>
         {
             public TestCursor Restored { get; private set; }
-            public TestCursor GetCursor(ImportContext context) => new TestCursor(0);
+            public TestCursor GetCursor(ImportContext context) => new(0);
             public void RestoreCursor(ImportContext context, TestCursor cursor) => Restored = cursor;
             public bool HasMoreResults => true;
             public Task<int> GetTotalCountAsync(ImportContext context) => Task.FromResult(0);
-            public Task<object[]> ReadNextPageAsync(ImportContext context) => Task.FromResult<object[]>(new object[0]);
+            public Task<object[]> ReadNextPageAsync(ImportContext context) => Task.FromResult<object[]>([]);
             public void Dispose() { }
         }
 
         private sealed class ThrowingReader : IImportDataReader<TestCursor>
         {
-            public TestCursor GetCursor(ImportContext context) => new TestCursor(0);
+            public TestCursor GetCursor(ImportContext context) => new(0);
             public void RestoreCursor(ImportContext context, TestCursor cursor) => throw new InvalidOperationException("boom");
             public bool HasMoreResults => true;
             public Task<int> GetTotalCountAsync(ImportContext context) => Task.FromResult(0);
-            public Task<object[]> ReadNextPageAsync(ImportContext context) => Task.FromResult<object[]>(new object[0]);
+            public Task<object[]> ReadNextPageAsync(ImportContext context) => Task.FromResult<object[]>([]);
             public void Dispose() { }
         }
 

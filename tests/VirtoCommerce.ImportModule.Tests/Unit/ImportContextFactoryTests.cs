@@ -10,10 +10,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 {
     public class ImportContextFactoryTests
     {
-        public sealed class TestImportContext : ImportContext
+        private sealed class TestImportContext : ImportContext
         {
             public TestImportContext(ImportProfile profile) : base(profile) { }
-
             public string Tag { get; set; }
         }
 

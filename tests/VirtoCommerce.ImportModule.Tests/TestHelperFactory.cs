@@ -105,6 +105,7 @@ namespace VirtoCommerce.ImportModule.Tests
             notif = new ImportPushNotification("tester");
             var pushManager = new Mock<IPushNotificationManager>();
             pushManager.Setup(x => x.SendAsync(It.IsAny<PushNotification>())).Returns(Task.CompletedTask);
+
             return new TestableRunService(historyCrud, pushManager.Object);
         }
     }

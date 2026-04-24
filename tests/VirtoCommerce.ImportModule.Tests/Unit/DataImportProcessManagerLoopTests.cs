@@ -12,7 +12,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 {
     public class DataImportProcessManagerLoopTests
     {
-        public sealed record SeqCursor(int PageIdx) : ImportDataCursor;
+        private sealed record SeqCursor(int PageIdx) : ImportDataCursor;
 
         private sealed class SeqReader : IImportDataReader<SeqCursor>
         {
@@ -20,7 +20,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             public int TotalPages { get; init; } = 5;
             public int PageSize { get; init; } = 10;
             public bool HasMoreResults => PageIdx < TotalPages;
-            public SeqCursor GetCursor(ImportContext context) => new SeqCursor(PageIdx);
+            public SeqCursor GetCursor(ImportContext context) => new(PageIdx);
             public void RestoreCursor(ImportContext context, SeqCursor cursor) => PageIdx = cursor.PageIdx;
             public Task<int> GetTotalCountAsync(ImportContext context) => Task.FromResult(TotalPages * PageSize);
             public Task<object[]> ReadNextPageAsync(ImportContext context)

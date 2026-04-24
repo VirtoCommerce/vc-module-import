@@ -13,13 +13,13 @@ using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Data.Services
 {
-    public class DataImportProcessManager : IDataImportProcessManager
+    public partial class DataImportProcessManager : IDataImportProcessManager
     {
         private readonly IDataImporterFactory _dataImporterFactory;
         private readonly IImportRemainingEstimatorFactory _importRemainingEstimatorFactory;
         private readonly IImportReporterFactory _importReporterFactory;
         private readonly ISettingsManager _settingsManager;
-        private readonly IImportRunHistoryCrudService _runHistoryCrudService;
+        private readonly IImportRunHistoryCrudService _importRunHistoryService;
         private readonly ILogger _logger;
 
         public DataImportProcessManager(
@@ -27,68 +27,15 @@ namespace VirtoCommerce.ImportModule.Data.Services
             IImportRemainingEstimatorFactory importRemainingEstimatorFactory,
             IImportReporterFactory importReporterFactory,
             ISettingsManager settingsManager,
-            IImportRunHistoryCrudService runHistoryCrudService,
+            IImportRunHistoryCrudService importRunHistoryService,
             ILoggerFactory logger)
         {
             _dataImporterFactory = dataImporterFactory;
             _importRemainingEstimatorFactory = importRemainingEstimatorFactory;
             _importReporterFactory = importReporterFactory;
             _settingsManager = settingsManager;
-            _runHistoryCrudService = runHistoryCrudService;
+            _importRunHistoryService = importRunHistoryService;
             _logger = logger.CreateLogger<DataImportProcessManager>();
-        }
-
-        /// <summary>
-        /// Attempts to restore reader state from the import run history's serialized cursor.
-        /// On success: injects the cursor's embedded ProcessedCount into context.ProgressInfo
-        /// (via <see cref="IResumableImportDataReader"/> DIM bridge) and returns true.
-        /// On failure (no cursor / invalid / expired / throwing reader): silently resets the history row
-        /// (Cursor/ProcessedCount/ErrorsCount) and returns false, so the pipeline continues as a fresh run.
-        /// </summary>
-        internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context)
-        {
-            if (reader is not IResumableImportDataReader cursorReader)
-            {
-                return false;
-            }
-
-            var history = context.ImportProfile.RunHistory;
-            if (history?.Cursor is not { Length: > 0 } cursorString)
-            {
-                return false;
-            }
-
-            try
-            {
-                if (cursorReader.TryRestoreFromSerializedCursor(context, cursorString))
-                {
-                    _logger.LogInformation(
-                        "Restored cursor from import run history '{HistoryId}' at {ProcessedCount} processed records",
-                        history.Id, context.ProgressInfo?.ProcessedCount ?? 0);
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                // RestoreCursor may have partially advanced the reader before throwing
-                // (read header, skipped N rows). Resetting and continuing would make the
-                // pipeline skip those rows silently. Surface the error so the run fails
-                // explicitly; the user can investigate and restart manually.
-                _logger.LogError(ex,
-                    "Failed to restore cursor from import run history '{HistoryId}'", history.Id);
-                throw;
-            }
-
-            _logger.LogWarning(
-                "Cursor from import run history '{HistoryId}' is expired or invalid, restarting from zero",
-                history.Id);
-
-            history.Cursor = null;
-            history.ProcessedCount = 0;
-            history.ErrorsCount = 0;
-            await _runHistoryCrudService.SaveChangesAsync([history]);
-
-            return false;
         }
 
         public async Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken token)
@@ -221,5 +168,61 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
+        /// <summary>
+        /// Attempts to restore reader state from the import run history's serialized cursor.
+        /// On success: injects the cursor's embedded ProcessedCount into context.ProgressInfo
+        /// (via <see cref="IResumableImportDataReader"/> DIM bridge) and returns true.
+        /// On failure (no cursor / invalid / expired / throwing reader): silently resets the history row
+        /// (Cursor/ProcessedCount/ErrorsCount) and returns false, so the pipeline continues as a fresh run.
+        /// </summary>
+        internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context)
+        {
+            if (reader is not IResumableImportDataReader cursorReader)
+            {
+                return false;
+            }
+
+            var runHistory = context.ImportProfile.RunHistory;
+            if (string.IsNullOrEmpty(runHistory?.Cursor))
+            {
+                return false;
+            }
+
+            try
+            {
+                if (cursorReader.TryRestoreFromSerializedCursor(context, runHistory.Cursor))
+                {
+                    LogRestoredCursorFromImportRunHistory(runHistory.Id, context.ProgressInfo?.ProcessedCount ?? 0);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // RestoreCursor may have partially advanced the reader before throwing
+                // (read header, skipped N rows). Resetting and continuing would make the
+                // pipeline skip those rows silently. Surface the error so the run fails
+                // explicitly; the user can investigate and restart manually.
+                LogFailedToRestoreCursorFromImportRunHistory(ex, runHistory.Id);
+                throw;
+            }
+
+            LogCursorFromImportRunHistoryInvalid(runHistory.Id);
+
+            runHistory.Cursor = null;
+            runHistory.ProcessedCount = 0;
+            runHistory.ErrorsCount = 0;
+            await _importRunHistoryService.SaveChangesAsync([runHistory]);
+
+            return false;
+        }
+
+        [LoggerMessage(LogLevel.Information, "Restored cursor from import run history '{HistoryId}' at {ProcessedCount} processed records")]
+        partial void LogRestoredCursorFromImportRunHistory(string historyId, int processedCount);
+
+        [LoggerMessage(LogLevel.Error, "Failed to restore cursor from import run history '{historyId}'")]
+        partial void LogFailedToRestoreCursorFromImportRunHistory(Exception exception, string historyId);
+
+        [LoggerMessage(LogLevel.Warning, "Cursor from import run history '{HistoryId}' is expired or invalid, restarting from zero")]
+        partial void LogCursorFromImportRunHistoryInvalid(string historyId);
     }
 }

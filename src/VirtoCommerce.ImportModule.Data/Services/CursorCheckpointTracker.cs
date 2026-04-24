@@ -50,13 +50,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// </summary>
         public static void ClearSaveState(ImportContext context)
         {
-            var progress = context.ProgressInfo;
-            if (progress is null)
-            {
-                return;
-            }
-            progress.Cursor = null;
-            progress.ShouldSaveHistory = false;
+            context.ProgressInfo?.Cursor = null;
+            context.ProgressInfo?.ShouldSaveHistory = false;
         }
     }
 }

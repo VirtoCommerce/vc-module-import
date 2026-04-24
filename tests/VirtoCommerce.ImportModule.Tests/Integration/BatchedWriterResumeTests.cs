@@ -12,7 +12,7 @@ namespace VirtoCommerce.ImportModule.Tests.Integration
 {
     public class BatchedWriterResumeTests
     {
-        public sealed record PagedCursor(int PageIdx) : ImportDataCursor;
+        private sealed record PagedCursor(int PageIdx) : ImportDataCursor;
 
         private sealed class PagedReader : IImportDataReader<PagedCursor>
         {
@@ -45,7 +45,7 @@ namespace VirtoCommerce.ImportModule.Tests.Integration
         {
             public HashSet<int> Committed { get; } = new();
             private readonly List<Task> _inFlight = new();
-            private readonly object _lock = new();
+            private readonly Lock _lock = new();
 
             public async Task WriteAsync(object[] items, ImportContext context)
             {

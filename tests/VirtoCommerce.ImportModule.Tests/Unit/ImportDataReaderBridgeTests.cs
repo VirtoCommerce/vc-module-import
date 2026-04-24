@@ -13,11 +13,11 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 {
     public class ImportDataReaderBridgeTests
     {
-        public sealed record FakeCursor(int Skip) : ImportDataCursor;
+        private sealed record FakeCursor(int Skip) : ImportDataCursor;
 
         private sealed class FakeReader : IImportDataReader<FakeCursor>
         {
-            public FakeCursor Position { get; set; } = new FakeCursor(0);
+            public FakeCursor Position { get; set; } = new(0);
             public FakeCursor Restored { get; private set; }
             public bool ReturnNullCursor { get; set; }
 
@@ -26,7 +26,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
             public bool HasMoreResults => true;
             public Task<int> GetTotalCountAsync(ImportContext context) => Task.FromResult(0);
-            public Task<object[]> ReadNextPageAsync(ImportContext context) => Task.FromResult<object[]>(new object[0]);
+            public Task<object[]> ReadNextPageAsync(ImportContext context) => Task.FromResult<object[]>([]);
             public void Dispose() { }
         }
 
