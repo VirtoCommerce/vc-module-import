@@ -36,7 +36,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Happy_path_returns_true_restores_reader_and_PC()
+        public async Task Happy_Path_Returns_True_Restores_Reader_And_PC()
         {
             var cursor = new TestCursor(100) { ProcessedCount = 500 };
             var history = new ImportRunHistory { Id = "H1", Cursor = cursor.Serialize(), ProcessedCount = 500 };
@@ -55,7 +55,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Invalid_cursor_resets_history_row_and_returns_false()
+        public async Task Invalid_Cursor_Resets_History_Row_And_Returns_False()
         {
             var history = new ImportRunHistory { Id = "H1", Cursor = "garbage-not-base64", ProcessedCount = 500, ErrorsCount = 3 };
             var profile = MakeProfile(history, lifetimeDays: 7);
@@ -74,7 +74,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task No_cursor_in_history_returns_false_no_mutation()
+        public async Task No_Cursor_In_History_Returns_False_No_Mutation()
         {
             var history = new ImportRunHistory { Id = "H1", Cursor = null, ProcessedCount = 0 };
             var profile = MakeProfile(history, lifetimeDays: 7);
@@ -90,7 +90,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Reader_restore_throws_propagates_so_pipeline_aborts()
+        public async Task Reader_Restore_Throws_Propagates_So_Pipeline_Aborts()
         {
             // RestoreCursor may have partially advanced the reader before throwing; silently
             // resetting the history row and continuing would make ReadNextPageAsync skip the

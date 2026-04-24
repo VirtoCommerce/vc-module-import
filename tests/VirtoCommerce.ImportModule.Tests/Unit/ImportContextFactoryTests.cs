@@ -18,7 +18,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ImportAsync_resolves_context_via_AbstractTypeFactory_and_calls_importer_with_derived_type()
+        public async Task ImportAsync_Resolves_Context_Via_AbstractTypeFactory_And_Calls_Importer_With_Derived_Type()
         {
             // Register override before test run; clean up after to avoid polluting global factory state.
             AbstractTypeFactory<ImportContext>.OverrideType<ImportContext, TestImportContext>();

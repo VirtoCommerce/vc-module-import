@@ -49,7 +49,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Pipeline_calls_FlushAsync_at_throttle_checkpoints_and_in_finally()
+        public async Task Pipeline_Calls_FlushAsync_At_Throttle_Checkpoints_And_In_Finally()
         {
             var reader = new SeqReader();
             var writer = new TraceWriter();

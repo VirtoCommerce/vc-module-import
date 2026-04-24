@@ -14,7 +14,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
     public class ImportRunServiceResumeTests
     {
         [Fact]
-        public async Task ResumeImportAsync_returns_PushNotification_when_history_is_resumable_and_hangfire_accepts()
+        public async Task ResumeImportAsync_Returns_PushNotification_When_History_Is_Resumable_And_Hangfire_Accepts()
         {
             var history = Resumable("hist-1", "job-42");
             var service = new TestableResumeService(history, requeueReturns: true, currentUser: "tester");
@@ -33,7 +33,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_throws_OperationCanceledException_when_history_not_found()
+        public async Task ResumeImportAsync_Throws_OperationCanceledException_When_History_Not_Found()
         {
             var service = new TestableResumeService(history: null, requeueReturns: true);
 
@@ -43,7 +43,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_still_running()
+        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_History_Still_Running()
         {
             var stillRunning = new ImportRunHistory { Id = "h", JobId = "job", Finished = null, TotalCount = 100, ProcessedCount = 50 };
             var service = new TestableResumeService(stillRunning, requeueReturns: true);
@@ -54,7 +54,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_already_completed()
+        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_History_Already_Completed()
         {
             var completed = new ImportRunHistory { Id = "h", JobId = "job", Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 100 };
             var service = new TestableResumeService(completed, requeueReturns: true);
@@ -65,7 +65,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_has_no_JobId()
+        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_History_Has_No_JobId()
         {
             var noJob = new ImportRunHistory { Id = "h", JobId = null, Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 42, Cursor = "c" };
             var service = new TestableResumeService(noJob, requeueReturns: true);
@@ -76,7 +76,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_throws_InvalidOperationException_when_history_has_no_Cursor()
+        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_History_Has_No_Cursor()
         {
             var noCursor = new ImportRunHistory { Id = "h", JobId = "job", Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 42, Cursor = null };
             var service = new TestableResumeService(noCursor, requeueReturns: true);
@@ -87,7 +87,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_throws_InvalidOperationException_when_hangfire_rejects()
+        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_Hangfire_Rejects()
         {
             var service = new TestableResumeService(Resumable("h", "job"), requeueReturns: false);
 
@@ -124,6 +124,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     /* INotificationSender */          null!,
                     /* IImportProfileCrudService */    null!,
                     /* IImportRunHistoryCrudService */ BuildHistoryCrud(history),
+                    /* IImportRunHistorySearchService */ null!,
                     /* IDataImporterFactory */         null!,
                     /* IDataImportProcessManager */    null!,
                     /* ILogger<ImportRunService> */    NullLogger<ImportRunService>.Instance)

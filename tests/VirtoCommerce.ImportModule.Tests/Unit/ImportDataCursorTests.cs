@@ -12,7 +12,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         public sealed record TestCursor(int Skip, string PageToken) : ImportDataCursor;
 
         [Fact]
-        public void Serialize_then_deserialize_round_trip_preserves_fields()
+        public void Serialize_Then_Deserialize_Round_Trip_Preserves_Fields()
         {
             var cursor = new TestCursor(100, "abc")
             {
@@ -31,35 +31,35 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void Deserialize_null_or_empty_returns_null()
+        public void Deserialize_Null_Or_Empty_Returns_Null()
         {
             Assert.Null(ImportDataCursor.Deserialize<TestCursor>(null));
             Assert.Null(ImportDataCursor.Deserialize<TestCursor>(string.Empty));
         }
 
         [Fact]
-        public void Deserialize_garbage_string_returns_null_not_throws()
+        public void Deserialize_Garbage_String_Returns_Null_Not_Throws()
         {
             Assert.Null(ImportDataCursor.Deserialize<TestCursor>("not-base64!!!"));
             Assert.Null(ImportDataCursor.Deserialize<TestCursor>("YWJjZA==")); // valid base64 but not JSON
         }
 
         [Fact]
-        public void IsValid_within_TTL_returns_true()
+        public void IsValid_Within_TTL_Returns_True()
         {
             var cursor = new TestCursor(0, null) { CreatedAt = DateTime.UtcNow.AddDays(-1) };
             Assert.True(cursor.IsValid(MakeContextWithLifetimeDays(7)));
         }
 
         [Fact]
-        public void IsValid_past_TTL_returns_false()
+        public void IsValid_Past_TTL_Returns_False()
         {
             var cursor = new TestCursor(0, null) { CreatedAt = DateTime.UtcNow.AddDays(-8) };
             Assert.False(cursor.IsValid(MakeContextWithLifetimeDays(7)));
         }
 
         [Fact]
-        public void IsValid_falls_back_to_descriptor_default_when_setting_absent()
+        public void IsValid_Falls_Back_To_Descriptor_Default_When_Setting_Absent()
         {
             var cursor = new TestCursor(0, null) { CreatedAt = DateTime.UtcNow.AddDays(-3) };
             var profile = new ImportProfile { Settings = new List<ObjectSettingEntry>() };

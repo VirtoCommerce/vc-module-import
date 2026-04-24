@@ -19,13 +19,7 @@ namespace VirtoCommerce.ImportModule.Core.Services
         IImportDataWriter OpenWriter(ImportContext context);
         Task<IImportDataWriter> OpenWriterAsync(ImportContext context) => Task.FromResult(OpenWriter(context));
         Task<ValidationResult> ValidateAsync(ImportContext context);
-        Task OnImportCompletedAsync(ImportContext context) { return Task.CompletedTask; }
-
-        /// <summary>
-        /// One-time importer initialization. Invoked by the pipeline after reader/writer are opened
-        /// and cursor restore has been attempted. context.IsResume reflects the final restore outcome.
-        /// Default: no-op.
-        /// </summary>
         Task OnImportStartedAsync(ImportContext context) => Task.CompletedTask;
+        Task OnImportCompletedAsync(ImportContext context) => Task.CompletedTask;
     }
 }

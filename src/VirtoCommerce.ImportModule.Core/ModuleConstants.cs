@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using VirtoCommerce.Platform.Core.Settings;
 
 namespace VirtoCommerce.ImportModule.Core
@@ -81,21 +82,8 @@ namespace VirtoCommerce.ImportModule.Core
                 }
             }
 
-            public static IEnumerable<SettingDescriptor> AllSettings
-            {
-                get
-                {
-                    foreach (var setting in General.AllSettings)
-                    {
-                        yield return setting;
-                    }
-
-                    foreach (var setting in ImportCursorSettings.AllSettings)
-                    {
-                        yield return setting;
-                    }
-                }
-            }
+            public static IEnumerable<SettingDescriptor> AllSettings =>
+                General.AllSettings.Concat(ImportCursorSettings.AllSettings);
         }
     }
 }

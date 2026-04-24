@@ -31,7 +31,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void GetSerializedCursor_injects_pipeline_ProcessedCount()
+        public void GetSerializedCursor_Injects_Pipeline_ProcessedCount()
         {
             var reader = new FakeReader { Position = new FakeCursor(100) };
             var profile = new ImportProfile { Settings = new List<ObjectSettingEntry>() };
@@ -47,7 +47,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void TryRestoreFromSerializedCursor_extracts_PC_and_calls_RestoreCursor()
+        public void TryRestoreFromSerializedCursor_Extracts_PC_And_Calls_RestoreCursor()
         {
             var reader = new FakeReader();
             var profile = MakeProfile(lifetimeDays: 7);
@@ -68,7 +68,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         [InlineData(null)]
         [InlineData("")]
         [InlineData("not-base64")]
-        public void TryRestoreFromSerializedCursor_null_or_invalid_returns_false_no_state_change(string serializedCursor)
+        public void TryRestoreFromSerializedCursor_Null_Or_Invalid_Returns_False_No_State_Change(string serializedCursor)
         {
             var reader = new FakeReader();
             var profile = MakeProfile(lifetimeDays: 7);
@@ -83,7 +83,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void TryRestoreFromSerializedCursor_expired_cursor_returns_false_no_context_mutation()
+        public void TryRestoreFromSerializedCursor_Expired_Cursor_Returns_False_No_Context_Mutation()
         {
             var reader = new FakeReader();
             var profile = MakeProfile(lifetimeDays: 7);
@@ -101,7 +101,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void GetSerializedCursor_uses_JsonSerializerSettings_from_context()
+        public void GetSerializedCursor_Uses_JsonSerializerSettings_From_Context()
         {
             var reader = new FakeReader { Position = new FakeCursor(42) };
             var profile = new ImportProfile { Settings = new List<ObjectSettingEntry>() };
@@ -123,7 +123,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void TryRestoreFromSerializedCursor_uses_JsonSerializerSettings_from_context()
+        public void TryRestoreFromSerializedCursor_Uses_JsonSerializerSettings_From_Context()
         {
             var reader = new FakeReader();
             var profile = MakeProfile(lifetimeDays: 7);
@@ -147,7 +147,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void GetSerializedCursor_returns_null_when_reader_has_no_cursor()
+        public void GetSerializedCursor_Returns_Null_When_Reader_Has_No_Cursor()
         {
             var reader = new FakeReader { ReturnNullCursor = true };
             var profile = new ImportProfile { Settings = new List<ObjectSettingEntry>() };

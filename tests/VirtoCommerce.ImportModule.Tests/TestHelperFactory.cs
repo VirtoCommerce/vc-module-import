@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -6,6 +7,7 @@ using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.PushNotifications;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -13,6 +15,18 @@ namespace VirtoCommerce.ImportModule.Tests
 {
     internal static class TestHelperFactory
     {
+        /// <summary>
+        /// Tests bypass <c>Module.PostInitialize</c>, which in production registers <see cref="ImportContext"/>
+        /// in <see cref="AbstractTypeFactory{BaseType}"/>. A <see cref="ModuleInitializerAttribute"/> runs on
+        /// assembly load — before any test code, including test-class static constructors — so the factory
+        /// resolves regardless of which test executes first.
+        /// </summary>
+        [ModuleInitializer]
+        internal static void InitializeFactory()
+        {
+            AbstractTypeFactory<ImportContext>.RegisterType<ImportContext>();
+        }
+
         public static DataImportProcessManager CreateManager(
             IDataImporterFactory factory = null,
             IImportRemainingEstimatorFactory estimator = null,
@@ -69,6 +83,7 @@ namespace VirtoCommerce.ImportModule.Tests
                     /* INotificationSender */          null!,
                     /* IImportProfileCrudService */    null!,
                     /* IImportRunHistoryCrudService */ historyCrud,
+                    /* IImportRunHistorySearchService */ null!,
                     /* IDataImporterFactory */         null!,
                     /* IDataImportProcessManager */    null!,
                     /* ILogger<ImportRunService> */    NullLogger<ImportRunService>.Instance)
@@ -77,7 +92,7 @@ namespace VirtoCommerce.ImportModule.Tests
 
             public Task InvokeCallbackForTesting(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory history)
             {
-                return ProgressInfoCallbackImpl(progressInfo, pushNotification, history);
+                return UpdateProgressAsync(progressInfo, pushNotification, history);
             }
         }
 

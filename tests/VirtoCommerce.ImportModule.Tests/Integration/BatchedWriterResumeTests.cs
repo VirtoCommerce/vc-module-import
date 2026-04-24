@@ -92,7 +92,7 @@ namespace VirtoCommerce.ImportModule.Tests.Integration
         }
 
         [Fact]
-        public async Task Resume_after_crash_commits_every_record_exactly_once()
+        public async Task Resume_After_Crash_Commits_Every_Record_Exactly_Once()
         {
             // Phase 1: run 4 pages then stop (reader self-stops via StopAfterWrites,
             // simulating a crash — pipeline captures cursor at the throttle checkpoint).

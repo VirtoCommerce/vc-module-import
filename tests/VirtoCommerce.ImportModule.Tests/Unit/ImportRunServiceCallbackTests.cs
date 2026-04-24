@@ -11,7 +11,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
     public class ImportRunServiceCallbackTests
     {
         [Fact]
-        public async Task Saves_cursor_and_PC_when_ShouldSaveHistory_is_true()
+        public async Task Saves_Cursor_And_PC_When_ShouldSaveHistory_Is_True()
         {
             // Arrange
             var historyCrud = new Mock<IImportRunHistoryCrudService>();
@@ -48,7 +48,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Does_not_save_when_ShouldSaveHistory_false()
+        public async Task Does_Not_Save_When_ShouldSaveHistory_False()
         {
             // Arrange
             var historyCrud = new Mock<IImportRunHistoryCrudService>();
@@ -74,7 +74,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Save_exception_is_swallowed_and_logged()
+        public async Task Save_Exception_Is_Swallowed_And_Logged()
         {
             // Arrange
             var historyCrud = new Mock<IImportRunHistoryCrudService>();

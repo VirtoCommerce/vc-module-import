@@ -46,7 +46,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task No_save_before_interval()
+        public async Task No_Save_Before_Interval()
         {
             var tracker = new CursorCheckpointTracker(saveIntervalPages: 3);
             var reader = new FakeCursorReader();
@@ -63,7 +63,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Saves_when_interval_reached_and_cursor_stable()
+        public async Task Saves_When_Interval_Reached_And_Cursor_Stable()
         {
             var tracker = new CursorCheckpointTracker(saveIntervalPages: 2);
             var reader = new FakeCursorReader();
@@ -80,7 +80,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Counter_resets_after_save_and_saves_again_after_next_interval()
+        public async Task Counter_Resets_After_Save_And_Saves_Again_After_Next_Interval()
         {
             var tracker = new CursorCheckpointTracker(saveIntervalPages: 2);
             var reader = new FakeCursorReader();
@@ -100,7 +100,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Save_deferred_while_cursor_unstable_fires_immediately_once_stable()
+        public async Task Save_Deferred_While_Cursor_Unstable_Fires_Immediately_Once_Stable()
         {
             var tracker = new CursorCheckpointTracker(saveIntervalPages: 2);
             var reader = new FakeCursorReader { HasStableCursor = true };
@@ -126,7 +126,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Ignores_null_reader()
+        public async Task Ignores_Null_Reader()
         {
             var tracker = new CursorCheckpointTracker(saveIntervalPages: 1);
             var writer = new TraceWriter();
@@ -139,7 +139,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Ignores_when_ProcessedCount_is_zero()
+        public async Task Ignores_When_ProcessedCount_Is_Zero()
         {
             var tracker = new CursorCheckpointTracker(saveIntervalPages: 1);
             var reader = new FakeCursorReader();
@@ -153,7 +153,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void ClearSaveState_clears_Cursor_and_ShouldSaveHistory()
+        public void ClearSaveState_Clears_Cursor_And_ShouldSaveHistory()
         {
             var (ctx, progress) = MakeContext();
             progress.Cursor = "previous-cursor";
@@ -166,7 +166,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void ClearSaveState_tolerates_null_ProgressInfo()
+        public void ClearSaveState_Tolerates_Null_ProgressInfo()
         {
             var ctx = new ImportContext(new ImportProfile()); // ProgressInfo left null
 

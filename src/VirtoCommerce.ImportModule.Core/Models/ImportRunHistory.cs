@@ -39,6 +39,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
             result.JobId = notification.JobId;
             result.Executed = notification.Created;
             result.FileUrl = profile.ImportFileUrl;
+
             return result;
         }
 
@@ -61,9 +62,18 @@ namespace VirtoCommerce.ImportModule.Core.Models
             ReportUrl = notification.ReportUrl;
         }
 
+        /// <summary>
+        /// True when this run carries enough states to continue from a saved cursor.
+        /// </summary>
+        public virtual bool IsResumable()
+        {
+            return Finished is not null && ProcessedCount < TotalCount && !string.IsNullOrEmpty(Cursor);
+        }
+
         public object Clone()
         {
-            var result = MemberwiseClone() as ImportRunHistory;
+            var result = (ImportRunHistory)MemberwiseClone();
+
             return result;
         }
     }

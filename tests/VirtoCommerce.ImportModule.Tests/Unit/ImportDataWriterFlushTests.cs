@@ -14,7 +14,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Default_FlushAsync_is_noop_for_synchronous_writers()
+        public async Task Default_FlushAsync_Is_Noop_For_Synchronous_Writers()
         {
             IImportDataWriter writer = new NoopWriter();
             var profile = new ImportProfile();
