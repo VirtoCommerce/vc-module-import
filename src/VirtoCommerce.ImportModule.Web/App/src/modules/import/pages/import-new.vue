@@ -385,11 +385,12 @@ const selectedItemId = ref();
 const bladeWidth = ref(70);
 const resumingJobId = ref<string | undefined>(undefined);
 
-// Soft hint — the generated ImportRunHistory TS class does not expose `cursor`, so
-// cursor-absence cannot be checked client-side. The backend IsResumable() is the
-// authoritative guard; clicking Resume on a cursor-less run returns an error.
+// The generated ImportRunHistory TS class does not expose `cursor`. We use ProcessedCount > 0
+// as a proxy: cursor saves are gated on ProcessedCount > 0 in the pipeline, so any run with
+// progress has a saved cursor. The backend IsResumable() is the authoritative guard; clicking
+// Resume on a cursor-less run returns 400.
 function canResume(row: ImportRunHistory): boolean {
-  return !!row.jobId && !!row.finished && !!row.totalCount && (row.processedCount ?? 0) < row.totalCount;
+  return !!row.jobId && !!row.finished && (row.processedCount ?? 0) > 0;
 }
 
 async function onResumeClick(row: ImportRunHistory): Promise<void> {

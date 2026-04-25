@@ -33,16 +33,40 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Returns_Null_For_Completed_History()
+        public async Task Attaches_Completed_History_With_Saved_Cursor()
         {
+            // Lenient gate: a finished run with a cursor is resumable even when ProcessedCount
+            // equals TotalCount. Re-running the last batch is harmless for idempotent writers
+            // and lets users replay the tail of a successful import on demand.
             var completed = new ImportRunHistory
             {
                 Id = "h1",
                 JobId = "job-42",
                 Finished = DateTime.UtcNow,
                 TotalCount = 1000,
-                ProcessedCount = 1000, // fully processed → not resumable
+                ProcessedCount = 1000,
                 Cursor = "dummy-cursor",
+            };
+            var service = CreateService(completed, "job-42");
+
+            var result = await service.TryGetRunHistoryAsyncPublic(new ImportProfile(), new ImportPushNotification("tester") { JobId = "job-42" });
+
+            Assert.Same(completed, result);
+            Assert.Null(result.Finished);
+        }
+
+        [Fact]
+        public async Task Returns_Null_For_Finished_History_Without_Cursor()
+        {
+            // No cursor → nothing to replay → not resumable.
+            var completed = new ImportRunHistory
+            {
+                Id = "h1",
+                JobId = "job-42",
+                Finished = DateTime.UtcNow,
+                TotalCount = 1000,
+                ProcessedCount = 1000,
+                Cursor = null,
             };
             var service = CreateService(completed, "job-42");
 

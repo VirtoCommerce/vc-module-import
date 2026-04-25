@@ -54,14 +54,27 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_History_Already_Completed()
+        public async Task ResumeImportAsync_Replays_Last_Batch_When_History_Is_Completed_With_Cursor()
         {
-            var completed = new ImportRunHistory { Id = "h", JobId = "job", Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 100 };
+            // Lenient gate: a completed run with a saved cursor is resumable; the resumed run
+            // re-reads the last batch (idempotent writers tolerate this).
+            var completed = new ImportRunHistory
+            {
+                Id = "h",
+                JobId = "job",
+                ProfileId = "profile-1",
+                ProfileName = "Profile One",
+                Finished = DateTime.UtcNow,
+                TotalCount = 100,
+                ProcessedCount = 100,
+                Cursor = "dummy-cursor",
+            };
             var service = new TestableResumeService(completed, requeueReturns: true);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => service.ResumeImportAsync("h"));
-            Assert.Null(service.RequeuedJobId);
+            var notification = await service.ResumeImportAsync("h");
+
+            Assert.NotNull(notification);
+            Assert.Equal("job", service.RequeuedJobId);
         }
 
         [Fact]

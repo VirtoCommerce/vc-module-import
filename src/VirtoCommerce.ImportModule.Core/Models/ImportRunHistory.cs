@@ -63,11 +63,16 @@ namespace VirtoCommerce.ImportModule.Core.Models
         }
 
         /// <summary>
-        /// True when this run carries enough states to continue from a saved cursor.
+        /// True when this run has terminated and carries a saved cursor that can be replayed.
         /// </summary>
+        /// <remarks>
+        /// Resuming an already-completed run is permitted: the pipeline replays the last saved
+        /// batch, which is harmless for idempotent writers (the resume contract). Callers that
+        /// want stricter semantics can override this method on a derived <see cref="ImportRunHistory"/>.
+        /// </remarks>
         public virtual bool IsResumable()
         {
-            return Finished is not null && ProcessedCount < TotalCount && !string.IsNullOrEmpty(Cursor);
+            return Finished is not null && !string.IsNullOrEmpty(Cursor);
         }
 
         public object Clone()
