@@ -30,5 +30,9 @@ namespace VirtoCommerce.ImportModule.Core.Models.Search
         }
 
         public string JobId { get; set; }
+
+        public bool? Finished { get; set; }
+
+        public bool? HasErrors { get; set; }
     }
 }
