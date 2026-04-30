@@ -153,7 +153,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "FlushAsync failed for import profile '{ProfileName}'", context.ImportProfile.Name);
+                    context.ErrorCallback?.Invoke(new ErrorInfo
+                    {
+                        ErrorLine = context.ProgressInfo?.ProcessedCount,
+                        ErrorMessage = ex.ExpandExceptionMessage(),
+                    });
+                    LogFlushFailed(ex, context.ImportProfile.Name);
                 }
 
                 var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
@@ -215,6 +220,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             return false;
         }
+
+        [LoggerMessage(LogLevel.Error, "FlushAsync failed for import profile '{profileName}'")]
+        partial void LogFlushFailed(Exception exception, string profileName);
 
         [LoggerMessage(LogLevel.Information, "Restored cursor from import run history '{HistoryId}' at {ProcessedCount} processed records")]
         partial void LogRestoredCursorFromImportRunHistory(string historyId, int processedCount);
