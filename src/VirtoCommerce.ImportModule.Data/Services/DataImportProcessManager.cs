@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using VirtoCommerce.ImportModule.Core;
-using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.Platform.Core.Common;
@@ -61,29 +60,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 Description = "Import has been started",
             };
 
-            var fixedSizeErrorsQueue = new FixedSizeQueue<ErrorInfo>(Math.Max(maxErrorsCountThreshold, 50));
-            // Import errors
-            var errorsCount = 0;
-            void ErrorCallback(ErrorInfo info)
-            {
-                errorsCount++;
-                fixedSizeErrorsQueue.Add(info);
-                _logger.LogError(info.ToString());
-                importProgress.Errors = fixedSizeErrorsQueue.GetTopValues().Select(x => x.ToString()).ToList();
-                if (errorsCount == maxErrorsCountThreshold)
-                {
-                    const string limitErrorMessage = "The import process has been canceled because it exceeds the configured maximum errors limit";
-                    importProgress.Errors.Add(limitErrorMessage);
-                    _logger.LogError(limitErrorMessage);
-                }
-                progressCallback(importProgress).GetAwaiter().GetResult();
-            }
+            var errors = new ImportErrorCollector(maxErrorsCountThreshold, importProgress, progressCallback, _logger);
 
             // Import context — via AbstractTypeFactory so downstream can OverrideType with a derived context
             // and attach extra state in OnImportStartedAsync.
             var context = AbstractTypeFactory<ImportContext>.TryCreateInstance<ImportContext>(null, importProfile);
             context.ProgressInfo = importProgress;
-            context.ErrorCallback = ErrorCallback;
+            context.ErrorCallback = errors.Handle;
 
             importRemainingEstimator.Start(context);
             await progressCallback(importProgress);
@@ -135,7 +118,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                     CursorCheckpointTracker.ClearSaveState(context);
 
-                } while (reader.HasMoreResults && errorsCount < maxErrorsCountThreshold);
+                } while (reader.HasMoreResults && !errors.LimitReached);
             }
             catch (Exception ex)
             {
@@ -147,21 +130,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                try
-                {
-                    await writer.FlushAsync(context);
-                }
-                catch (Exception ex)
-                {
-                    context.ErrorCallback?.Invoke(new ErrorInfo
-                    {
-                        ErrorLine = context.ProgressInfo?.ProcessedCount,
-                        ErrorMessage = ex.ExpandExceptionMessage(),
-                    });
-                    LogFlushFailed(ex, context.ImportProfile.Name);
-                }
+                await FlushSafelyAsync(writer, context);
 
-                var errorReportResult = await importReporter.SaveErrorsAsync(fixedSizeErrorsQueue.GetTopValues().ToList());
+                var errorReportResult = await importReporter.SaveErrorsAsync(errors.GetTopErrors());
                 importRemainingEstimator.Stop(context);
 
                 importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
@@ -170,6 +141,23 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
                 await dataImporter.OnImportCompletedAsync(context);
                 await progressCallback(importProgress);
+            }
+        }
+
+        private async Task FlushSafelyAsync(IImportDataWriter writer, ImportContext context)
+        {
+            try
+            {
+                await writer.FlushAsync(context);
+            }
+            catch (Exception ex)
+            {
+                context.ErrorCallback?.Invoke(new ErrorInfo
+                {
+                    ErrorLine = context.ProgressInfo?.ProcessedCount,
+                    ErrorMessage = ex.ExpandExceptionMessage(),
+                });
+                LogFlushFailed(ex, context.ImportProfile.Name);
             }
         }
 
