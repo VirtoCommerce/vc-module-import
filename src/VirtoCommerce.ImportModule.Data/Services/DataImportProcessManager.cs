@@ -60,7 +60,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 Description = "Import has been started",
             };
 
-            var errors = new ImportErrorCollector(maxErrorsCountThreshold, importProgress, progressCallback, _logger);
+            var errors = new ImportErrorCollector(maxErrorsCountThreshold, importProgress, _logger);
 
             // Import context — via AbstractTypeFactory so downstream can OverrideType with a derived context
             // and attach extra state in OnImportStartedAsync.
