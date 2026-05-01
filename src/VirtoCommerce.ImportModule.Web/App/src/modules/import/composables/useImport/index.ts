@@ -84,6 +84,7 @@ interface IUseImport {
   previewData(): Promise<ImportDataPreview>;
   startImport(extProfile?: ExtProfile): Promise<void>;
   cancelImport(): Promise<void>;
+  resume(jobId: string): Promise<ImportPushNotification | undefined>;
   clearImport(): void;
   fetchImportHistory(query?: SearchImportRunHistoryCriteria): Promise<void>;
   fetchImportProfiles(args?: SearchImportProfilesCriteria): Promise<void>;
@@ -166,6 +167,16 @@ export default (): IUseImport => {
     }
   });
 
+  async function resume(jobId: string): Promise<ImportPushNotification | undefined> {
+    try {
+      const client = await getApiClient();
+      return await client.resumeImport({ jobId });
+    } catch (e) {
+      console.error("Import resume failed:", e);
+      return undefined;
+    }
+  }
+
   function getLongRunning(args?: { id: string }) {
     const job = messages.value.find((x) => (x as ImportPushNotification).profileId === args?.id) as
       | ImportPushNotification
@@ -237,6 +248,7 @@ export default (): IUseImport => {
     previewData,
     startImport,
     cancelImport,
+    resume,
     clearImport,
     loadImportProfile,
     fetchImportHistory,

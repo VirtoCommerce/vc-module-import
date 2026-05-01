@@ -39,6 +39,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
             result.JobId = notification.JobId;
             result.Executed = notification.Created;
             result.FileUrl = profile.ImportFileUrl;
+
             return result;
         }
 
@@ -61,9 +62,23 @@ namespace VirtoCommerce.ImportModule.Core.Models
             ReportUrl = notification.ReportUrl;
         }
 
+        /// <summary>
+        /// True when this run has terminated and carries a saved cursor that can be replayed.
+        /// </summary>
+        /// <remarks>
+        /// Resuming an already-completed run is permitted: the pipeline replays the last saved
+        /// batch, which is harmless for idempotent writers (the resume contract). Callers that
+        /// want stricter semantics can override this method on a derived <see cref="ImportRunHistory"/>.
+        /// </remarks>
+        public virtual bool IsResumable()
+        {
+            return Finished is not null && !string.IsNullOrEmpty(Cursor);
+        }
+
         public object Clone()
         {
-            var result = MemberwiseClone() as ImportRunHistory;
+            var result = (ImportRunHistory)MemberwiseClone();
+
             return result;
         }
     }

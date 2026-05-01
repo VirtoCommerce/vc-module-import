@@ -40,6 +40,12 @@ export declare class ImportClient extends AuthApiBase {
   protected processCancelJob(response: Response): Promise<void>;
   /**
    * @param body (optional)
+   * @return Success
+   */
+  resumeImport(body?: ImportResumeRequest | undefined): Promise<ImportPushNotification>;
+  protected processResumeImport(response: Response): Promise<ImportPushNotification>;
+  /**
+   * @param body (optional)
    * @return OK
    */
   preview(body?: ImportProfile | undefined): Promise<ImportDataPreview>;
@@ -119,6 +125,9 @@ export interface IDataImporter {
   authorizationRequirement?: IAuthorizationRequirement | undefined;
 }
 export interface ImportCancellationRequest {
+  jobId?: string | undefined;
+}
+export interface ImportResumeRequest {
   jobId?: string | undefined;
 }
 export interface ImportDataPreview {

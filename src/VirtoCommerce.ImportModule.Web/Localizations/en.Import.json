@@ -21,6 +21,16 @@
           "description": "The number of rows read from the CSV file at a time"
         }
       },
+      "Cursor": {
+        "SaveIntervalPages": {
+          "title": "Cursor save interval (pages)",
+          "description": "How often the import pipeline persists the resume cursor, measured in pages between saves. Smaller values give more granular resume points at the cost of extra DB writes."
+        },
+        "LifetimeDays": {
+          "title": "Cursor lifetime (days)",
+          "description": "Maximum age of a saved cursor in days. A cursor older than this is treated as expired on resume — the import restarts from zero inside the same history row."
+        }
+      },
       "RemainingEstimator": {
         "title": "Remaining estimator",
         "description": "Algorithm to estimate the remaining time of the import"

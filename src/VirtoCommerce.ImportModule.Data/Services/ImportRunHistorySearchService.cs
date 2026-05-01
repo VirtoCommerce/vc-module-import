@@ -50,6 +50,20 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 query = query.Where(x => x.JobId == criteria.JobId);
             }
 
+            if (criteria.Finished.HasValue)
+            {
+                query = criteria.Finished.Value
+                    ? query.Where(x => x.Finished != null)
+                    : query.Where(x => x.Finished == null);
+            }
+
+            if (criteria.HasErrors.HasValue)
+            {
+                query = criteria.HasErrors.Value
+                    ? query.Where(x => x.ErrorsCount > 0)
+                    : query.Where(x => x.ErrorsCount == 0);
+            }
+
             return query;
         }
 

@@ -171,6 +171,59 @@ export class ImportClient extends AuthApiBase {
 
   /**
    * @param body (optional)
+   * @return Success
+   */
+  resumeImport(body?: ImportResumeRequest | undefined): Promise<ImportPushNotification> {
+    let url_ = this.baseUrl + "/api/import/runs/resume";
+    url_ = url_.replace(/[?&]$/, "");
+
+    const content_ = JSON.stringify(body);
+
+    let options_: RequestInit = {
+      body: content_,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json-patch+json",
+        Accept: "application/json",
+      },
+    };
+
+    return this.transformOptions(options_)
+      .then((transformedOptions_) => {
+        return this.http.fetch(url_, transformedOptions_);
+      })
+      .then((_response: Response) => {
+        return this.processResumeImport(_response);
+      });
+  }
+
+  protected processResumeImport(response: Response): Promise<ImportPushNotification> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && response.headers.forEach) {
+      response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+    }
+    if (status === 200) {
+      return response.text().then((_responseText) => {
+        let result200: any = null;
+        let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        result200 = ImportPushNotification.fromJS(resultData200);
+        return result200;
+      });
+    } else if (status === 401) {
+      return response.text().then((_responseText) => {
+        return throwException("Unauthorized", status, _responseText, _headers);
+      });
+    } else if (status !== 200 && status !== 204) {
+      return response.text().then((_responseText) => {
+        return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+      });
+    }
+    return Promise.resolve<ImportPushNotification>(null as any);
+  }
+
+  /**
+   * @param body (optional)
    * @return OK
    */
   preview(body?: ImportProfile | undefined): Promise<ImportDataPreview> {
@@ -721,6 +774,10 @@ export interface IDataImporter {
 }
 
 export interface ImportCancellationRequest {
+  jobId?: string | undefined;
+}
+
+export interface ImportResumeRequest {
   jobId?: string | undefined;
 }
 

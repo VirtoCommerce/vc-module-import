@@ -206,6 +206,25 @@
                 :width="118"
                 :sortable="true"
               />
+              <VcColumn
+                id="resume"
+                title=""
+                :width="120"
+              >
+                <template #body="{ data }">
+                  <VcButton
+                    v-if="canResume(data)"
+                    icon="material-refresh"
+                    :loading="resumingJobId === data.jobId"
+                    :title="$t('IMPORT.PAGES.RESUME.TOOLTIP')"
+                    outline
+                    size="sm"
+                    @click.stop="onResumeClick(data)"
+                  >
+                    {{ $t("IMPORT.PAGES.RESUME.BUTTON") }}
+                  </VcButton>
+                </template>
+              </VcColumn>
             </VcDataTable>
           </VcCard>
         </VcCol>
@@ -291,6 +310,7 @@ const {
   previewDataLoading,
   profilesLoading,
   cancelImport,
+  resume,
   clearImport,
   previewData,
   setFile,
@@ -300,6 +320,7 @@ const {
   clearErrorMessage,
   init,
   getTasks,
+  updateStatus,
 } = useImport();
 const { messages, markAsRead } = useBladeNotifications({
   types: ["ImportPushNotification"],
@@ -362,6 +383,33 @@ const notificationId = ref();
 const previewLoading = ref(false);
 const selectedItemId = ref();
 const bladeWidth = ref(70);
+const resumingJobId = ref<string | undefined>(undefined);
+
+// The generated ImportRunHistory TS class does not expose `cursor`. We use ProcessedCount > 0
+// as a proxy: cursor saves are gated on ProcessedCount > 0 in the pipeline, so any run with
+// progress has a saved cursor. The backend IsResumable() is the authoritative guard; clicking
+// Resume on a cursor-less run returns 400.
+function canResume(row: ImportRunHistory): boolean {
+  return !!row.jobId && !!row.finished && (row.processedCount ?? 0) > 0;
+}
+
+async function onResumeClick(row: ImportRunHistory): Promise<void> {
+  if (!row.jobId) {
+    return;
+  }
+  resumingJobId.value = row.jobId;
+  try {
+    const resumedNotification = await resume(row.jobId);
+    if (resumedNotification) {
+      updateStatus(resumedNotification);
+      await fetchImportHistory({ profileId: profile.value.id });
+    } else {
+      setErrorMessage(t("IMPORT.PAGES.RESUME.ERROR"));
+    }
+  } finally {
+    resumingJobId.value = undefined;
+  }
+}
 
 const bladeToolbar = ref<IBladeToolbar[]>([
   {

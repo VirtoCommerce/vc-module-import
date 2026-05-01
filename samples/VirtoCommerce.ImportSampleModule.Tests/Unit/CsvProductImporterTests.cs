@@ -33,7 +33,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Read_full_product_graph_from_valid_csv_product_is_readed()
+        public async Task Read_Full_Product_Graph_From_Valid_Csv_Product_Is_Readed()
         {
             // Arrange
             var importProfile = new ImportProfile
@@ -64,7 +64,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         }
 
         [Fact]
-        public void Read_full_product_graph_from_invalid_csv_error_is_generated()
+        public void Read_Full_Product_Graph_From_Invalid_Csv_Error_Is_Generated()
         {
             // Arrange
             var importProfile = new ImportProfile
@@ -94,7 +94,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Import_new_product_from_csv_product_is_created()
+        public async Task Import_New_Product_From_Csv_Product_Is_Created()
         {
             // Arrange
             var importProfile = new ImportProfile
@@ -122,7 +122,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Import_exist_product_from_csv_product_isnt_updated()
+        public async Task Import_Exist_Product_From_Csv_Product_Isnt_Updated()
         {
             // Arrange
             var importProfile = new ImportProfile
@@ -160,7 +160,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Import_product_with_properties_properties_metadata_resoved()
+        public async Task Import_Product_With_Properties_Properties_Metadata_Resoved()
         {
             // Arrange
             var propertyValue = new PropertyValue

@@ -22,6 +22,7 @@ using VirtoCommerce.ImportModule.Data.SqlServer;
 using VirtoCommerce.ImportModule.Web.Authorization;
 using VirtoCommerce.NotificationsModule.Core.Services;
 using VirtoCommerce.NotificationsModule.TemplateLoader.FileSystem;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.JsonConverters;
 using VirtoCommerce.Platform.Core.Modularity;
 using VirtoCommerce.Platform.Core.Security;
@@ -106,7 +107,7 @@ namespace VirtoCommerce.ImportModule.Web
             // Register permissions
             var permissionsProvider = appBuilder.ApplicationServices.GetRequiredService<IPermissionsRegistrar>();
             permissionsProvider.RegisterPermissions(ModuleConstants.Security.Permissions.AllPermissions.Select(x =>
-                new Permission()
+                new Permission
                 {
                     GroupName = "Import",
                     ModuleId = ModuleInfo.Id,
@@ -138,6 +139,8 @@ namespace VirtoCommerce.ImportModule.Web
 
             PolymorphJsonConverter.RegisterTypeForDiscriminator(typeof(ImportProfile), nameof(ImportProfile.ProfileType));
 
+            AbstractTypeFactory<ImportContext>.RegisterType<ImportContext>();
+
             // Ensure that any pending migrations are applied
             using (var serviceScope = appBuilder.ApplicationServices.CreateScope())
             {
@@ -152,18 +155,17 @@ namespace VirtoCommerce.ImportModule.Web
             var importAppPath = Path.Combine(ModuleInfo.FullPhysicalPath, "App", "dist");
             if (Directory.Exists(importAppPath))
             {
-                appBuilder.UseDefaultFiles(new DefaultFilesOptions()
+                appBuilder.UseDefaultFiles(new DefaultFilesOptions
                 {
                     FileProvider = new PhysicalFileProvider(importAppPath),
-                    RequestPath = new PathString($"/apps/import-app")
+                    RequestPath = new PathString("/apps/import-app")
                 });
-                appBuilder.UseStaticFiles(new StaticFileOptions()
+                appBuilder.UseStaticFiles(new StaticFileOptions
                 {
                     FileProvider = new PhysicalFileProvider(importAppPath),
-                    RequestPath = new PathString($"/apps/import-app")
+                    RequestPath = new PathString("/apps/import-app")
                 });
             }
-            ;
         }
 
         public void Uninstall()

@@ -24,7 +24,7 @@ namespace VirtoCommerce.ImportModule.CsvHelper
         protected string HeaderRaw;
         protected int? TotalCount;
 
-        public bool HasMoreResults { get; private set; } = true;
+        public bool HasMoreResults { get; protected set; } = true;
 
         public CsvDataReader(Stream stream, ImportContext context, bool needReadRaw = false)
         {
