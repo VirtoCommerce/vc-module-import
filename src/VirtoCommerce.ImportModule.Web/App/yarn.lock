@@ -3714,9 +3714,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vc-shell/api-client-generator@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@vc-shell/api-client-generator@npm:2.0.2"
+"@vc-shell/api-client-generator@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@vc-shell/api-client-generator@npm:2.0.5"
   dependencies:
     chalk: "npm:^2.4.2"
     cross-spawn: "npm:^7.0.3"
@@ -3726,13 +3726,13 @@ __metadata:
     vite-plugin-dts: "npm:^3.6.4"
   bin:
     api-client-generator: ./dist/api-client-generator.js
-  checksum: 10/1c68a647d976f43163f3f88da99c2adfaaa881aadae452f03ca3386b6409da41b55f7fc7b48fa5d918cfc47d1cc7188be662d20bb16a9c17015c73ad291e8634
+  checksum: 10/bbc43aaf4284fbd618b6cda1ade4d557a283777b794fdb1beeeb38ad8d3e37f895673aa920c205f39fb8fda04b8130768a2c95eb78763f6b73eaafd62b749680
   languageName: node
   linkType: hard
 
-"@vc-shell/config-generator@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@vc-shell/config-generator@npm:2.0.2"
+"@vc-shell/config-generator@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@vc-shell/config-generator@npm:2.0.5"
   dependencies:
     "@babel/parser": "npm:^7.27.0"
     "@vitejs/plugin-vue": "npm:^5.2.3"
@@ -3742,13 +3742,13 @@ __metadata:
     vite-plugin-circular-dependency: "npm:^0.5.0"
     vite-plugin-mkcert: "npm:^1.17.1"
     vue: "npm:^3.5.30"
-  checksum: 10/c7838b632288e8eb279676a89fb33cd1ae9f617d2b2c8cf78fe88430b860c9d41650d055830040508b79d02773c6251048de67bc125b60c3e0869a2f95612d44
+  checksum: 10/5df0c491ef8e1e603daf0bc2ccf25a9210f3c99387206e0e0022798363df17ad085e68aab84e17f52c44c44927d4e5fd403a48642cfa673a16f40144b53e1276
   languageName: node
   linkType: hard
 
-"@vc-shell/framework@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@vc-shell/framework@npm:2.0.2"
+"@vc-shell/framework@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@vc-shell/framework@npm:2.0.5"
   dependencies:
     "@floating-ui/dom": "npm:^1.7.4"
     "@floating-ui/vue": "npm:^1.0.6"
@@ -3812,35 +3812,35 @@ __metadata:
       optional: false
   bin:
     vc-check-locales: ./dist/scripts/check-locales.cjs
-  checksum: 10/f4f05d0f701b8bc7e86e8dec3f05bc4f85369bd5d13b657bbf5b038e17acdc43ed920f888174c94fb4b687b2cb22450a76fc1e60aebb09c1c2e4d07edfab6540
+  checksum: 10/3749a5dedcdee3b898f7b95a00ba0a167bdb8099137fce32b3a2f2b192e72db4d2eb6c55495b6a41b2b344289099b7b2bf635d7c7929ca2a8c32e12dd1fd3886
   languageName: node
   linkType: hard
 
-"@vc-shell/mf-config@npm:2.0.2":
-  version: 2.0.2
-  resolution: "@vc-shell/mf-config@npm:2.0.2"
-  checksum: 10/acfe8bbda4acb3b381e06748e037ee16359f80b5fcb38c06acd368df31a71280b595eec862a0f45d29c34ec64d0e5a566849033fac99b5892e16e536c2f2085c
+"@vc-shell/mf-config@npm:2.0.5":
+  version: 2.0.5
+  resolution: "@vc-shell/mf-config@npm:2.0.5"
+  checksum: 10/c63344f2dc19cd115744696c768349c97b4f3192534afacb32dbec65aeb48d1c4676f1d81c24a7adca129b772281d3f5260d12e0682f35e79f8c7c4f374639df
   languageName: node
   linkType: hard
 
-"@vc-shell/mf-module@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@vc-shell/mf-module@npm:2.0.2"
+"@vc-shell/mf-module@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@vc-shell/mf-module@npm:2.0.5"
   dependencies:
     "@module-federation/vite": "npm:^1.12.2"
-    "@vc-shell/mf-config": "npm:2.0.2"
+    "@vc-shell/mf-config": "npm:2.0.5"
   peerDependencies:
-    "@vc-shell/config-generator": ^2.0.2
+    "@vc-shell/config-generator": ^2.0.5
     "@vitejs/plugin-vue": ^5.0.0
     vite: ^5.0.0 || ^6.0.0
-  checksum: 10/137e6cf36df8cc28cfd4862c47cb697f22a115efb02ca41b971a77c3cee1cf5a775945aea9b46bc5fe4de2bda286a20aa3468dec615b5644a50d98ceea0251b7
+  checksum: 10/bb5307f60b16f862e1b79bcca7c9ce026d8b59ca2b469e5476a50aad888f41940270bf08836f00461716e91d40344464c2851641341f874e4a6c44911857108d
   languageName: node
   linkType: hard
 
-"@vc-shell/ts-config@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@vc-shell/ts-config@npm:2.0.2"
-  checksum: 10/8de74c270488affae1d8b5f8b228c438ac4e672cd2a8a2724c06c41a78c107952b766467377486078ac78447a6f61336db65a9b2d4d43e3c911b56331f4db591
+"@vc-shell/ts-config@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@vc-shell/ts-config@npm:2.0.5"
+  checksum: 10/cf06e8bee2c9afbe6288629eedc60f10f914692fc3e57e0fde977960362cbb431491b4dc57844da89598eb650f594f5070feb5b8e3702cfb43c05093bac8071e
   languageName: node
   linkType: hard
 
@@ -8155,11 +8155,11 @@ __metadata:
     "@types/node": "npm:^20.10.5"
     "@typescript-eslint/eslint-plugin": "npm:^7.4.0"
     "@typescript-eslint/parser": "npm:^7.4.0"
-    "@vc-shell/api-client-generator": "npm:^2.0.2"
-    "@vc-shell/config-generator": "npm:^2.0.2"
-    "@vc-shell/framework": "npm:^2.0.2"
-    "@vc-shell/mf-module": "npm:^2.0.2"
-    "@vc-shell/ts-config": "npm:^2.0.2"
+    "@vc-shell/api-client-generator": "npm:^2.0.5"
+    "@vc-shell/config-generator": "npm:^2.0.5"
+    "@vc-shell/framework": "npm:^2.0.5"
+    "@vc-shell/mf-module": "npm:^2.0.5"
+    "@vc-shell/ts-config": "npm:^2.0.5"
     "@vitejs/plugin-vue": "npm:^5.2.3"
     "@vue/eslint-config-prettier": "npm:^10.2.0"
     "@vue/eslint-config-typescript": "npm:^14.6.0"
