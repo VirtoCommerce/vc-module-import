@@ -123,6 +123,14 @@ jobs:
           repoOrg: ${{ github.repository_owner }}
           sonarOrg: ${{secrets.SONAR_ORG_KEY}}
 
+      - name: Install Import App dependencies
+        working-directory: src/VirtoCommerce.ImportModule.Web/App
+        run: yarn
+
+      - name: Build Import App (standalone host + MF plugin remote)
+        working-directory: src/VirtoCommerce.ImportModule.Web/App
+        run: yarn build
+
       - name: Build
         run: vc-build Compile
 
