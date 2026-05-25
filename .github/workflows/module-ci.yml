@@ -123,14 +123,6 @@ jobs:
           repoOrg: ${{ github.repository_owner }}
           sonarOrg: ${{secrets.SONAR_ORG_KEY}}
 
-      - name: Install Import App dependencies
-        working-directory: src/VirtoCommerce.ImportModule.Web/App
-        run: yarn
-
-      - name: Build Import App (standalone host + MF plugin remote)
-        working-directory: src/VirtoCommerce.ImportModule.Web/App
-        run: yarn build
-
       - name: Build
         run: vc-build Compile
 
@@ -306,7 +298,7 @@ jobs:
       requiredModulesListUrl: ${{ needs.ci.outputs.requiredModulesListUrl }}
       vctestingRepoBranch: 'dev'
       frontendZipUrl: 'latest'
-      testSuites: 'graphql,restapi,e2e'   
+      testSuites: 'graphql,restapi,e2e'
     secrets:
       appInsightsInstrumentationKey: ${{ secrets.E2E_APPINSIGHTSINSTRUMENTATIONKEY }}
       envPAT: ${{ secrets.REPO_TOKEN }}
