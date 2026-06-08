@@ -20,7 +20,7 @@
     <owner>VirtoCommerce</owner>
   </owners>
   <projectUrl>https://github.com/VirtoCommerce/vc-module-Import</projectUrl>
-  <iconUrl>Modules/$(VirtoCommerce.Import)/Content/logo.png</iconUrl>
+  <iconUrl>Modules/$(VirtoCommerce.Import)/Content/logo.svg</iconUrl>
   <requireLicenseAcceptance>false</requireLicenseAcceptance>
   <assemblyFile>VirtoCommerce.ImportModule.Web.dll</assemblyFile>
   <moduleType>VirtoCommerce.ImportModule.Web.Module, VirtoCommerce.ImportModule.Web</moduleType>
