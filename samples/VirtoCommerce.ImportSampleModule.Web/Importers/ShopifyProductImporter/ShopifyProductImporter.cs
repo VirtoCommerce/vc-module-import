@@ -20,15 +20,15 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         private readonly IExtendedProductSearchService _productsSearchService;
         private readonly IItemService _itemService;
 
-        public ShopifyProductImporter(IBlobStorageProvider blobStorageProvider,
+        public ShopifyProductImporter(
+            IBlobStorageProvider blobStorageProvider,
             IExtendedProductSearchService productsSearchService,
-            IItemService itemService
-            )
+            IItemService itemService)
         {
             _blobStorageProvider = blobStorageProvider;
             _productsSearchService = productsSearchService;
             _itemService = itemService;
-            Metadata = new Dictionary<string, string>()
+            Metadata = new Dictionary<string, string>
             {
                 { "availableFileExtensions", AvailableFileExtensions }
             };
@@ -52,7 +52,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
             }
             var importStream = _blobStorageProvider.OpenRead(context.ImportProfile.ImportFileUrl);
 
-            return new CsvDataReader<ShopifyProductLine, ShopifyProductClassMap>(importStream, context);
+            return new ShopifyProductDataReader(importStream, context);
         }
 
         public IImportDataWriter OpenWriter(ImportContext context)
@@ -71,7 +71,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
 
             try
             {
-                var importStream = _blobStorageProvider.OpenRead(context.ImportProfile.ImportFileUrl);
+                var importStream = await _blobStorageProvider.OpenReadAsync(context.ImportProfile.ImportFileUrl);
                 if (importStream.Length == 0)
                 {
                     result.Errors.Add("Import file must not be empty");
@@ -81,7 +81,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
                 var reader = new CsvDataReader<ShopifyProductLine, ShopifyProductClassMap>(importStream, context);
 
                 var productValidator = ExType<ShopifyProductValidator>.New();
-                int lineNumber = 0;
+                var lineNumber = 0;
 
                 do
                 {
@@ -102,12 +102,14 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
             {
                 result.Errors.Add(ex.Message);
             }
+
             return result;
         }
 
         public object Clone()
         {
-            var result = MemberwiseClone() as ShopifyProductImporter;
+            var result = (ShopifyProductImporter)MemberwiseClone();
+
             return result;
         }
     }

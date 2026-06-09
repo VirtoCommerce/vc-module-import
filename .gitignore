@@ -338,6 +338,8 @@ ASALocalRun/
 
 # Webpack/Vite build output
 dist/
+# MF plugin remote build output (platform manifest discovery folder)
+src/VirtoCommerce.ImportModule.Web/plugins/
 .__mf__temp/
 **/Content/*-app/
 .history

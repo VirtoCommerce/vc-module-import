@@ -14,7 +14,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
     {
         // Normal import progress flow
         [Fact]
-        public async Task Normal_import_flow_progress_info_is_correct()
+        public async Task Normal_Import_Flow_Progress_Info_Is_Correct()
         {
             // Arrange
             var profile = new ImportProfile
@@ -41,7 +41,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
 
         // Flow with errors
         [Fact]
-        public async Task Import_error_flow_errors_are_produced()
+        public async Task Import_Error_Flow_Errors_Are_Produced()
         {
             // Arrange
             var profile = new ImportProfile
@@ -66,7 +66,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
 
         // Domain events are not emitted during import
         //[Fact]
-        //public async Task Import_flow_domain_events_arent_produced()
+        //public async Task Import_Flow_Domain_Events_Arent_Produced()
         //{
         //    // Arrange
         //    var profile = new ImportProfile
@@ -87,7 +87,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
 
         // import job cancellation
         [Fact]
-        public async Task Cancel_import_import_is_cancelled()
+        public async Task Cancel_Import_Import_Is_Cancelled()
         {
             // Arrange
             var profile = new ImportProfile

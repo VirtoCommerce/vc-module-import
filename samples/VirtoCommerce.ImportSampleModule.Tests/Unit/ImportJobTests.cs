@@ -7,6 +7,7 @@ using Moq;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
+
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         private readonly ImportPushNotification _pushNotification = new("TestUser");
 
         [Fact]
-        public async Task Import_job_normal_flow()
+        public async Task Import_Job_Normal_Flow()
         {
             // Arrange
             var importJob = new ImportJob(_importRunService.Object);
@@ -32,7 +33,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Import_job_aborted_flow()
+        public async Task Import_Job_Aborted_Flow()
         {
             // Arrange
             var importJob = new ImportJob(_importRunService.Object);

@@ -135,6 +135,12 @@
       "IMPORT_PROCESS": {
         "TITLE_SUFFIX": " statistics"
       },
+      "RESUME": {
+        "BUTTON": "Resume",
+        "TOOLTIP": "Resume the interrupted import from its saved cursor",
+        "SUCCESS": "Import resumed",
+        "ERROR": "Could not resume the import"
+      },
       "ACTIONS": {
         "UPLOADER": {
           "TITLE": "Uploaded",

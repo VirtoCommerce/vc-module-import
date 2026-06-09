@@ -13,5 +13,15 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public int TotalCount { get; set; }
         public ICollection<string> Errors { get; set; } = new List<string>();
         public string ReportUrl { get; set; }
+
+        /// <summary>
+        /// Pipeline → callback transit: serialized cursor ready for storage.
+        /// </summary>
+        public string Cursor { get; set; }
+
+        /// <summary>
+        /// Pipeline → callback transit: explicit "save RunHistory to DB now" signal.
+        /// </summary>
+        public bool ShouldSaveHistory { get; set; }
     }
 }

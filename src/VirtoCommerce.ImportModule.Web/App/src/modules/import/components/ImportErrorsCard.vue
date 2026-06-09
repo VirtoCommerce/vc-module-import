@@ -2,7 +2,6 @@
   <!-- Skipped details table -->
   <VcCol
     v-if="importStarted && reversedErrors?.length"
-    class="tw-p-3"
   >
     <VcCard
       class="import-new__skipped"
@@ -10,32 +9,35 @@
       :variant="skippedColorVariant"
       :header="$t('IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.TABLE.SKIPPED_DETAILS')"
     >
-      <VcTable
-        :columns="skippedColumns"
+      <VcDataTable
         :header="false"
         :footer="false"
         :items="(reversedErrors ?? []).map((e) => ({ errors: e }))"
         state-key="import_errors"
       >
-        <!-- Override errors column template -->
-        <template #item_errors="itemData">
-          <div class="tw-flex tw-flex-col">
-            <div class="tw-truncate">
-              {{ itemData.item }}
+        <VcColumn
+          id="errors"
+          :title="$t('IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.TABLE.ERROR_DESC')"
+        >
+          <template #body="{ data }">
+            <div class="tw-flex tw-flex-col">
+              <div class="tw-truncate">
+                {{ data.errors }}
+              </div>
             </div>
-          </div>
-        </template>
-      </VcTable>
+          </template>
+        </VcColumn>
+      </VcDataTable>
     </VcCard>
   </VcCol>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import * as _ from "lodash-es";
 import { IImportStatus } from "../composables/useImport";
-import { ITableColumns } from "@vc-shell/framework";
 import { useI18n } from "vue-i18n";
+import { VcCard, VcCol, VcColumn, VcDataTable } from "@vc-shell/framework/ui";
 export interface Props {
   importStatus?: IImportStatus;
 }
@@ -63,11 +65,4 @@ const skippedColorVariant = computed(() => {
     ? "success"
     : "danger";
 });
-
-const skippedColumns = ref<ITableColumns[]>([
-  {
-    id: "errors",
-    title: computed(() => t("IMPORT.PAGES.PRODUCT_IMPORTER.UPLOAD_STATUS.TABLE.ERROR_DESC")),
-  },
-]);
 </script>

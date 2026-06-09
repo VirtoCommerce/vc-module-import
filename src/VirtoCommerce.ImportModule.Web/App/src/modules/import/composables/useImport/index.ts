@@ -7,11 +7,16 @@ import {
   ImportProfile,
   ImportPushNotification,
   ImportRunHistory,
-  ISearchImportRunHistoryCriteria,
-  IImportPushNotification,
-  ISearchImportProfilesCriteria,
-} from "@virtocommerce/import-app-api";
-import { useApiClient, useAsync, useLoading, useNotifications } from "@vc-shell/framework";
+  SearchImportRunHistoryCriteria,
+  SearchImportProfilesCriteria,
+} from "../../../../api_client/virtocommerce.import";
+import {
+  useApiClient,
+  useAsync,
+  useLoading,
+  useBladeNotifications,
+  type UseDataTablePaginationReturn,
+} from "@vc-shell/framework";
 import * as _ from "lodash-es";
 import { useHelpers } from "../helpers";
 import useImportProfiles from "../useImportProfiles";
@@ -19,7 +24,7 @@ import useImportStatus from "../useImportStatus";
 import useUploadedFile from "../useUploadFile";
 import useImportHistory from "../useImportHistory";
 
-export type INotificationHistory = IImportPushNotification | ImportRunHistory;
+export type INotificationHistory = ImportPushNotification | ImportRunHistory;
 
 export interface IImportStatus {
   notification?: INotificationHistory & {
@@ -51,7 +56,7 @@ export type ExtProfile = ImportProfile & {
   jobId?: string;
 };
 
-export interface ISearchProfile extends ISearchImportRunHistoryCriteria {
+export interface ISearchProfile extends SearchImportRunHistoryCriteria {
   results?: ExtProfile[];
 }
 
@@ -66,9 +71,7 @@ interface IUseImport {
   readonly importProfiles: ComputedRef<ExtProfile[] | undefined>;
   readonly profile: Ref<ExtProfile>;
   readonly modified: Ref<boolean>;
-  readonly totalHistoryCount: Ref<number | undefined>;
-  readonly historyPages: Ref<number>;
-  readonly currentPage: Ref<number>;
+  readonly pagination: UseDataTablePaginationReturn;
   readonly importHistoryLoading: Ref<boolean>;
   readonly dataImportersLoading: Ref<boolean>;
   readonly previewDataLoading: Ref<boolean>;
@@ -81,9 +84,10 @@ interface IUseImport {
   previewData(): Promise<ImportDataPreview>;
   startImport(extProfile?: ExtProfile): Promise<void>;
   cancelImport(): Promise<void>;
+  resume(jobId: string): Promise<ImportPushNotification | undefined>;
   clearImport(): void;
-  fetchImportHistory(query?: ISearchImportRunHistoryCriteria): Promise<void>;
-  fetchImportProfiles(args?: ISearchImportProfilesCriteria): Promise<void>;
+  fetchImportHistory(query?: SearchImportRunHistoryCriteria): Promise<void>;
+  fetchImportProfiles(args?: SearchImportProfilesCriteria): Promise<void>;
   loadImportProfile(args: { id: string }): Promise<void>;
   createImportProfile(details: ImportProfile): Promise<void>;
   updateImportProfile(details: ImportProfile): Promise<void>;
@@ -99,7 +103,9 @@ interface IUseImport {
 const { getApiClient } = useApiClient(ImportClient);
 
 export default (): IUseImport => {
-  const { notifications } = useNotifications();
+  const { messages } = useBladeNotifications({
+    types: ["ImportPushNotification"],
+  });
   const { GetSellerId } = useHelpers();
 
   const {
@@ -121,17 +127,10 @@ export default (): IUseImport => {
     setProfile,
     loading: profilesLoading,
   } = useImportProfiles();
-  const {
-    importHistory,
-    totalHistoryCount,
-    historyPages,
-    currentPage,
-    fetchImportHistory,
-    loading: importHistoryLoading,
-  } = useImportHistory();
+  const { importHistory, pagination, fetchImportHistory, loading: importHistoryLoading } = useImportHistory();
   const { uploadedFile, setFile } = useUploadedFile({
     setProfile,
-    profile
+    profile,
   });
   const { importStatus, updateStatus, setImportStarted, startImport, clearImport } = useImportStatus({
     importProfiles,
@@ -145,10 +144,10 @@ export default (): IUseImport => {
     const client = await getApiClient();
 
     try {
-      const previewDataQuery = new ImportProfile({
+      const previewDataQuery: ImportProfile = {
         ...profile.value,
         userId: importUserId,
-      });
+      };
       return client.preview(previewDataQuery);
     } catch (e) {
       console.error(e);
@@ -160,7 +159,7 @@ export default (): IUseImport => {
     const client = await getApiClient();
     try {
       if (importStatus.value?.inProgress) {
-        await client.cancelJob(new ImportCancellationRequest({ jobId: importStatus.value?.jobId }));
+        await client.cancelJob({ jobId: importStatus.value?.jobId } as ImportCancellationRequest);
       }
     } catch (e) {
       console.error(e);
@@ -168,10 +167,20 @@ export default (): IUseImport => {
     }
   });
 
+  async function resume(jobId: string): Promise<ImportPushNotification | undefined> {
+    try {
+      const client = await getApiClient();
+      return await client.resumeImport({ jobId });
+    } catch (e) {
+      console.error("Import resume failed:", e);
+      return undefined;
+    }
+  }
+
   function getLongRunning(args?: { id: string }) {
-    const job = notifications.value.find(
-      (x) => (x as ImportPushNotification).profileId === args?.id,
-    ) as ImportPushNotification | undefined;
+    const job = messages.value.find((x) => (x as ImportPushNotification).profileId === args?.id) as
+      | ImportPushNotification
+      | undefined;
 
     if (job && !job.finished) {
       updateStatus(job);
@@ -230,9 +239,7 @@ export default (): IUseImport => {
     dataImporters: computed(() => dataImporters.value),
     modified: computed(() => modified.value),
     profile: computed(() => profile.value),
-    totalHistoryCount,
-    historyPages,
-    currentPage,
+    pagination,
     profileDetails,
     errorMessage: computed(() => errorMessage.value),
     updateImportProfileLoading,
@@ -241,6 +248,7 @@ export default (): IUseImport => {
     previewData,
     startImport,
     cancelImport,
+    resume,
     clearImport,
     loadImportProfile,
     fetchImportHistory,

@@ -6,11 +6,13 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { IImportRunHistory } from "@virtocommerce/import-app-api";
+import { ImportRunHistory } from "../../../api_client/virtocommerce.import";
 import { camelToSnake } from "@vc-shell/framework";
 
+import { VcStatus } from "@vc-shell/framework/ui";
+
 export interface Props {
-  item: IImportRunHistory;
+  item: ImportRunHistory;
 }
 
 const props = withDefaults(defineProps<Props>(), {

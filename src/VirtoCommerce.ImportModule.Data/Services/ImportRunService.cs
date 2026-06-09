@@ -6,21 +6,24 @@ using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.Server;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using VirtoCommerce.CustomerModule.Core.Services;
 using VirtoCommerce.ImportModule.Core.Common;
 using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Notifications;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.BackgroundJobs;
 using VirtoCommerce.NotificationsModule.Core.Extensions;
 using VirtoCommerce.NotificationsModule.Core.Services;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.PushNotifications;
 using VirtoCommerce.Platform.Core.Security;
 
 namespace VirtoCommerce.ImportModule.Data.Services
 {
-    public class ImportRunService : IImportRunService
+    public partial class ImportRunService : IImportRunService
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserNameResolver _userNameResolver;
@@ -32,7 +35,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
         private readonly INotificationSender _notificationSender;
         private readonly IImportProfileCrudService _importProfileCrudService;
         private readonly IImportRunHistoryCrudService _importRunHistoryCrudService;
+        private readonly IImportRunHistorySearchService _importRunHistorySearchService;
         private readonly IDataImportProcessManager _dataImportManager;
+        private readonly ILogger<ImportRunService> _logger;
 
         public ImportRunService(
             UserManager<ApplicationUser> userManager,
@@ -44,9 +49,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
             INotificationSender notificationSender,
             IImportProfileCrudService importProfileCrudService,
             IImportRunHistoryCrudService importRunHistoryCrudService,
+            IImportRunHistorySearchService importRunHistorySearchService,
             IDataImporterFactory dataImporterFactory,
-            IDataImportProcessManager dataImportManager
-        )
+            IDataImportProcessManager dataImportManager,
+            ILogger<ImportRunService> logger)
         {
             _userManager = userManager;
             _userNameResolver = userNameResolver;
@@ -58,7 +64,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _notificationSender = notificationSender;
             _importProfileCrudService = importProfileCrudService;
             _importRunHistoryCrudService = importRunHistoryCrudService;
+            _importRunHistorySearchService = importRunHistorySearchService;
             _dataImportManager = dataImportManager;
+            _logger = logger;
         }
 
         public virtual ImportPushNotification RunImportBackgroundJob(ImportProfile importProfile)
@@ -92,6 +100,70 @@ namespace VirtoCommerce.ImportModule.Data.Services
             BackgroundJob.Delete(cancellationRequest.JobId);
         }
 
+        public virtual async Task<ImportPushNotification> ResumeImportAsync(string runHistoryId)
+        {
+            var history = await _importRunHistoryCrudService.GetByIdAsync(runHistoryId);
+            if (history is null)
+            {
+                throw new OperationCanceledException($"Import run history {runHistoryId} is not found");
+            }
+            if (!history.IsResumable())
+            {
+                throw new InvalidOperationException($"Import run {runHistoryId} is not resumable");
+            }
+            if (string.IsNullOrEmpty(history.JobId) || !RequeueHangfireJob(history.JobId))
+            {
+                throw new InvalidOperationException($"Could not re-queue import run {runHistoryId}");
+            }
+
+            return new ImportPushNotification(_userNameResolver.GetCurrentUserName())
+            {
+                Title = "Import process",
+                ProfileId = history.ProfileId,
+                ProfileName = history.ProfileName,
+                JobId = history.JobId,
+                ProcessedCount = history.ProcessedCount,
+                TotalCount = history.TotalCount,
+                Errors = history.Errors,
+                ReportUrl = history.ReportUrl,
+            };
+        }
+
+        protected virtual bool RequeueHangfireJob(string jobId) => BackgroundJob.Requeue(jobId);
+
+        /// <summary>
+        /// Attempts to locate an existing <see cref="ImportRunHistory"/> row to continue on the
+        /// current run (typical after Hangfire <c>Requeue</c> — the replayed job carries the same
+        /// JobId, and the prior history row still holds the saved cursor).
+        /// Default behavior: search by <see cref="ImportPushNotification.JobId"/>, return the most
+        /// recent row if it is resumable, clearing <c>Finished</c> so the following save paths treat it
+        /// as in-progress again. Returns null for fresh runs or non-resumable history.
+        /// </summary>
+        protected virtual async Task<ImportRunHistory> TryGetRunHistoryAsync(ImportProfile importProfile, ImportPushNotification pushNotification)
+        {
+            if (string.IsNullOrEmpty(pushNotification?.JobId))
+            {
+                return null;
+            }
+
+            var criteria = new SearchImportRunHistoryCriteria
+            {
+                JobId = pushNotification.JobId,
+                Take = 1,
+                Sort = $"{nameof(ImportRunHistory.CreatedDate)}:desc",
+            };
+            var runHistory = (await _importRunHistorySearchService.SearchAsync(criteria))?.Results?.FirstOrDefault();
+
+            if (runHistory?.IsResumable() != true)
+            {
+                return null;
+            }
+
+            runHistory.Finished = null;
+
+            return runHistory;
+        }
+
         public virtual Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken)
         {
             var pushNotification = new ImportPushNotification(_userNameResolver.GetCurrentUserName())
@@ -105,39 +177,14 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         public virtual async Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, ImportPushNotification pushNotification, CancellationToken cancellationToken)
         {
-            var importRunHistory = importProfile.RunHistory ?? ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
-
-            async Task ProgressInfoCallback(ImportProgressInfo progressInfo)
-            {
-                pushNotification.Description = progressInfo.Description;
-
-                pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
-                pushNotification.EstimatedRemaining = progressInfo.EstimatedRemaining;
-
-                pushNotification.ProcessedCount = progressInfo.ProcessedCount;
-                pushNotification.Finished = progressInfo.Finished;
-                pushNotification.TotalCount = progressInfo.TotalCount;
-
-                pushNotification.Errors = progressInfo.Errors;
-                pushNotification.ReportUrl = progressInfo.ReportUrl;
-
-                if (pushNotification.ProcessedCount > 0 && pushNotification.Finished is null)
-                {
-                    pushNotification.Description = pushNotification.TotalCount > 0
-                        ? $"{pushNotification.ProcessedCount} of {pushNotification.TotalCount} have been imported"
-                        : $"{pushNotification.ProcessedCount} have been imported";
-                }
-
-                await _pushNotificationManager.SendAsync(pushNotification);
-
-                importRunHistory.UpdateProgress(pushNotification);
-                //Uncomment when needed
-                //await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
-            }
+            var importRunHistory = importProfile.RunHistory
+                ?? await TryGetRunHistoryAsync(importProfile, pushNotification)
+                ?? ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
+            Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory);
 
             try
             {
-                await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
+                await _importRunHistoryCrudService.SaveChangesAsync([importRunHistory]);
                 importProfile.RunHistory = importRunHistory;
                 pushNotification.RunId = importRunHistory.Id;
 
@@ -164,7 +211,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 await _pushNotificationManager.SendAsync(pushNotification);
 
                 importRunHistory.Finish(pushNotification);
-                await _importRunHistoryCrudService.SaveChangesAsync(new[] { importRunHistory });
+                await _importRunHistoryCrudService.SaveChangesAsync([importRunHistory]);
 
                 var user = await _userManager.FindByNameAsync(pushNotification.Creator);
                 if (user != null)
@@ -183,6 +230,48 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return pushNotification;
         }
 
+        private protected async Task UpdateProgressAsync(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            pushNotification.Description = progressInfo.Description;
+            pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
+            pushNotification.EstimatedRemaining = progressInfo.EstimatedRemaining;
+            pushNotification.ProcessedCount = progressInfo.ProcessedCount;
+            pushNotification.Finished = progressInfo.Finished;
+            pushNotification.TotalCount = progressInfo.TotalCount;
+            pushNotification.Errors = progressInfo.Errors;
+            pushNotification.ReportUrl = progressInfo.ReportUrl;
+
+            if (pushNotification.ProcessedCount > 0 && pushNotification.Finished is null)
+            {
+                pushNotification.Description = pushNotification.TotalCount > 0
+                    ? $"{pushNotification.ProcessedCount} of {pushNotification.TotalCount} have been imported"
+                    : $"{pushNotification.ProcessedCount} have been imported";
+            }
+
+            await _pushNotificationManager.SendAsync(pushNotification);
+
+            importRunHistory.UpdateProgress(pushNotification);
+
+            if (progressInfo.ShouldSaveHistory)
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(progressInfo.Cursor))
+                    {
+                        importRunHistory.Cursor = progressInfo.Cursor;
+                    }
+
+                    await _importRunHistoryCrudService.SaveChangesAsync([importRunHistory]);
+
+                    LogSavedImportRunHistoryCheckpoint(importRunHistory.Id, importRunHistory.ProcessedCount);
+                }
+                catch (Exception ex)
+                {
+                    LogFailedToSaveImportRunHistoryCheckpoint(ex, importRunHistory.Id, importRunHistory.ProcessedCount);
+                }
+            }
+        }
+
         public virtual async Task<ImportDataPreview> PreviewAsync(ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
@@ -191,7 +280,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
             }
 
-            var context = new ImportContext(importProfile);
+            var context = AbstractTypeFactory<ImportContext>.TryCreateInstance<ImportContext>(null, importProfile);
 
             var result = new ImportDataPreview();
 
@@ -229,11 +318,17 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 importProfile.ImportFileUrl = Uri.UnescapeDataString(importProfile.ImportFileUrl);
             }
 
-            var context = new ImportContext(importProfile);
+            var context = AbstractTypeFactory<ImportContext>.TryCreateInstance<ImportContext>(null, importProfile);
 
             var validationResult = await importer.ValidateAsync(context);
 
             return validationResult;
         }
+
+        [LoggerMessage(LogLevel.Debug, "Saved import run history checkpoint {HistoryId} at {ProcessedCount}")]
+        partial void LogSavedImportRunHistoryCheckpoint(string historyId, int processedCount);
+
+        [LoggerMessage(LogLevel.Error, "Failed to save import run history checkpoint {historyId} at {ProcessedCount}")]
+        partial void LogFailedToSaveImportRunHistoryCheckpoint(Exception exception, string historyId, int processedCount);
     }
 }
