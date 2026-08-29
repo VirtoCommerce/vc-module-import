@@ -8,6 +8,7 @@ using VirtoCommerce.CatalogModule.Core.Services;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.CsvHelper;
+using VirtoCommerce.ImportModule.CsvHelper.Services;
 using VirtoCommerce.ImportSampleModule.Web.Search;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -20,13 +21,16 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
         private readonly PropertyMetadataLoader _propertyMetadataLoader;
         private readonly IItemService _itemService;
         private readonly ICategoryService _categoryService;
+        private readonly IServiceProvider _serviceProvider;
 
         public CsvProductImporter(
             IBlobStorageProvider blobStorageProvider,
             IExtendedProductSearchService extendedProductSearchService,
             PropertyMetadataLoader propertyMetadataLoader,
             IItemService itemService,
-            ICategoryService categoryService)
+            ICategoryService categoryService,
+            IServiceProvider serviceProvider
+            )
         {
             _blobStorageProvider = blobStorageProvider;
             _extendedProductSearchService = extendedProductSearchService;
@@ -38,6 +42,7 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
             };
             _itemService = itemService;
             _categoryService = categoryService;
+            _serviceProvider = serviceProvider;
         }
 
         public virtual string TypeName { get; } = nameof(CsvProductImporter);
@@ -57,6 +62,10 @@ namespace VirtoCommerce.ImportSampleModule.Web.Importers
                 throw new OperationCanceledException($"Import file must be set");
             }
             var importStream = _blobStorageProvider.OpenRead(context.ImportProfile.ImportFileUrl);
+
+            var classMapRegistrar = _serviceProvider.GetService(typeof(ClassMapRegistrar<CsvProductClassMap, CatalogProduct>)) as ClassMapRegistrar<CsvProductClassMap, CatalogProduct>;
+            classMapRegistrar.Register(() => _serviceProvider.GetService(typeof(CsvProductClassMap)) as CsvProductClassMap)
+                .WithSettings(context.ImportProfile.Settings);
 
             return new CsvDataReader<CatalogProduct, CsvProductClassMap>(importStream, context);
         }
