@@ -41,9 +41,14 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         public virtual bool IsValid(ImportContext context)
         {
+            return DateTime.UtcNow - CreatedAt <= GetLifetime(context);
+        }
+
+        protected virtual TimeSpan GetLifetime(ImportContext context)
+        {
             var lifetimeDays = (context.ImportProfile.Settings ?? []).GetValue<int>(ImportCursorSettings.LifetimeDays);
 
-            return DateTime.UtcNow - CreatedAt <= TimeSpan.FromDays(lifetimeDays);
+            return TimeSpan.FromDays(lifetimeDays);
         }
     }
 }
