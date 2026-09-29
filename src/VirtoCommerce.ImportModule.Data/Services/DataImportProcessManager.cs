@@ -85,7 +85,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             using var writer = await dataImporter.OpenWriterAsync(context);
 
             // Attempt to restore the cursor from the run history.
-            // On failure, the history row is reset so the run starts fresh.
+            // An invalid or expired cursor resets the history row so the run starts fresh; a throwing restore fails the run.
             var hadCursor = !string.IsNullOrEmpty(importProfile.RunHistory?.Cursor);
             context.IsResume = await TryRestoreCursorAsync(reader, context, errors);
             if (hadCursor && !context.IsResume)
@@ -212,10 +212,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// Attempts to restore reader state from the import run history's serialized cursor.
         /// On success: injects the cursor's embedded ProcessedCount into context.ProgressInfo
         /// (via <see cref="IResumableImportDataReader"/> DIM bridge) and returns true.
-        /// On failure (no cursor / invalid / expired / throwing reader): silently resets the history row
-        /// (Cursor/ProcessedCount/Errors/ErrorsCount) and returns false, so the pipeline continues as a fresh run.
-        /// The errors seeded from the replaced run are removed from <paramref name="errors"/>; errors this run
-        /// already raised (for example while opening the reader) stay on the row.
+        /// Without a cursor, or with a reader that is not resumable: returns false and leaves the row untouched.
+        /// On an invalid or expired cursor: resets the history row (Cursor/ProcessedCount/Errors/ErrorsCount) and
+        /// returns false, so the pipeline continues as a fresh run. The errors seeded from the replaced run are removed
+        /// from <paramref name="errors"/>; errors this run already raised (for example while opening the reader) stay on the row.
+        /// A restore that throws is rethrown and fails the run.
         /// </summary>
         internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors)
         {
