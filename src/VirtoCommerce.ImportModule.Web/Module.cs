@@ -102,7 +102,7 @@ namespace VirtoCommerce.ImportModule.Web
 
             // Register settings
             var settingsRegistrar = appBuilder.ApplicationServices.GetRequiredService<ISettingsRegistrar>();
-            settingsRegistrar.RegisterSettings(ModuleConstants.Settings.AllSettings, ModuleInfo.Id);
+            RegisterSettings(settingsRegistrar, ModuleInfo.Id);
 
             // Register permissions
             var permissionsProvider = appBuilder.ApplicationServices.GetRequiredService<IPermissionsRegistrar>();
@@ -171,6 +171,13 @@ namespace VirtoCommerce.ImportModule.Web
         public void Uninstall()
         {
             // do nothing in here
+        }
+
+        internal static void RegisterSettings(ISettingsRegistrar settingsRegistrar, string moduleId)
+        {
+            settingsRegistrar.RegisterSettings(ModuleConstants.Settings.AllSettings, moduleId);
+            // The cursor settings belong to the pipeline, not to an importer, so every profile carries them
+            settingsRegistrar.RegisterSettingsForType(ImportCursorSettings.AllSettings, nameof(ImportProfile));
         }
     }
 }
