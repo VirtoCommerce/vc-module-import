@@ -63,6 +63,14 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             var errors = new ImportErrorCollector(maxErrorsCountThreshold, importProgress, _logger);
 
+            // A resumed run keeps the errors its interrupted part reported. IsResumable() cannot key this:
+            // TryGetRunHistoryAsync has already cleared Finished on the row it attaches. Seeding must precede the
+            // first progressCallback, which aliases the row's Errors to ProgressInfo.Errors.
+            if (!string.IsNullOrEmpty(importProfile.RunHistory?.Cursor))
+            {
+                errors.Seed(importProfile.RunHistory.Errors);
+            }
+
             // Import context — via AbstractTypeFactory so downstream can OverrideType with a derived context
             // and attach extra state in OnImportStartedAsync.
             var context = AbstractTypeFactory<ImportContext>.TryCreateInstance<ImportContext>(null, importProfile);
@@ -78,7 +86,14 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             // Attempt to restore the cursor from the run history.
             // On failure, the history row is reset so the run starts fresh.
-            context.IsResume = await TryRestoreCursorAsync(reader, context);
+            var hadCursor = !string.IsNullOrEmpty(importProfile.RunHistory?.Cursor);
+            context.IsResume = await TryRestoreCursorAsync(reader, context, errors);
+            if (hadCursor && !context.IsResume)
+            {
+                // The notification still references the error list rendered before the reset; the importer's start hook
+                // can throw next, and RunImportAsync would then finish the row from that stale list.
+                await progressCallback(importProgress);
+            }
 
             await dataImporter.OnImportStartedAsync(context);
 
@@ -198,9 +213,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// On success: injects the cursor's embedded ProcessedCount into context.ProgressInfo
         /// (via <see cref="IResumableImportDataReader"/> DIM bridge) and returns true.
         /// On failure (no cursor / invalid / expired / throwing reader): silently resets the history row
-        /// (Cursor/ProcessedCount/ErrorsCount) and returns false, so the pipeline continues as a fresh run.
+        /// (Cursor/ProcessedCount/Errors/ErrorsCount) and returns false, so the pipeline continues as a fresh run.
+        /// The errors seeded from the replaced run are removed from <paramref name="errors"/>; errors this run
+        /// already raised (for example while opening the reader) stay on the row.
         /// </summary>
-        internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context)
+        internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors)
         {
             if (reader is not IResumableImportDataReader cursorReader)
             {
@@ -233,9 +250,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             LogCursorFromImportRunHistoryInvalid(runHistory.Id);
 
+            // A clean start inherits nothing from the run it replaces; errors this run raised at open time stay.
+            errors.RemoveSeeded();
+
             runHistory.Cursor = null;
             runHistory.ProcessedCount = 0;
-            runHistory.ErrorsCount = 0;
+            runHistory.Errors = context.ProgressInfo?.Errors?.ToList() ?? [];
+            runHistory.ErrorsCount = runHistory.Errors.Count;
             await _importRunHistoryService.SaveChangesAsync([runHistory]);
 
             return false;

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.ImportModule.Data.Services;
 using VirtoCommerce.Platform.Core.Settings;
 using Xunit;
 
@@ -46,7 +48,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var crud = new Mock<IImportRunHistoryCrudService>();
             var manager = TestHelperFactory.CreateManager(historyCrud: crud.Object);
 
-            var result = await manager.TryRestoreCursorAsync(reader, context);
+            var result = await manager.TryRestoreCursorAsync(reader, context, new ImportErrorCollector(50, context.ProgressInfo, NullLogger.Instance));
 
             Assert.True(result);
             Assert.Equal(100, reader.Restored.Skip);
@@ -64,7 +66,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var crud = new Mock<IImportRunHistoryCrudService>();
             var manager = TestHelperFactory.CreateManager(historyCrud: crud.Object);
 
-            var result = await manager.TryRestoreCursorAsync(reader, context);
+            var result = await manager.TryRestoreCursorAsync(reader, context, new ImportErrorCollector(50, context.ProgressInfo, NullLogger.Instance));
 
             Assert.False(result);
             Assert.Null(history.Cursor);
@@ -83,7 +85,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var crud = new Mock<IImportRunHistoryCrudService>();
             var manager = TestHelperFactory.CreateManager(historyCrud: crud.Object);
 
-            var result = await manager.TryRestoreCursorAsync(reader, context);
+            var result = await manager.TryRestoreCursorAsync(reader, context, new ImportErrorCollector(50, context.ProgressInfo, NullLogger.Instance));
 
             Assert.False(result);
             crud.Verify(x => x.SaveChangesAsync(It.IsAny<IList<ImportRunHistory>>()), Times.Never);
@@ -104,7 +106,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var crud = new Mock<IImportRunHistoryCrudService>();
             var manager = TestHelperFactory.CreateManager(historyCrud: crud.Object);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => manager.TryRestoreCursorAsync(reader, context));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => manager.TryRestoreCursorAsync(reader, context, new ImportErrorCollector(50, context.ProgressInfo, NullLogger.Instance)));
             Assert.Equal(cursor.Serialize(), history.Cursor);
             crud.Verify(x => x.SaveChangesAsync(It.IsAny<IList<ImportRunHistory>>()), Times.Never);
         }
