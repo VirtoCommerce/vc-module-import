@@ -119,6 +119,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     CursorCheckpointTracker.ClearSaveState(context);
 
                 } while (reader.HasMoreResults && !errors.LimitReached);
+
+                // Only an exhausted source completes the run; a loop the error limit stopped early does not.
+                context.IsCompleted = !reader.HasMoreResults;
             }
             catch (Exception ex)
             {
@@ -130,7 +133,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                await FlushSafelyAsync(writer, context);
+                if (!await FlushSafelyAsync(writer, context))
+                {
+                    context.IsCompleted = false;
+                }
 
                 var errorReportResult = await importReporter.SaveErrorsAsync(errors.GetTopErrors());
                 importRemainingEstimator.Stop(context);
@@ -144,11 +150,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
-        private async Task FlushSafelyAsync(IImportDataWriter writer, ImportContext context)
+        private async Task<bool> FlushSafelyAsync(IImportDataWriter writer, ImportContext context)
         {
             try
             {
                 await writer.FlushAsync(context);
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -158,6 +166,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     ErrorMessage = ex.ExpandExceptionMessage(),
                 });
                 LogFlushFailed(ex, context.ImportProfile.Name);
+
+                return false;
             }
         }
 

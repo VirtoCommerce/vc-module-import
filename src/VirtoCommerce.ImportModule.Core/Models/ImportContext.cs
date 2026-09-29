@@ -23,6 +23,14 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public bool IsResume { get; set; }
 
         /// <summary>
+        /// True when the read/write loop ended without an exception with the reader exhausted
+        /// (<see cref="Services.IImportDataReader.HasMoreResults"/> false) and the final flush succeeded.
+        /// Set by the pipeline before <see cref="Services.IDataImporter.OnImportCompletedAsync"/> runs.
+        /// The error limit does not clear it once the source was read to the end.
+        /// </summary>
+        public bool IsCompleted { get; set; }
+
+        /// <summary>
         /// JSON settings used by resumable readers to (de)serialize cursors. Null = Newtonsoft defaults.
         /// A reader that needs custom converters or discriminator handling populates this in its
         /// OnImportStartedAsync hook; the resume-cursor DIMs read it on save/restore.
