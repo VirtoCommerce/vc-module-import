@@ -52,6 +52,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("run")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<ImportPushNotification>> RunImport([FromBody] ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
@@ -81,6 +82,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("runs/resume")]
+        [Authorize(ModuleConstants.Security.Permissions.Access)]
         public async Task<ActionResult<ImportPushNotification>> ResumeImport([FromBody] ImportResumeRequest request)
         {
             await ExType<ImportResumeRequestValidator>.New().ValidateAndThrowAsync(request);
