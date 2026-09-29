@@ -80,7 +80,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 },
             };
 
-        private static async Task<bool?> RunAndCaptureCompleted(PagedReader reader, ScriptedWriter writer, int? threshold = null)
+        private static async Task<bool?> RunAndCaptureCompleted(PagedReader reader, ScriptedWriter writer, int? threshold = null, IImportReporter reporter = null)
         {
             bool? completed = null;
             var manager = TestHelperFactory.CreateManagerWithImporter(reader, writer,
@@ -88,6 +88,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     .Setup(x => x.OnImportCompletedAsync(It.IsAny<ImportContext>()))
                     .Callback<ImportContext>(x => completed = x.IsCompleted)
                     .Returns(Task.CompletedTask),
+                reporter: reporter,
                 maxErrorsCountThreshold: threshold);
 
             await manager.ImportAsync(MakeProfile(), _ => Task.CompletedTask, CancellationToken.None);
@@ -151,6 +152,36 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 threshold: 2);
 
             Assert.True(completed);
+        }
+
+        private static IImportReporter ThrowingReporter()
+        {
+            var reporter = new Mock<IImportReporter>();
+            reporter.Setup(x => x.SaveErrorsAsync(It.IsAny<List<ErrorInfo>>())).ThrowsAsync(new InvalidOperationException("report failed"));
+            return reporter.Object;
+        }
+
+        [Fact]
+        public async Task Throwing_Reporter_Still_Completes_The_Run()   // U21
+        {
+            var completed = await RunAndCaptureCompleted(new PagedReader(), new ScriptedWriter(), reporter: ThrowingReporter());
+
+            // Not null: the completion hook ran; true: a failed report does not un-complete the data
+            Assert.True(completed);
+        }
+
+        [Fact]
+        public async Task Throwing_Reporter_Is_Reported_And_Final_Progress_Is_Sent()   // U21
+        {
+            var progress = new List<ImportProgressInfo>();
+            var manager = TestHelperFactory.CreateManagerWithImporter(new PagedReader(), new ScriptedWriter(), reporter: ThrowingReporter());
+
+            await manager.ImportAsync(MakeProfile(), x => { progress.Add(x); return Task.CompletedTask; }, CancellationToken.None);
+
+            var last = progress[^1];
+            Assert.NotNull(last.Finished);
+            Assert.Contains(last.Errors, x => x.Contains("report failed"));
+            Assert.Null(last.ReportUrl);
         }
     }
 }
