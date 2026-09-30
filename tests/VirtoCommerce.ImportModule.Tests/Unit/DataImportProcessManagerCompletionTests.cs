@@ -35,7 +35,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             private int _writes;
             public int? ThrowOnWrite { get; init; }
-            public ISet<int> ErrorOnWrites { get; init; } = new HashSet<int>();
+            public HashSet<int> ErrorOnWrites { get; init; } = new HashSet<int>();
             public bool ThrowOnFlush { get; init; }
             public bool ErrorOnFlush { get; init; }
 
