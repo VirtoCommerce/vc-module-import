@@ -31,6 +31,12 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public bool IsCompleted { get; set; }
 
         /// <summary>
+        /// The cursor lifetime the pipeline resolved for this run: the profile's <c>Import.Cursor.LifetimeDays</c> when it stores
+        /// one, otherwise the module-level setting. Set before the cursor is restored; null on a context built outside the pipeline.
+        /// </summary>
+        public TimeSpan? CursorLifetime { get; set; }
+
+        /// <summary>
         /// JSON settings used by resumable readers to (de)serialize cursors. Null = Newtonsoft defaults.
         /// A reader that needs custom converters or discriminator handling populates this in its
         /// OnImportStartedAsync hook; the resume-cursor DIMs read it on save/restore.

@@ -77,6 +77,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
             context.ProgressInfo = importProgress;
             context.ErrorCallback = errors.Handle;
 
+            // Resolved before the restore: the cursor is validated against it.
+            context.CursorLifetime = TimeSpan.FromDays(await GetCursorSettingAsync(importProfile, ImportCursorSettings.LifetimeDays));
+
             importRemainingEstimator.Start(context);
             await progressCallback(importProgress);
 
@@ -108,7 +111,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             importProgress.Description = "Import in progress";
             await progressCallback(importProgress);
 
-            var saveIntervalPages = (context.ImportProfile.Settings ?? []).GetValue<int>(ImportCursorSettings.SaveIntervalPages);
+            var saveIntervalPages = await GetCursorSettingAsync(importProfile, ImportCursorSettings.SaveIntervalPages);
             var checkpointTracker = new CursorCheckpointTracker(saveIntervalPages);
             var cursorReader = reader as IResumableImportDataReader;
 
@@ -164,6 +167,17 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 await dataImporter.OnImportCompletedAsync(context);
                 await progressCallback(importProgress);
             }
+        }
+
+        // A value stored on the profile (an importer that registers the setting for its own profiles) wins over the
+        // module-level setting, which in turn falls back to the descriptor default.
+        private async Task<int> GetCursorSettingAsync(ImportProfile importProfile, SettingDescriptor descriptor)
+        {
+            var hasStoredValue = importProfile.Settings?.Any(x => x.Name.EqualsIgnoreCase(descriptor.Name) && x.Value is not null) == true;
+
+            return hasStoredValue
+                ? importProfile.Settings.GetValue<int>(descriptor)
+                : await _settingsManager.GetValueAsync<int>(descriptor);
         }
 
         private async Task<bool> FlushSafelyAsync(IImportDataWriter writer, ImportContext context)

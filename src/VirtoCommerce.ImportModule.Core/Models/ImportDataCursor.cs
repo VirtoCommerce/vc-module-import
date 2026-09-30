@@ -46,9 +46,9 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
         protected virtual TimeSpan GetLifetime(ImportContext context)
         {
-            var lifetimeDays = (context.ImportProfile.Settings ?? []).GetValue<int>(ImportCursorSettings.LifetimeDays);
-
-            return TimeSpan.FromDays(lifetimeDays);
+            // Resolved by the pipeline (profile, then module setting); a context built elsewhere falls back to the profile alone.
+            return context.CursorLifetime
+                ?? TimeSpan.FromDays((context.ImportProfile.Settings ?? []).GetValue<int>(ImportCursorSettings.LifetimeDays));
         }
     }
 }

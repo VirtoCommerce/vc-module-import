@@ -56,7 +56,8 @@ namespace VirtoCommerce.ImportModule.Tests
             Action<Mock<IDataImporter>> configureImporter = null,
             IImportReporter reporter = null,
             int? maxErrorsCountThreshold = null,
-            IImportRunHistoryCrudService historyCrud = null)
+            IImportRunHistoryCrudService historyCrud = null,
+            Action<Mock<ISettingsManager>> configureSettings = null)
         {
             var importer = new Mock<IDataImporter>();
             importer.Setup(x => x.OpenReaderAsync(It.IsAny<ImportContext>())).ReturnsAsync(reader);
@@ -79,6 +80,8 @@ namespace VirtoCommerce.ImportModule.Tests
                     .Setup(x => x.GetObjectSettingAsync(ModuleConstants.Settings.General.MaxErrorsCountThreshold.Name, It.IsAny<string>(), It.IsAny<string>()))
                     .ReturnsAsync(new ObjectSettingEntry { Value = maxErrorsCountThreshold.Value });
             }
+
+            configureSettings?.Invoke(settingsManager);
 
             return CreateManager(
                 factory: factory.Object,
