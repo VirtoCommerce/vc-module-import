@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Models;
@@ -51,9 +50,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var importer = _importersRegistry.AllRegisteredImporters.FirstOrDefault(x => x.TypeName == model.DataImporterType);
             if (importer != null && importer.AvailSettings != null && importer.AvailSettings.Any())
             {
-                // Importer settings, plus the pipeline's own cursor settings, which no importer declares
-                var names = importer.AvailSettings.Concat(ImportCursorSettings.AllSettings).Select(x => x.Name).ToHashSet();
-                model.Settings = model.Settings.Where(x => names.Contains(x.Name)).ToList();
+                //filter only settings that defined for a importer
+                model.Settings = model.Settings.Join(importer.AvailSettings, entry => entry.Name, setting => setting.Name, (entry, setting) => entry).ToList();
             }
 
             return model;
