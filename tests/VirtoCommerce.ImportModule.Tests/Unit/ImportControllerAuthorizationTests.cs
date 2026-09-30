@@ -9,8 +9,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
     public class ImportControllerAuthorizationTests
     {
         [Theory]
-        [InlineData(nameof(ImportController.ResumeImport))]   // U15
-        [InlineData(nameof(ImportController.RunImport))]      // U16
+        [InlineData(nameof(ImportController.ResumeImport))]
+        [InlineData(nameof(ImportController.RunImport))]
         public void Action_Requires_Import_Access(string action)
         {
             var attribute = typeof(ImportController).GetMethod(action)!.GetCustomAttribute<AuthorizeAttribute>();

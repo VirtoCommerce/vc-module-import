@@ -105,7 +105,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             };
 
         [Fact]
-        public async Task Resumed_Run_Starts_With_The_Stored_Errors_In_Stored_Order()   // U1
+        public async Task Resumed_Run_Starts_With_The_Stored_Errors_In_Stored_Order()
         {
             var reader = new PagedReader { TotalPages = 3 };
             var profile = MakeProfile(saveInterval: 1000);
@@ -123,7 +123,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Invalid_Cursor_Removes_Seeded_Errors_And_Keeps_Open_Time_Errors()   // U4
+        public async Task Invalid_Cursor_Removes_Seeded_Errors_And_Keeps_Open_Time_Errors()
         {
             var reader = new PagedReader { TotalPages = 2 };
             var profile = MakeProfile(saveInterval: 1000);
@@ -159,7 +159,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Finished_Resumed_Run_Row_Holds_Seeded_And_New_Errors()   // U6
+        public async Task Finished_Resumed_Run_Row_Holds_Seeded_And_New_Errors()
         {
             var reader = new PagedReader { TotalPages = 2 };
             var profile = MakeProfile(saveInterval: 1000);
@@ -178,7 +178,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Error_Report_Of_A_Resumed_Run_Carries_Each_Seeded_Entry_As_Its_Message()   // U18
+        public async Task Error_Report_Of_A_Resumed_Run_Carries_Each_Seeded_Entry_As_Its_Message()
         {
             var reader = new PagedReader { TotalPages = 3 };
             var profile = MakeProfile(saveInterval: 1000);
@@ -196,7 +196,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Reset_Reaches_The_Notification_Before_A_Failing_Start_Hook()   // U4, start hook throws
+        public async Task Reset_Reaches_The_Notification_Before_A_Failing_Start_Hook()
         {
             var reader = new PagedReader { TotalPages = 2 };
             var profile = MakeProfile(saveInterval: 1000);

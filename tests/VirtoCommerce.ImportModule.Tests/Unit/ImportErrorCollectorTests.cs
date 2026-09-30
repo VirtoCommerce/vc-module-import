@@ -9,7 +9,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
     public class ImportErrorCollectorTests
     {
         [Fact]
-        public void New_Error_Precedes_Seeded_Entries_Which_Render_Exactly_As_Stored()   // U2
+        public void New_Error_Precedes_Seeded_Entries_Which_Render_Exactly_As_Stored()
         {
             var progress = new ImportProgressInfo();
             var collector = new ImportErrorCollector(10, progress, NullLogger.Instance);
@@ -21,7 +21,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void Seeded_Entries_Do_Not_Count_Toward_The_Threshold()   // U5
+        public void Seeded_Entries_Do_Not_Count_Toward_The_Threshold()
         {
             var progress = new ImportProgressInfo();
             var collector = new ImportErrorCollector(2, progress, NullLogger.Instance);
@@ -35,7 +35,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void Limit_Message_Stays_Last_On_Every_Error_After_The_Limit()   // U7
+        public void Limit_Message_Stays_Last_On_Every_Error_After_The_Limit()
         {
             var progress = new ImportProgressInfo();
             var collector = new ImportErrorCollector(2, progress, NullLogger.Instance);
@@ -50,7 +50,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public void Seeding_Removes_The_Limit_Message_Wherever_It_Sits_And_Keeps_Every_Other_Entry()   // U17
+        public void Seeding_Removes_The_Limit_Message_Wherever_It_Sits_And_Keeps_Every_Other_Entry()
         {
             var progress = new ImportProgressInfo();
             var collector = new ImportErrorCollector(10, progress, NullLogger.Instance);

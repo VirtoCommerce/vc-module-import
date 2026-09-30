@@ -121,7 +121,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Module_Setting_Sets_The_Checkpoint_Interval_When_The_Profile_Stores_None()   // U22
+        public async Task Module_Setting_Sets_The_Checkpoint_Interval_When_The_Profile_Stores_None()
         {
             var (flushes, checkpoints) = await RunAndCountCheckpoints(MakeProfile(), ModuleSettings(saveIntervalPages: 2));
 
@@ -143,7 +143,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Profile_Value_Wins_Over_The_Module_Checkpoint_Interval()   // U22
+        public async Task Profile_Value_Wins_Over_The_Module_Checkpoint_Interval()
         {
             var (flushes, checkpoints) = await RunAndCountCheckpoints(MakeProfile(saveIntervalPages: 1000), ModuleSettings(saveIntervalPages: 2));
 
@@ -152,7 +152,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Module_Lifetime_Expires_A_Cursor_When_The_Profile_Stores_None()   // U23
+        public async Task Module_Lifetime_Expires_A_Cursor_When_The_Profile_Stores_None()
         {
             var expired = await RunAndCaptureIsResume(MakeProfile(history: HistoryWithCursorCreatedDaysAgo(2)), ModuleSettings(lifetimeDays: 1));
             var valid = await RunAndCaptureIsResume(MakeProfile(history: HistoryWithCursorCreatedDaysAgo(2)), ModuleSettings(lifetimeDays: 7));
@@ -162,7 +162,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Profile_Lifetime_Wins_Over_The_Module_Lifetime()   // U23
+        public async Task Profile_Lifetime_Wins_Over_The_Module_Lifetime()
         {
             var isResume = await RunAndCaptureIsResume(MakeProfile(lifetimeDays: 1, history: HistoryWithCursorCreatedDaysAgo(2)), ModuleSettings(lifetimeDays: 7));
 

@@ -97,7 +97,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Exhausted_Source_And_Successful_Flush_Marks_Run_Completed()   // U8
+        public async Task Exhausted_Source_And_Successful_Flush_Marks_Run_Completed()
         {
             var completed = await RunAndCaptureCompleted(new PagedReader(), new ScriptedWriter());
 
@@ -105,7 +105,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Throwing_Write_Of_Final_Page_Leaves_Run_Not_Completed()   // U9
+        public async Task Throwing_Write_Of_Final_Page_Leaves_Run_Not_Completed()
         {
             // The reader advances in ReadNextPageAsync, so HasMoreResults is already false when the final write throws
             var completed = await RunAndCaptureCompleted(new PagedReader { TotalPages = 3 }, new ScriptedWriter { ThrowOnWrite = 3 });
@@ -114,7 +114,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Error_Limit_Before_End_Of_Source_Leaves_Run_Not_Completed()   // U10
+        public async Task Error_Limit_Before_End_Of_Source_Leaves_Run_Not_Completed()
         {
             var completed = await RunAndCaptureCompleted(
                 new PagedReader { TotalPages = 5 },
@@ -125,7 +125,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Failed_Final_Flush_Leaves_Run_Not_Completed()   // U11
+        public async Task Failed_Final_Flush_Leaves_Run_Not_Completed()
         {
             var completed = await RunAndCaptureCompleted(new PagedReader(), new ScriptedWriter { ThrowOnFlush = true });
 
@@ -133,7 +133,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Error_Limit_Reached_On_Final_Page_Still_Marks_Run_Completed()   // U19 (final page)
+        public async Task Error_Limit_Reached_On_Final_Page_Still_Marks_Run_Completed()
         {
             var completed = await RunAndCaptureCompleted(
                 new PagedReader { TotalPages = 3 },
@@ -144,7 +144,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Error_Limit_Reached_During_Final_Flush_Still_Marks_Run_Completed()   // U19 (flush)
+        public async Task Error_Limit_Reached_During_Final_Flush_Still_Marks_Run_Completed()
         {
             var completed = await RunAndCaptureCompleted(
                 new PagedReader { TotalPages = 3 },
@@ -162,7 +162,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Throwing_Reporter_Still_Completes_The_Run()   // U21
+        public async Task Throwing_Reporter_Still_Completes_The_Run()
         {
             var completed = await RunAndCaptureCompleted(new PagedReader(), new ScriptedWriter(), reporter: ThrowingReporter());
 
@@ -171,7 +171,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Throwing_Reporter_Is_Reported_And_Final_Progress_Is_Sent()   // U21
+        public async Task Throwing_Reporter_Is_Reported_And_Final_Progress_Is_Sent()
         {
             var progress = new List<ImportProgressInfo>();
             var manager = TestHelperFactory.CreateManagerWithImporter(new PagedReader(), new ScriptedWriter(), reporter: ThrowingReporter());
