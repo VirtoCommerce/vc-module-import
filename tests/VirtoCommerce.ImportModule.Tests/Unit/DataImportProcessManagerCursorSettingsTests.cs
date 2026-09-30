@@ -131,6 +131,18 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Unset_Profile_Entry_Falls_Through_To_The_Module_Checkpoint_Interval()
+        {
+            var profile = new ImportProfile { Settings = [new ObjectSettingEntry(ImportCursorSettings.SaveIntervalPages)] };
+
+            var (flushes, checkpoints) = await RunAndCountCheckpoints(profile, ModuleSettings(saveIntervalPages: 2));
+
+            // The platform materialises a registered-but-unset setting with a null Value; it must not shadow the module value
+            Assert.Equal(2, checkpoints);
+            Assert.Equal(3, flushes);
+        }
+
+        [Fact]
         public async Task Profile_Value_Wins_Over_The_Module_Checkpoint_Interval()   // U22
         {
             var (flushes, checkpoints) = await RunAndCountCheckpoints(MakeProfile(saveIntervalPages: 1000), ModuleSettings(saveIntervalPages: 2));
