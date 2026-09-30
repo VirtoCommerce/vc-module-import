@@ -27,6 +27,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpGet]
         [Route("organization")]
+        [Authorize]
         public async Task<ActionResult<OrganizationInfo>> GetOrganizationInfo(string organizationId)
         {
             var authorizationInfo = new AuthorizationInfo();

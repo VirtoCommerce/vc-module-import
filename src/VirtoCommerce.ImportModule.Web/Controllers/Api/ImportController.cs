@@ -53,6 +53,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("run")]
+        [Authorize]
         public async Task<ActionResult<ImportPushNotification>> RunImport([FromBody] ImportProfile importProfile)
         {
             if (!await AuthorizeRunAsync(importProfile))
@@ -77,6 +78,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("runs/resume")]
+        [Authorize]
         public async Task<ActionResult<ImportPushNotification>> ResumeImport([FromBody] ImportResumeRequest request)
         {
             await ExType<ImportResumeRequestValidator>.New().ValidateAndThrowAsync(request);
@@ -186,6 +188,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("profiles/search")]
+        [Authorize]
         public async Task<ActionResult<SearchImportProfilesResult>> SearchImportProfiles([FromBody] SearchImportProfilesCriteria criteria)
         {
             var authorizationInfo = new AuthorizationInfo();
@@ -220,6 +223,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("profiles/execution/history/search")]
+        [Authorize]
         public async Task<ActionResult<SearchImportRunHistoryResult>> SearchImportRunHistory([FromBody] SearchImportRunHistoryCriteria criteria)
         {
             var authorizationInfo = new AuthorizationInfo();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -59,6 +60,18 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Run_Refuses_When_The_Importer_Requirement_Fails()
+        {
+            var importerRequirement = new PermissionAuthorizationRequirement("custom:import");
+            var fixture = new Fixture(importerRequirement, AuthorizationResult.Failed());
+
+            var result = await fixture.Controller.RunImport(CreateProfile());
+
+            Assert.IsType<UnauthorizedResult>(result.Result);
+            fixture.RunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Never);
+        }
+
+        [Fact]
         public async Task Resume_Authorizes_Against_The_Importer_Requirement_When_It_Declares_One()
         {
             var importerRequirement = new PermissionAuthorizationRequirement("custom:import");
@@ -91,14 +104,29 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             fixture.RunService.Verify(x => x.ResumeImportAsync(It.IsAny<string>()), Times.Never);
         }
 
-        [Fact]
-        public void Run_And_Resume_Carry_No_Static_Permission_Policy()
+        [Theory]
+        [InlineData(typeof(ImportController), nameof(ImportController.RunImport))]
+        [InlineData(typeof(ImportController), nameof(ImportController.ResumeImport))]
+        [InlineData(typeof(ImportController), nameof(ImportController.SearchImportProfiles))]
+        [InlineData(typeof(ImportController), nameof(ImportController.SearchImportRunHistory))]
+        [InlineData(typeof(OrganizationController), nameof(OrganizationController.GetOrganizationInfo))]
+        public void Action_Authorizing_In_Code_Carries_An_Authorize_Without_Policy(Type controllerType, string action)
         {
-            var actions = new[] { nameof(ImportController.RunImport), nameof(ImportController.ResumeImport) };
+            var attributes = controllerType.GetMethod(action)!.GetCustomAttributes<AuthorizeAttribute>().ToList();
 
-            foreach (var action in actions)
+            var attribute = Assert.Single(attributes);
+            Assert.Null(attribute.Policy);
+            Assert.Null(attribute.Roles);
+        }
+
+        [Fact]
+        public void Controllers_Carry_No_Class_Level_Permission_Policy()
+        {
+            var controllerTypes = new[] { typeof(ImportController), typeof(OrganizationController) };
+
+            foreach (var controllerType in controllerTypes)
             {
-                var attributes = typeof(ImportController).GetMethod(action)!.GetCustomAttributes<AuthorizeAttribute>();
+                var attributes = controllerType.GetCustomAttributes<AuthorizeAttribute>();
 
                 Assert.DoesNotContain(attributes, x => !string.IsNullOrEmpty(x.Policy));
             }
