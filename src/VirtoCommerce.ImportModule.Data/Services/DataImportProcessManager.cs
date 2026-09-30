@@ -227,8 +227,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// On success: injects the cursor's embedded ProcessedCount into context.ProgressInfo
         /// (via <see cref="IResumableImportDataReader"/> DIM bridge) and returns true.
         /// Without a cursor: returns false and leaves the row untouched.
-        /// On a cursor the reader cannot use — a reader that is not resumable, or an invalid or expired cursor: resets the history row (Cursor/ProcessedCount/Errors/ErrorsCount) and
-        /// returns false, so the pipeline continues as a fresh run. The errors seeded from the replaced run are removed
+        /// On a cursor the reader cannot use — a reader that is not resumable, or an invalid or expired cursor: resets
+        /// the history row (Cursor/ProcessedCount/Errors/ErrorsCount) and returns false, so the pipeline continues as a
+        /// fresh run. The errors seeded from the replaced run are removed
         /// from <paramref name="errors"/>; errors this run already raised (for example while opening the reader) stay on the row.
         /// A restore that throws is rethrown and fails the run.
         /// </summary>
@@ -299,7 +300,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         [LoggerMessage(LogLevel.Warning, "Cursor from import run history '{HistoryId}' is expired or invalid, restarting from zero")]
         partial void LogCursorFromImportRunHistoryInvalid(string historyId);
 
-        [LoggerMessage(LogLevel.Warning, "Import run history {HistoryId} has a cursor, but the reader is not resumable; starting a fresh run")]
+        [LoggerMessage(LogLevel.Warning, "Import run history '{HistoryId}' has a cursor, but the reader is not resumable; starting a fresh run")]
         partial void LogCursorFromImportRunHistoryNotResumable(string historyId);
     }
 }
