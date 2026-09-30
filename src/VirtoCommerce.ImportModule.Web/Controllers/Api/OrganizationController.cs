@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VirtoCommerce.CustomerModule.Core.Model;
 using VirtoCommerce.CustomerModule.Core.Services;
 using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Models;
@@ -41,10 +42,16 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             {
                 organizationId = authorizationInfo.OrganizationId;
             }
+            else if (!string.IsNullOrEmpty(authorizationInfo.OrganizationId) && organizationId != authorizationInfo.OrganizationId)
+            {
+                // An organization's employee reads only its own organization
+                return Unauthorized();
+            }
+
             if (!string.IsNullOrEmpty(organizationId))
             {
-                var organization = await _memberResolver.ResolveMemberByIdAsync(organizationId);
-                if (organization != null)
+                var member = await _memberResolver.ResolveMemberByIdAsync(organizationId);
+                if (member is Organization organization)
                 {
                     var organizationInfo = new OrganizationInfo
                     {
