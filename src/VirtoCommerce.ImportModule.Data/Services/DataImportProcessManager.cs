@@ -85,7 +85,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             using var writer = await dataImporter.OpenWriterAsync(context);
 
             // Attempt to restore the cursor from the run history.
-            // An invalid or expired cursor resets the history row so the run starts fresh; a throwing restore fails the run.
+            // A cursor the reader cannot use resets the history row so the run starts fresh; a throwing restore fails the run.
             var hadCursor = !string.IsNullOrEmpty(importProfile.RunHistory?.Cursor);
             context.IsResume = await TryRestoreCursorAsync(reader, context, errors);
             if (hadCursor && !context.IsResume)
@@ -212,22 +212,25 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// Attempts to restore reader state from the import run history's serialized cursor.
         /// On success: injects the cursor's embedded ProcessedCount into context.ProgressInfo
         /// (via <see cref="IResumableImportDataReader"/> DIM bridge) and returns true.
-        /// Without a cursor, or with a reader that is not resumable: returns false and leaves the row untouched.
-        /// On an invalid or expired cursor: resets the history row (Cursor/ProcessedCount/Errors/ErrorsCount) and
+        /// Without a cursor: returns false and leaves the row untouched.
+        /// On a cursor the reader cannot use — a reader that is not resumable, or an invalid or expired cursor: resets the history row (Cursor/ProcessedCount/Errors/ErrorsCount) and
         /// returns false, so the pipeline continues as a fresh run. The errors seeded from the replaced run are removed
         /// from <paramref name="errors"/>; errors this run already raised (for example while opening the reader) stay on the row.
         /// A restore that throws is rethrown and fails the run.
         /// </summary>
         internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors)
         {
-            if (reader is not IResumableImportDataReader cursorReader)
+            var runHistory = context.ImportProfile.RunHistory;
+            if (string.IsNullOrEmpty(runHistory?.Cursor))
             {
                 return false;
             }
 
-            var runHistory = context.ImportProfile.RunHistory;
-            if (string.IsNullOrEmpty(runHistory?.Cursor))
+            if (reader is not IResumableImportDataReader cursorReader)
             {
+                LogCursorFromImportRunHistoryNotResumable(runHistory.Id);
+                await ResetRunHistoryAsync(runHistory, context, errors);
+
                 return false;
             }
 
@@ -250,7 +253,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
 
             LogCursorFromImportRunHistoryInvalid(runHistory.Id);
+            await ResetRunHistoryAsync(runHistory, context, errors);
 
+            return false;
+        }
+
+        private async Task ResetRunHistoryAsync(ImportRunHistory runHistory, ImportContext context, ImportErrorCollector errors)
+        {
             // A clean start inherits nothing from the run it replaces; errors this run raised at open time stay.
             errors.RemoveSeeded();
 
@@ -259,8 +268,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
             runHistory.Errors = context.ProgressInfo?.Errors?.ToList() ?? [];
             runHistory.ErrorsCount = runHistory.Errors.Count;
             await _importRunHistoryService.SaveChangesAsync([runHistory]);
-
-            return false;
         }
 
         [LoggerMessage(LogLevel.Error, "FlushAsync failed for import profile '{profileName}'")]
@@ -277,5 +284,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         [LoggerMessage(LogLevel.Warning, "Cursor from import run history '{HistoryId}' is expired or invalid, restarting from zero")]
         partial void LogCursorFromImportRunHistoryInvalid(string historyId);
+
+        [LoggerMessage(LogLevel.Warning, "Import run history {HistoryId} has a cursor, but the reader is not resumable; starting a fresh run")]
+        partial void LogCursorFromImportRunHistoryNotResumable(string historyId);
     }
 }

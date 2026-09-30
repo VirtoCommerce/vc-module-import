@@ -32,6 +32,21 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             public void Dispose() { }
         }
 
+        // Deliberately NOT IImportDataReader<T>: that interface brings in IResumableImportDataReader.
+        private sealed class PlainReader : IImportDataReader
+        {
+            public int PageIdx { get; private set; }
+            public int TotalPages { get; init; } = 3;
+            public bool HasMoreResults => PageIdx < TotalPages;
+            public Task<int> GetTotalCountAsync(ImportContext context) => Task.FromResult(TotalPages);
+            public Task<object[]> ReadNextPageAsync(ImportContext context)
+            {
+                PageIdx++;
+                return Task.FromResult(new object[1]);
+            }
+            public void Dispose() { }
+        }
+
         private sealed class NoopWriter : IImportDataWriter
         {
             public Task WriteAsync(object[] items, ImportContext context) => Task.CompletedTask;
@@ -203,6 +218,38 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 return Task.CompletedTask;
             }, CancellationToken.None));
 
+            Assert.Equal(["Line 0: open"], lastErrors);
+        }
+
+        [Fact]
+        public async Task Non_Resumable_Reader_On_A_Row_With_A_Cursor_Starts_Clean()
+        {
+            var reader = new PlainReader { TotalPages = 2 };
+            var profile = MakeProfile(saveInterval: 1000);
+            profile.RunHistory = ResumedRow(new PageCursor(1) { ProcessedCount = 1 }.Serialize());
+            ImportRunHistory savedAtReset = null;
+            List<string> rowErrorsAtReset = null;
+            var crud = new Mock<IImportRunHistoryCrudService>();
+            crud.Setup(x => x.SaveChangesAsync(It.IsAny<IList<ImportRunHistory>>()))
+                .Callback<IList<ImportRunHistory>>(x => { savedAtReset = x[0]; rowErrorsAtReset = x[0].Errors.ToList(); })
+                .Returns(Task.CompletedTask);
+            IList<string> lastErrors = null;
+            var manager = TestHelperFactory.CreateManagerWithImporter(reader, new NoopWriter(),
+                configureImporter: importer => importer
+                    .Setup(x => x.OpenReaderAsync(It.IsAny<ImportContext>()))
+                    .Callback<ImportContext>(x => x.ErrorCallback(new ErrorInfo { ErrorLine = 0, ErrorMessage = "open" }))
+                    .ReturnsAsync(reader),
+                historyCrud: crud.Object);
+
+            await manager.ImportAsync(profile, x =>
+            {
+                lastErrors = x.Errors.ToList();
+                return Task.CompletedTask;
+            }, CancellationToken.None);
+
+            Assert.Equal(["Line 0: open"], rowErrorsAtReset);
+            Assert.Null(savedAtReset.Cursor);
+            Assert.Equal(0, savedAtReset.ProcessedCount);
             Assert.Equal(["Line 0: open"], lastErrors);
         }
     }

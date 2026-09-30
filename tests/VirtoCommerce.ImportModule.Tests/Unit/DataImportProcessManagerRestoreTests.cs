@@ -27,6 +27,15 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             public void Dispose() { }
         }
 
+        // Deliberately NOT IImportDataReader<T>: that interface brings in IResumableImportDataReader.
+        private sealed class PlainReader : IImportDataReader
+        {
+            public bool HasMoreResults => true;
+            public Task<int> GetTotalCountAsync(ImportContext context) => Task.FromResult(0);
+            public Task<object[]> ReadNextPageAsync(ImportContext context) => Task.FromResult<object[]>([]);
+            public void Dispose() { }
+        }
+
         private sealed class ThrowingReader : IImportDataReader<TestCursor>
         {
             public TestCursor GetCursor(ImportContext context) => new(0);
@@ -81,6 +90,22 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var history = new ImportRunHistory { Id = "H1", Cursor = null, ProcessedCount = 0 };
             var profile = MakeProfile(history, lifetimeDays: 7);
             var reader = new FakeResumableReader();
+            var context = new ImportContext(profile) { ProgressInfo = new ImportProgressInfo() };
+            var crud = new Mock<IImportRunHistoryCrudService>();
+            var manager = TestHelperFactory.CreateManager(historyCrud: crud.Object);
+
+            var result = await manager.TryRestoreCursorAsync(reader, context, new ImportErrorCollector(50, context.ProgressInfo, NullLogger.Instance));
+
+            Assert.False(result);
+            crud.Verify(x => x.SaveChangesAsync(It.IsAny<IList<ImportRunHistory>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Non_Resumable_Reader_Without_Cursor_Returns_False_No_Mutation()
+        {
+            var history = new ImportRunHistory { Id = "H1", Cursor = null, ProcessedCount = 0 };
+            var profile = MakeProfile(history, lifetimeDays: 7);
+            var reader = new PlainReader();
             var context = new ImportContext(profile) { ProgressInfo = new ImportProgressInfo() };
             var crud = new Mock<IImportRunHistoryCrudService>();
             var manager = TestHelperFactory.CreateManager(historyCrud: crud.Object);
