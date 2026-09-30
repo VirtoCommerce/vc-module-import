@@ -145,9 +145,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             // Attempt to restore the cursor from the run history.
             // A cursor the reader cannot use resets the history row so the run starts fresh; a throwing restore fails the run.
-            var hadCursor = HasStoredCursor(context.ImportProfile);
+            var hasStoredCursor = HasStoredCursor(context.ImportProfile);
             var isResume = await TryRestoreCursorAsync(reader, context, errors);
-            if (hadCursor && !isResume)
+            if (hasStoredCursor && !isResume)
             {
                 // The notification still references the error list rendered before the reset; the importer's start hook
                 // can throw next, and RunImportAsync would then finish the row from that stale list.
