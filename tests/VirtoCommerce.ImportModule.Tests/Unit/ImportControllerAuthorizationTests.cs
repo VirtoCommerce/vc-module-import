@@ -67,6 +67,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
             var result = await fixture.Controller.RunImport(CreateProfile());
 
+            Assert.Same(importerRequirement, fixture.AuthorizedRequirement);
             Assert.IsType<UnauthorizedResult>(result.Result);
             fixture.RunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Never);
         }
@@ -129,6 +130,28 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 var attributes = controllerType.GetCustomAttributes<AuthorizeAttribute>();
 
                 Assert.DoesNotContain(attributes, x => !string.IsNullOrEmpty(x.Policy));
+            }
+        }
+
+        [Fact]
+        public void Every_Public_Action_Carries_An_Authorize_Attribute()
+        {
+            var controllerTypes = new[] { typeof(ImportController), typeof(OrganizationController) };
+
+            foreach (var controllerType in controllerTypes)
+            {
+                var actions = controllerType
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .Where(x => !x.IsSpecialName)
+                    .ToList();
+
+                Assert.NotEmpty(actions);
+                foreach (var action in actions)
+                {
+                    Assert.True(
+                        action.GetCustomAttributes<AuthorizeAttribute>().Any(),
+                        $"{controllerType.Name}.{action.Name} has no method-level Authorize attribute");
+                }
             }
         }
 

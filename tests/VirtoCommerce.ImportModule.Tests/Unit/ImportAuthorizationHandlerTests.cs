@@ -69,6 +69,23 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.Equal(OrganizationId, resource.OrganizationId);
         }
 
+        [Fact]
+        public async Task Permission_Holder_Who_Is_An_Organization_Employee_Is_Scoped_To_Its_Organization()
+        {
+            var user = CreateUser(
+                new Claim("permission", ModuleConstants.Security.Permissions.Access),
+                new Claim("memberId", MemberId));
+            var resource = new AuthorizationInfo();
+            var memberResolver = CreateMemberResolver(
+                new Employee { Id = MemberId, Organizations = [OrganizationId] },
+                new Organization { Id = OrganizationId });
+
+            var context = await Authorize(user, resource, memberResolver);
+
+            Assert.True(context.HasSucceeded);
+            Assert.Equal(OrganizationId, resource.OrganizationId);
+        }
+
         private static async Task<AuthorizationHandlerContext> Authorize(ClaimsPrincipal user, AuthorizationInfo resource, IMemberResolver memberResolver = null)
         {
             var handler = new ImportAuthorizationHandler(memberResolver ?? Mock.Of<IMemberResolver>());
