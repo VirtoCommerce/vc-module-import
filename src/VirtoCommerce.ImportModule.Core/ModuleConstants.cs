@@ -17,7 +17,7 @@ namespace VirtoCommerce.ImportModule.Core
                 public const string Delete = "import:delete";
                 public const string Execute = "import:execute";
 
-                public static string[] AllPermissions { get; } = { Read, Create, Access, Update, Delete, Execute };
+                public static string[] AllPermissions { get; } = [Read, Create, Access, Update, Delete, Execute];
             }
         }
 
