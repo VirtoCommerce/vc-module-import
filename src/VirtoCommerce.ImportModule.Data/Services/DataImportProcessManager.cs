@@ -50,10 +50,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var importRemainingEstimator = _importRemainingEstimatorFactory.Create(remainingEstimatorType);
 
             // Create reporter
-            var defaultImportReporterType = await _settingsManager.GetValueAsync<string>(ModuleConstants.Settings.General.DefaultImportReporter);
-            var importReporterType = !string.IsNullOrEmpty(importProfile.ImportReporterType) ? importProfile.ImportReporterType : defaultImportReporterType;
-            using var importReporter = _importReporterFactory.Create(importReporterType);
-            importReporter.SetContext(importProfile);
+            using var importReporter = await CreateReporterAsync(importProfile);
 
             // Import progress
             var importProgress = new ImportProgressInfo
@@ -66,7 +63,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             // A resumed run keeps the errors its interrupted part reported. IsResumable() cannot key this:
             // TryGetRunHistoryAsync has already cleared Finished on the row it attaches. Seeding must precede the
             // first progressCallback, which aliases the row's Errors to ProgressInfo.Errors.
-            if (!string.IsNullOrEmpty(importProfile.RunHistory?.Cursor))
+            if (HasStoredCursor(importProfile))
             {
                 errors.Seed(importProfile.RunHistory.Errors);
             }
@@ -87,16 +84,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             using var reader = await dataImporter.OpenReaderAsync(context);
             using var writer = await dataImporter.OpenWriterAsync(context);
 
-            // Attempt to restore the cursor from the run history.
-            // A cursor the reader cannot use resets the history row so the run starts fresh; a throwing restore fails the run.
-            var hadCursor = !string.IsNullOrEmpty(importProfile.RunHistory?.Cursor);
-            context.IsResume = await TryRestoreCursorAsync(reader, context, errors);
-            if (hadCursor && !context.IsResume)
-            {
-                // The notification still references the error list rendered before the reset; the importer's start hook
-                // can throw next, and RunImportAsync would then finish the row from that stale list.
-                await progressCallback(importProgress);
-            }
+            context.IsResume = await RestoreRunAsync(reader, context, errors, progressCallback);
 
             await dataImporter.OnImportStartedAsync(context);
 
@@ -111,36 +99,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
             importProgress.Description = "Import in progress";
             await progressCallback(importProgress);
 
-            var saveIntervalPages = await GetCursorSettingAsync(importProfile, ImportCursorSettings.SaveIntervalPages);
-            var checkpointTracker = new CursorCheckpointTracker(saveIntervalPages);
-            var cursorReader = reader as IResumableImportDataReader;
-
             try
             {
-                do
-                {
-                    token.ThrowIfCancellationRequested();
-
-                    await checkpointTracker.TrySaveCursorAsync(context, cursorReader, writer);
-
-                    var items = await reader.ReadNextPageAsync(context);
-
-                    token.ThrowIfCancellationRequested();
-
-                    await writer.WriteAsync(items, context);
-                    importProgress.ProcessedCount += items.Length;
-
-                    importRemainingEstimator.Update(context);
-                    importRemainingEstimator.Estimate(context);
-
-                    await progressCallback(importProgress);
-
-                    CursorCheckpointTracker.ClearSaveState(context);
-
-                } while (reader.HasMoreResults && !errors.LimitReached);
-
-                // Only an exhausted source completes the run; a loop the error limit stopped early does not.
-                context.IsCompleted = !reader.HasMoreResults;
+                await ReadAndWritePagesAsync(context, reader, writer, errors, importRemainingEstimator, progressCallback, token);
             }
             catch (Exception ex)
             {
@@ -152,21 +113,116 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                if (!await FlushSafelyAsync(writer, context))
-                {
-                    context.IsCompleted = false;
-                }
+                await FinishRunAsync(dataImporter, importReporter, importRemainingEstimator, writer, context, errors, progressCallback);
+            }
+        }
 
-                var errorReportResult = await SaveErrorsSafelyAsync(importReporter, errors.GetTopErrors(), context);
-                importRemainingEstimator.Stop(context);
+        private async Task<IImportReporter> CreateReporterAsync(ImportProfile importProfile)
+        {
+            var defaultImportReporterType = await _settingsManager.GetValueAsync<string>(ModuleConstants.Settings.General.DefaultImportReporter);
+            var importReporterType = !string.IsNullOrEmpty(importProfile.ImportReporterType) ? importProfile.ImportReporterType : defaultImportReporterType;
+            var importReporter = _importReporterFactory.Create(importReporterType);
 
-                importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
-                importProgress.Finished = DateTime.UtcNow;
-                importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
+            // The caller's `using` only takes ownership once this method returns.
+            try
+            {
+                importReporter.SetContext(importProfile);
+            }
+            catch
+            {
+                importReporter.Dispose();
+                throw;
+            }
 
-                await dataImporter.OnImportCompletedAsync(context);
+            return importReporter;
+        }
+
+        private static bool HasStoredCursor(ImportProfile importProfile) => !string.IsNullOrEmpty(importProfile.RunHistory?.Cursor);
+
+        private async Task<bool> RestoreRunAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
+        {
+            var importProgress = context.ProgressInfo;
+
+            // Attempt to restore the cursor from the run history.
+            // A cursor the reader cannot use resets the history row so the run starts fresh; a throwing restore fails the run.
+            var hadCursor = HasStoredCursor(context.ImportProfile);
+            var isResume = await TryRestoreCursorAsync(reader, context, errors);
+            if (hadCursor && !isResume)
+            {
+                // The notification still references the error list rendered before the reset; the importer's start hook
+                // can throw next, and RunImportAsync would then finish the row from that stale list.
                 await progressCallback(importProgress);
             }
+
+            return isResume;
+        }
+
+        private async Task ReadAndWritePagesAsync(
+            ImportContext context,
+            IImportDataReader reader,
+            IImportDataWriter writer,
+            ImportErrorCollector errors,
+            IImportRemainingEstimator importRemainingEstimator,
+            Func<ImportProgressInfo, Task> progressCallback,
+            CancellationToken token)
+        {
+            var importProgress = context.ProgressInfo;
+
+            var saveIntervalPages = await GetCursorSettingAsync(context.ImportProfile, ImportCursorSettings.SaveIntervalPages);
+            var checkpointTracker = new CursorCheckpointTracker(saveIntervalPages);
+            var cursorReader = reader as IResumableImportDataReader;
+
+            do
+            {
+                token.ThrowIfCancellationRequested();
+
+                await checkpointTracker.TrySaveCursorAsync(context, cursorReader, writer);
+
+                var items = await reader.ReadNextPageAsync(context);
+
+                token.ThrowIfCancellationRequested();
+
+                await writer.WriteAsync(items, context);
+                importProgress.ProcessedCount += items.Length;
+
+                importRemainingEstimator.Update(context);
+                importRemainingEstimator.Estimate(context);
+
+                await progressCallback(importProgress);
+
+                CursorCheckpointTracker.ClearSaveState(context);
+
+            } while (reader.HasMoreResults && !errors.LimitReached);
+
+            // Only an exhausted source completes the run; a loop the error limit stopped early does not.
+            context.IsCompleted = !reader.HasMoreResults;
+        }
+
+        private async Task FinishRunAsync(
+            IDataImporter dataImporter,
+            IImportReporter importReporter,
+            IImportRemainingEstimator importRemainingEstimator,
+            IImportDataWriter writer,
+            ImportContext context,
+            ImportErrorCollector errors,
+            Func<ImportProgressInfo, Task> progressCallback)
+        {
+            var importProgress = context.ProgressInfo;
+
+            if (!await FlushSafelyAsync(writer, context))
+            {
+                context.IsCompleted = false;
+            }
+
+            var errorReportResult = await SaveErrorsSafelyAsync(importReporter, errors.GetTopErrors(), context);
+            importRemainingEstimator.Stop(context);
+
+            importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
+            importProgress.Finished = DateTime.UtcNow;
+            importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
+
+            await dataImporter.OnImportCompletedAsync(context);
+            await progressCallback(importProgress);
         }
 
         // A value stored on the profile (an importer that registers the setting for its own profiles) wins over the
