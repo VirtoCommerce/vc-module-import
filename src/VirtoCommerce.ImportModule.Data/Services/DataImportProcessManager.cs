@@ -139,7 +139,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         private static bool HasStoredCursor(ImportProfile importProfile) => !string.IsNullOrEmpty(importProfile.RunHistory?.Cursor);
 
-        private async Task ReadAndWritePagesAsync(
+        private static async Task ReadAndWritePagesAsync(
             ImportContext context,
             IImportDataReader reader,
             IImportDataWriter writer,

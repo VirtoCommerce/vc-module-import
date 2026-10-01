@@ -169,6 +169,23 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Failing_Closing_Save_Sends_The_Push_But_Not_The_Completion_Email()
+        {
+            var fixture = new Fixture();
+            var mailFailure = new TimeoutException("mail down");
+            // Attempting the e-mail would log mailFailure
+            fixture.CompletionEmailFails(mailFailure);
+            fixture.SaveThrowsAfter(1, new InvalidOperationException("save failed"));
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None));
+
+            Assert.Equal("save failed", exception.Message);
+            Assert.Equal("send", fixture.Calls[^1]);
+            Assert.DoesNotContain(fixture.Logger.Entries, x => x.Exception == mailFailure);
+        }
+
+        [Fact]
         public async Task Failing_Progress_Notification_Still_Updates_And_Checkpoints_The_Row()
         {
             var row = new ImportRunHistory { Id = "H1" };

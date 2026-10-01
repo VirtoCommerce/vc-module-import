@@ -240,6 +240,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 }
             }
 
+            // Outside the finally, unlike the push: the e-mail carries the run history row, so it is sent only once the
+            // finished row is saved.
             await SendCompletionEmailAsync(pushNotification, importRunHistory);
         }
 
