@@ -157,12 +157,15 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             var fixture = new Fixture();
             fixture.ImportThrows(new InvalidOperationException("import failed"));
-            fixture.CompletionEmailFails(new TimeoutException("mail down"));
+            var mailFailure = new TimeoutException("mail down");
+            fixture.CompletionEmailFails(mailFailure);
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None));
 
             Assert.Equal("import failed", exception.Message);
+            // The e-mail step ran and its failure was logged, not rethrown
+            Assert.Contains(fixture.Logger.Entries, x => x.Exception == mailFailure);
         }
 
         [Fact]
@@ -204,7 +207,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             private readonly Mock<IPushNotificationManager> _pushManager = new();
             private readonly Mock<UserManager<ApplicationUser>> _userManager = new(
                 Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-            // Strict: any call on it throws, which stands in for a failing notification search
+            // Strict, so no member other than the one CompletionEmailFails sets up can be called
             private readonly Mock<INotificationSearchService> _notificationSearch = new(MockBehavior.Strict);
             private Exception _saveFailure;
             private int _savesBeforeFailure;
@@ -254,7 +257,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             }
 
             // The creator resolves to a user with an e-mail address, so the completion e-mail is attempted; its
-            // notification search is the strict mock above and throws.
+            // notification search throws the given exception.
             public void CompletionEmailFails(Exception exception)
             {
                 _userManager.Setup(x => x.FindByNameAsync(It.IsAny<string>()))
