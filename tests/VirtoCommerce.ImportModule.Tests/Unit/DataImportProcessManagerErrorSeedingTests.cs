@@ -222,6 +222,28 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Failing_Reset_Save_Leaves_The_Notification_Without_The_Seeded_Errors()
+        {
+            var reader = new PagedReader { TotalPages = 2 };
+            var profile = MakeProfile(saveInterval: 1000);
+            profile.RunHistory = ResumedRow("garbage-not-base64");
+            var crud = new Mock<IImportRunHistoryCrudService>();
+            crud.Setup(x => x.SaveChangesAsync(It.IsAny<IList<ImportRunHistory>>()))
+                .ThrowsAsync(new InvalidOperationException("save failed"));
+            List<string> lastErrors = null;
+            var manager = TestHelperFactory.CreateManagerWithImporter(reader, new NoopWriter(), historyCrud: crud.Object);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => manager.ImportAsync(profile, x =>
+            {
+                lastErrors = x.Errors?.ToList();
+                return Task.CompletedTask;
+            }, CancellationToken.None));
+
+            Assert.NotNull(lastErrors);
+            Assert.Empty(lastErrors);
+        }
+
+        [Fact]
         public async Task Non_Resumable_Reader_On_A_Row_With_A_Cursor_Starts_Clean()
         {
             var reader = new PlainReader { TotalPages = 2 };

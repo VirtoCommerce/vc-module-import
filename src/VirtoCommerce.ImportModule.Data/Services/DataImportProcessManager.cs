@@ -84,7 +84,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             using var reader = await dataImporter.OpenReaderAsync(context);
             using var writer = await dataImporter.OpenWriterAsync(context);
 
-            context.IsResume = await RestoreRunAsync(reader, context, errors, progressCallback);
+            context.IsResume = await TryRestoreCursorAsync(reader, context, errors, progressCallback);
 
             await dataImporter.OnImportStartedAsync(context);
 
@@ -138,24 +138,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
         }
 
         private static bool HasStoredCursor(ImportProfile importProfile) => !string.IsNullOrEmpty(importProfile.RunHistory?.Cursor);
-
-        private async Task<bool> RestoreRunAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
-        {
-            var importProgress = context.ProgressInfo;
-
-            // Attempt to restore the cursor from the run history.
-            // A cursor the reader cannot use resets the history row so the run starts fresh; a throwing restore fails the run.
-            var hasStoredCursor = HasStoredCursor(context.ImportProfile);
-            var isResume = await TryRestoreCursorAsync(reader, context, errors);
-            if (hasStoredCursor && !isResume)
-            {
-                // The notification still references the error list rendered before the reset; the importer's start hook
-                // can throw next, and RunImportAsync would then finish the row from that stale list.
-                await progressCallback(importProgress);
-            }
-
-            return isResume;
-        }
 
         private async Task ReadAndWritePagesAsync(
             ImportContext context,
@@ -289,7 +271,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// from <paramref name="errors"/>; errors this run already raised (for example while opening the reader) stay on the row.
         /// A restore that throws is rethrown and fails the run.
         /// </summary>
-        internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors)
+        internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
         {
             var runHistory = context.ImportProfile.RunHistory;
             if (string.IsNullOrEmpty(runHistory?.Cursor))
@@ -300,7 +282,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             if (reader is not IResumableImportDataReader cursorReader)
             {
                 LogCursorFromImportRunHistoryNotResumable(runHistory.Id);
-                await ResetRunHistoryAsync(runHistory, context, errors);
+                await ResetRunHistoryAsync(runHistory, context, errors, progressCallback);
 
                 return false;
             }
@@ -324,15 +306,18 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
 
             LogCursorFromImportRunHistoryInvalid(runHistory.Id);
-            await ResetRunHistoryAsync(runHistory, context, errors);
+            await ResetRunHistoryAsync(runHistory, context, errors, progressCallback);
 
             return false;
         }
 
-        private async Task ResetRunHistoryAsync(ImportRunHistory runHistory, ImportContext context, ImportErrorCollector errors)
+        private async Task ResetRunHistoryAsync(ImportRunHistory runHistory, ImportContext context, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
         {
             // A clean start inherits nothing from the run it replaces; errors this run raised at open time stay.
             errors.RemoveSeeded();
+
+            // The notification still holds the list rendered before the reset, and a failing save or start hook would finish the row from it.
+            await progressCallback(context.ProgressInfo);
 
             runHistory.Cursor = null;
             runHistory.ProcessedCount = 0;
