@@ -61,6 +61,16 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 return Unauthorized();
             }
 
+            // ResumeImport authorizes the stored profile, so a posted id must not name a profile of another importer.
+            if (!string.IsNullOrEmpty(importProfile.Id))
+            {
+                var storedProfile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
+                if (storedProfile is not null && !storedProfile.DataImporterType.EqualsIgnoreCase(importProfile.DataImporterType))
+                {
+                    throw new ValidationException($"Import profile '{importProfile.Id}' belongs to another importer.");
+                }
+            }
+
             var result = _importRunService.RunImportBackgroundJob(importProfile);
 
             return Ok(result);

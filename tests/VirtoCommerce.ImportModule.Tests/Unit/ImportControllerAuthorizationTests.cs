@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +71,39 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.Same(importerRequirement, fixture.AuthorizedRequirement);
             Assert.IsType<UnauthorizedResult>(result.Result);
             fixture.RunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Run_Refuses_A_Profile_Id_Stored_For_Another_Importer()
+        {
+            var storedProfile = new ImportProfile { Id = ProfileId, DataImporterType = "OtherImporter" };
+            var fixture = new Fixture(null, AuthorizationResult.Success(), [storedProfile]);
+
+            await Assert.ThrowsAsync<ValidationException>(() => fixture.Controller.RunImport(CreateProfile()));
+
+            fixture.RunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Run_Accepts_A_Profile_Id_Stored_For_The_Same_Importer()
+        {
+            var fixture = new Fixture(null, AuthorizationResult.Success(), [CreateProfile()]);
+
+            var result = await fixture.Controller.RunImport(CreateProfile());
+
+            Assert.IsType<OkObjectResult>(result.Result);
+            fixture.RunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Run_Accepts_A_Profile_Id_That_Is_Not_Stored()
+        {
+            var fixture = new Fixture(null, AuthorizationResult.Success(), []);
+
+            var result = await fixture.Controller.RunImport(CreateProfile());
+
+            Assert.IsType<OkObjectResult>(result.Result);
+            fixture.RunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Once);
         }
 
         [Fact]
@@ -162,7 +196,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
         private sealed class Fixture
         {
-            public Fixture(IAuthorizationRequirement importerRequirement, AuthorizationResult authorizationResult)
+            public Fixture(IAuthorizationRequirement importerRequirement, AuthorizationResult authorizationResult, IList<ImportProfile> storedProfiles = null)
             {
                 var importer = new Mock<IDataImporter>();
                 importer.SetupGet(x => x.AuthorizationRequirement).Returns(importerRequirement);
@@ -192,7 +226,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 var profileCrudService = new Mock<IImportProfileCrudService>();
                 profileCrudService
                     .Setup(x => x.GetAsync(It.IsAny<IList<string>>(), It.IsAny<string>(), It.IsAny<bool>()))
-                    .ReturnsAsync([CreateProfile()]);
+                    .ReturnsAsync(storedProfiles ?? [CreateProfile()]);
 
                 Controller = new ImportController(
                     Mock.Of<IDataImporterRegistrar>(),
