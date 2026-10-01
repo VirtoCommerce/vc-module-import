@@ -271,7 +271,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// the history row (Cursor/ProcessedCount/Errors/ErrorsCount) and returns false, so the pipeline continues as a
         /// fresh run. The errors seeded from the replaced run are removed
         /// from <paramref name="errors"/>; errors this run already raised (for example while opening the reader) stay on the row.
-        /// The reset first sends the cleaned progress through <paramref name="progressCallback"/>, before the row is saved.
+        /// The reset clears the row, then sends the cleaned progress through <paramref name="progressCallback"/>, then saves the row.
         /// A restore that throws is rethrown and fails the run.
         /// </summary>
         internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
@@ -319,13 +319,15 @@ namespace VirtoCommerce.ImportModule.Data.Services
             // A clean start inherits nothing from the run it replaces; errors this run raised at open time stay.
             errors.RemoveSeeded();
 
-            // The notification still holds the list rendered before the reset, and a failing save or start hook would finish the row from it.
-            await progressCallback(context.ProgressInfo);
-
             runHistory.Cursor = null;
             runHistory.ProcessedCount = 0;
             runHistory.Errors = context.ProgressInfo?.Errors?.ToList() ?? [];
             runHistory.ErrorsCount = runHistory.Errors.Count;
+
+            // Notified after the row is reset and before it is saved: the notification still holds the list rendered
+            // before the reset, and a failing notification, save or start hook finishes the row from the notification.
+            await progressCallback(context.ProgressInfo);
+
             await _importRunHistoryService.SaveChangesAsync([runHistory]);
         }
 

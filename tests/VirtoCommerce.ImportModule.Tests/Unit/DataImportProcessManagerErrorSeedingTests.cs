@@ -244,6 +244,27 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Failing_Reset_Notification_Leaves_The_Cursor_Cleared()
+        {
+            var reader = new PagedReader { TotalPages = 2 };
+            var profile = MakeProfile(saveInterval: 1000);
+            profile.RunHistory = ResumedRow("garbage-not-base64");
+            var calls = 0;
+            var manager = TestHelperFactory.CreateManagerWithImporter(reader, new NoopWriter(), historyCrud: Mock.Of<IImportRunHistoryCrudService>());
+
+            // The first call is the "Import has been started" notification; the second is the reset's.
+            await Assert.ThrowsAsync<InvalidOperationException>(() => manager.ImportAsync(profile, _ =>
+            {
+                calls++;
+
+                return calls == 2 ? Task.FromException(new InvalidOperationException("push failed")) : Task.CompletedTask;
+            }, CancellationToken.None));
+
+            Assert.Equal(2, calls);
+            Assert.Null(profile.RunHistory.Cursor);
+        }
+
+        [Fact]
         public async Task Unreadable_Cursor_Setting_Keeps_The_Seeded_Errors_On_The_Notification()
         {
             var reader = new PagedReader { TotalPages = 3 };
