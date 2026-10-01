@@ -244,6 +244,28 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Unreadable_Cursor_Setting_Keeps_The_Seeded_Errors_On_The_Notification()
+        {
+            var reader = new PagedReader { TotalPages = 3 };
+            var profile = new ImportProfile
+            {
+                Settings = [new ObjectSettingEntry { Name = ImportCursorSettings.SaveIntervalPages.Name, Value = "abc", ValueType = SettingValueType.ShortText }],
+                RunHistory = ResumedRow(new PageCursor(1) { ProcessedCount = 1 }.Serialize()),
+            };
+            var snapshots = new List<List<string>>();
+            var manager = TestHelperFactory.CreateManagerWithImporter(reader, new NoopWriter());
+
+            await Assert.ThrowsAsync<FormatException>(() => manager.ImportAsync(profile, x =>
+            {
+                snapshots.Add(x.Errors?.ToList());
+                return Task.CompletedTask;
+            }, CancellationToken.None));
+
+            Assert.NotEmpty(snapshots);
+            Assert.Equal(["Line 5: b", "Line 3: a"], snapshots[^1]);
+        }
+
+        [Fact]
         public async Task Non_Resumable_Reader_On_A_Row_With_A_Cursor_Starts_Clean()
         {
             var reader = new PlainReader { TotalPages = 2 };

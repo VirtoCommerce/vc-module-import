@@ -74,12 +74,14 @@ namespace VirtoCommerce.ImportModule.Data.Services
             context.ProgressInfo = importProgress;
             context.ErrorCallback = errors.Handle;
 
-            // Resolved before the run starts: a setting that cannot be read fails the job, and the cursor is validated against the lifetime.
-            context.CursorLifetime = TimeSpan.FromDays(await GetCursorSettingAsync(importProfile, ImportCursorSettings.LifetimeDays));
-            context.CursorSaveIntervalPages = await GetCursorSettingAsync(importProfile, ImportCursorSettings.SaveIntervalPages);
-
             importRemainingEstimator.Start(context);
             await progressCallback(importProgress);
+
+            // Resolved after the first progress has put the seeded errors on the notification, and before the reader
+            // opens: a setting that cannot be read fails the job without losing them, and the cursor is validated
+            // against the lifetime.
+            context.CursorLifetime = TimeSpan.FromDays(await GetCursorSettingAsync(importProfile, ImportCursorSettings.LifetimeDays));
+            context.CursorSaveIntervalPages = await GetCursorSettingAsync(importProfile, ImportCursorSettings.SaveIntervalPages);
 
             // Reading & writing
             using var reader = await dataImporter.OpenReaderAsync(context);
