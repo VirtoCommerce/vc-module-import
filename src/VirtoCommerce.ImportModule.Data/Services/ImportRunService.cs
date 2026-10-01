@@ -240,17 +240,30 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 }
             }
 
-            var user = await _userManager.FindByNameAsync(pushNotification.Creator);
-            if (user != null)
+            await SendCompletionEmailSafelyAsync(pushNotification, importRunHistory);
+        }
+
+        // Like the push, the e-mail is a notification: a failure is logged and neither fails the job nor replaces the run's outcome.
+        private async Task SendCompletionEmailSafelyAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            try
             {
-                var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
-                emailNotification.To = user.Email;
-                emailNotification.ImportRunHistory = importRunHistory;
-                if (!string.IsNullOrEmpty(user.MemberId))
+                var user = await _userManager.FindByNameAsync(pushNotification.Creator);
+                if (user != null)
                 {
-                    emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
+                    var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
+                    emailNotification.To = user.Email;
+                    emailNotification.ImportRunHistory = importRunHistory;
+                    if (!string.IsNullOrEmpty(user.MemberId))
+                    {
+                        emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
+                    }
+                    await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
                 }
-                await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
+            }
+            catch (Exception ex)
+            {
+                LogFailedToSendCompletionEmail(ex, importRunHistory.Id);
             }
         }
 
@@ -390,6 +403,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         [LoggerMessage(LogLevel.Error, "Failed to send a push notification of import run history '{HistoryId}'; further failures of this run are counted")]
         partial void LogFailedToSendNotification(Exception exception, string historyId);
+
+        [LoggerMessage(LogLevel.Error, "Failed to send the completion e-mail of import run history '{HistoryId}'")]
+        partial void LogFailedToSendCompletionEmail(Exception exception, string historyId);
 
         [LoggerMessage(LogLevel.Error, "{Count} more push notifications of import run history '{HistoryId}' failed to send")]
         partial void LogSuppressedNotificationFailures(string historyId, int count);

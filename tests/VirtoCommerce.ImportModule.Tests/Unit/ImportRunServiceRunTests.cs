@@ -10,6 +10,7 @@ using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.NotificationsModule.Core.Services;
 using VirtoCommerce.Platform.Core.PushNotifications;
 using VirtoCommerce.Platform.Core.Security;
 using Xunit;
@@ -137,6 +138,31 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Failing_Completion_Email_Does_Not_Fail_The_Run()
+        {
+            var fixture = new Fixture();
+            fixture.CompletionEmailFails();
+
+            await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None);
+
+            Assert.NotNull(fixture.SavedFinished[^1]);
+            Assert.Single(fixture.Logger.Entries, x => x.Level == LogLevel.Error);
+        }
+
+        [Fact]
+        public async Task Failing_Completion_Email_Keeps_The_Run_Exception()
+        {
+            var fixture = new Fixture();
+            fixture.ImportThrows(new InvalidOperationException("import failed"));
+            fixture.CompletionEmailFails();
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None));
+
+            Assert.Equal("import failed", exception.Message);
+        }
+
+        [Fact]
         public async Task Failing_Progress_Notification_Still_Updates_And_Checkpoints_The_Row()
         {
             var row = new ImportRunHistory { Id = "H1" };
@@ -173,6 +199,10 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             private readonly Mock<IDataImportProcessManager> _manager = new();
             private readonly Mock<IPushNotificationManager> _pushManager = new();
+            private readonly Mock<UserManager<ApplicationUser>> _userManager = new(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+            // Strict: any call on it throws, which stands in for a failing notification search
+            private readonly Mock<INotificationSearchService> _notificationSearch = new(MockBehavior.Strict);
             private Exception _saveFailure;
             private int _savesBeforeFailure;
 
@@ -197,7 +227,10 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 _manager.Setup(x => x.ImportAsync(It.IsAny<ImportProfile>(), It.IsAny<Func<ImportProgressInfo, Task>>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.CompletedTask);
 
-                Service = new TestableRunImportService(historyCrud.Object, _manager.Object, _pushManager.Object, Logger);
+                // No user means no completion e-mail
+                _userManager.Setup(x => x.FindByNameAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser)null);
+
+                Service = new TestableRunImportService(historyCrud.Object, _manager.Object, _pushManager.Object, Logger, _userManager.Object, _notificationSearch.Object);
             }
 
             public TestableRunImportService Service { get; }
@@ -215,6 +248,14 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             {
                 _savesBeforeFailure = successfulSaves;
                 _saveFailure = exception;
+            }
+
+            // The creator resolves to a user with an e-mail address, so the completion e-mail is attempted; its
+            // notification search is the strict mock above and throws.
+            public void CompletionEmailFails()
+            {
+                _userManager.Setup(x => x.FindByNameAsync(It.IsAny<string>()))
+                    .ReturnsAsync(new ApplicationUser { UserName = "tester", Email = "tester@example.com" });
             }
 
             public void ImportThrows(Exception exception)
@@ -245,14 +286,14 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
         private sealed class TestableRunImportService : ImportRunService
         {
-            public TestableRunImportService(IImportRunHistoryCrudService historyCrud, IDataImportProcessManager manager, IPushNotificationManager pushManager, ILogger<ImportRunService> logger)
+            public TestableRunImportService(IImportRunHistoryCrudService historyCrud, IDataImportProcessManager manager, IPushNotificationManager pushManager, ILogger<ImportRunService> logger, UserManager<ApplicationUser> userManager, INotificationSearchService notificationSearch)
                 : base(
-                    /* UserManager */                    BuildUserManager(),
+                    /* UserManager */                    userManager,
                     /* IUserNameResolver */              null!,
                     /* IMemberService */                 null!,
                     /* IBackgroundJobExecutor */         null!,
                     /* IPushNotificationManager */       pushManager,
-                    /* INotificationSearchService */     null!,
+                    /* INotificationSearchService */     notificationSearch,
                     /* INotificationSender */            null!,
                     /* IImportProfileCrudService */      null!,
                     /* IImportRunHistoryCrudService */   historyCrud,
@@ -261,16 +302,6 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     /* IDataImportProcessManager */      manager,
                     /* ILogger<ImportRunService> */      logger)
             {
-            }
-
-            // The finally block looks the creator up; no user means no completion e-mail.
-            private static UserManager<ApplicationUser> BuildUserManager()
-            {
-                var userManager = new Mock<UserManager<ApplicationUser>>(
-                    Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-                userManager.Setup(x => x.FindByNameAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser)null);
-
-                return userManager.Object;
             }
         }
     }
