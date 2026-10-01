@@ -43,6 +43,43 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Seeded_Notification_Drops_The_Limit_Reached_Message()
+        {
+            var row = new ImportRunHistory
+            {
+                Id = "H1",
+                Cursor = "dummy-cursor",
+                Errors = new List<string> { "Line 5: b", ImportErrorCollector.LimitReachedMessage, "Line 3: a" },
+            };
+            var fixture = new Fixture();
+            fixture.ImportThrows(new InvalidOperationException("opening failed"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => fixture.Service.RunImportAsync(new ImportProfile { RunHistory = row }, new ImportPushNotification("tester"), CancellationToken.None));
+
+            var savedErrors = fixture.SavedErrors[^1];
+            Assert.Contains("Line 5: b", savedErrors);
+            Assert.Contains("Line 3: a", savedErrors);
+            Assert.Contains(savedErrors, x => x.Contains("opening failed"));
+            Assert.DoesNotContain(ImportErrorCollector.LimitReachedMessage, savedErrors);
+        }
+
+        [Fact]
+        public async Task Row_Without_A_Cursor_Does_Not_Seed_The_Notification()
+        {
+            var row = new ImportRunHistory { Id = "H1", Errors = new List<string> { "Line 5: b" } };
+            var fixture = new Fixture();
+            fixture.ImportThrows(new InvalidOperationException("opening failed"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => fixture.Service.RunImportAsync(new ImportProfile { RunHistory = row }, new ImportPushNotification("tester"), CancellationToken.None));
+
+            var savedErrors = fixture.SavedErrors[^1];
+            Assert.Single(savedErrors);
+            Assert.Contains("opening failed", savedErrors[0]);
+        }
+
+        [Fact]
         public async Task Row_Is_Saved_Before_The_Finished_Notification_Is_Sent()
         {
             var fixture = new Fixture();

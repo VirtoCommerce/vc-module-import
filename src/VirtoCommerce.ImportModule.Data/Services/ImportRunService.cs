@@ -275,7 +275,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             if (!string.IsNullOrEmpty(importRunHistory.Cursor))
             {
-                pushNotification.Errors = [.. importRunHistory.Errors ?? []];
+                pushNotification.Errors = [.. (importRunHistory.Errors ?? []).Where(x => x != ImportErrorCollector.LimitReachedMessage)];
             }
         }
 
