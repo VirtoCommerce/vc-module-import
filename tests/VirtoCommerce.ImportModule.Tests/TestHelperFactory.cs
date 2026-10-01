@@ -113,7 +113,7 @@ namespace VirtoCommerce.ImportModule.Tests
 
             public Task InvokeCallbackForTesting(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory history)
             {
-                return UpdateProgressAsync(progressInfo, pushNotification, history);
+                return UpdateProgressAsync(progressInfo, pushNotification, history, new NotificationDelivery());
             }
         }
 

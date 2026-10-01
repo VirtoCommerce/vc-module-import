@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
@@ -77,6 +77,39 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.Equal("import failed", exception.Message);
         }
 
+        [Fact]
+        public async Task Failing_Progress_Notification_Still_Updates_And_Checkpoints_The_Row()
+        {
+            var row = new ImportRunHistory { Id = "H1" };
+            var fixture = new Fixture();
+            fixture.SendThrows(new TimeoutException("send failed"));
+            fixture.ImportReports(new ImportProgressInfo { ProcessedCount = 42, TotalCount = 100, Cursor = "cursor-payload", ShouldSaveHistory = true });
+
+            await fixture.Service.RunImportAsync(new ImportProfile { RunHistory = row }, new ImportPushNotification("tester"), CancellationToken.None);
+
+            // Saves: the start of the run, the checkpoint, and the finished row
+            Assert.Equal(3, fixture.Calls.Count(x => x == "save"));
+            Assert.Equal("cursor-payload", row.Cursor);
+            Assert.Equal(42, row.ProcessedCount);
+        }
+
+        [Fact]
+        public async Task Failing_Notifications_Are_Logged_Once_Per_Run_With_A_Count()
+        {
+            var fixture = new Fixture();
+            var failure = new TimeoutException("send failed");
+            fixture.SendThrows(failure);
+            fixture.ImportReports(new ImportProgressInfo(), new ImportProgressInfo(), new ImportProgressInfo());
+
+            await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None);
+
+            // 3 progress + 1 closing = 4 failures: the first is logged, the other 3 are counted
+            var errors = fixture.Logger.Entries.Where(x => x.Level == LogLevel.Error).ToList();
+            Assert.Equal(2, errors.Count);
+            Assert.Same(failure, errors[0].Exception);
+            Assert.Contains("3 more push notifications", errors[1].Message);
+        }
+
         private sealed class Fixture
         {
             private readonly Mock<IDataImportProcessManager> _manager = new();
@@ -101,10 +134,12 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 _manager.Setup(x => x.ImportAsync(It.IsAny<ImportProfile>(), It.IsAny<Func<ImportProgressInfo, Task>>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.CompletedTask);
 
-                Service = new TestableRunImportService(historyCrud.Object, _manager.Object, _pushManager.Object);
+                Service = new TestableRunImportService(historyCrud.Object, _manager.Object, _pushManager.Object, Logger);
             }
 
             public TestableRunImportService Service { get; }
+
+            public RecordingLogger<ImportRunService> Logger { get; } = new();
 
             public List<string> Calls { get; } = [];
 
@@ -118,6 +153,18 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     .ThrowsAsync(exception);
             }
 
+            public void ImportReports(params ImportProgressInfo[] progress)
+            {
+                _manager.Setup(x => x.ImportAsync(It.IsAny<ImportProfile>(), It.IsAny<Func<ImportProgressInfo, Task>>(), It.IsAny<CancellationToken>()))
+                    .Returns<ImportProfile, Func<ImportProgressInfo, Task>, CancellationToken>(async (_, callback, _) =>
+                    {
+                        foreach (var info in progress)
+                        {
+                            await callback(info);
+                        }
+                    });
+            }
+
             public void SendThrows(Exception exception)
             {
                 _pushManager.Setup(x => x.SendAsync(It.IsAny<PushNotification>()))
@@ -128,7 +175,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
         private sealed class TestableRunImportService : ImportRunService
         {
-            public TestableRunImportService(IImportRunHistoryCrudService historyCrud, IDataImportProcessManager manager, IPushNotificationManager pushManager)
+            public TestableRunImportService(IImportRunHistoryCrudService historyCrud, IDataImportProcessManager manager, IPushNotificationManager pushManager, ILogger<ImportRunService> logger)
                 : base(
                     /* UserManager */                    BuildUserManager(),
                     /* IUserNameResolver */              null!,
@@ -142,7 +189,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     /* IImportRunHistorySearchService */ null!,
                     /* IDataImporterFactory */           null!,
                     /* IDataImportProcessManager */      manager,
-                    /* ILogger<ImportRunService> */      NullLogger<ImportRunService>.Instance)
+                    /* ILogger<ImportRunService> */      logger)
             {
             }
 

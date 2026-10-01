@@ -183,7 +183,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             SeedNotificationErrors(pushNotification, importRunHistory);
 
-            Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory);
+            var notificationDelivery = new NotificationDelivery();
+            Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory, notificationDelivery);
 
             try
             {
@@ -209,19 +210,20 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                await FinishRunHistoryAsync(pushNotification, importRunHistory);
+                await FinishRunHistoryAsync(pushNotification, importRunHistory, notificationDelivery);
             }
 
             return pushNotification;
         }
 
-        private async Task FinishRunHistoryAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        private async Task FinishRunHistoryAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationDelivery notificationDelivery)
         {
             pushNotification.Finished ??= DateTime.UtcNow;
 
             // The row is the run's durable record: it is finished and saved before this notification goes out, so a
-            // failing send can neither leave it unfinished nor replace the run's own exception. (The pipeline's final
-            // progress has already announced the end; that push still precedes the save.)
+            // failing send can neither leave it unfinished nor replace the run's own exception. (When the pipeline reached
+            // its final progress, that push announced the end already and still precedes the save; a run that failed
+            // earlier is announced here only.)
             importRunHistory.Finish(pushNotification);
 
             try
@@ -230,7 +232,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                await SendNotificationSafelyAsync(pushNotification, importRunHistory);
+                await SendNotificationSafelyAsync(pushNotification, importRunHistory, notificationDelivery);
+            }
+
+            if (notificationDelivery.Failures > 1)
+            {
+                LogSuppressedNotificationFailures(importRunHistory.Id, notificationDelivery.Failures - 1);
             }
 
             var user = await _userManager.FindByNameAsync(pushNotification.Creator);
@@ -247,7 +254,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
-        private async Task SendNotificationSafelyAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        private async Task SendNotificationSafelyAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationDelivery notificationDelivery)
         {
             try
             {
@@ -255,7 +262,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             catch (Exception ex)
             {
-                LogFailedToSendFinishedNotification(ex, importRunHistory.Id);
+                if (notificationDelivery.Failures++ == 0)
+                {
+                    LogFailedToSendNotification(ex, importRunHistory.Id);
+                }
             }
         }
 
@@ -269,7 +279,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
-        private protected async Task UpdateProgressAsync(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        private protected async Task UpdateProgressAsync(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationDelivery notificationDelivery)
         {
             pushNotification.Description = progressInfo.Description;
             pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
@@ -287,7 +297,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     : $"{pushNotification.ProcessedCount} have been imported";
             }
 
-            await _pushNotificationManager.SendAsync(pushNotification);
+            await SendNotificationSafelyAsync(pushNotification, importRunHistory, notificationDelivery);
 
             importRunHistory.UpdateProgress(pushNotification);
 
@@ -364,13 +374,24 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return validationResult;
         }
 
+        // Per-run count of push notifications that failed to send: the first failure is logged, the rest are counted, so an
+        // outage that lasts the whole run logs twice instead of once per page.
+        // private protected, not private: UpdateProgressAsync is private protected and takes it as a parameter.
+        private protected sealed class NotificationDelivery
+        {
+            public int Failures { get; set; }
+        }
+
         [LoggerMessage(LogLevel.Debug, "Saved import run history checkpoint {HistoryId} at {ProcessedCount}")]
         partial void LogSavedImportRunHistoryCheckpoint(string historyId, int processedCount);
 
         [LoggerMessage(LogLevel.Error, "Failed to save import run history checkpoint {historyId} at {ProcessedCount}")]
         partial void LogFailedToSaveImportRunHistoryCheckpoint(Exception exception, string historyId, int processedCount);
 
-        [LoggerMessage(LogLevel.Error, "Failed to send the finished notification of import run history '{HistoryId}'")]
-        partial void LogFailedToSendFinishedNotification(Exception exception, string historyId);
+        [LoggerMessage(LogLevel.Error, "Failed to send a push notification of import run history '{HistoryId}'; further failures of this run are counted")]
+        partial void LogFailedToSendNotification(Exception exception, string historyId);
+
+        [LoggerMessage(LogLevel.Error, "{Count} more push notifications of import run history '{HistoryId}' failed to send")]
+        partial void LogSuppressedNotificationFailures(string historyId, int count);
     }
 }
