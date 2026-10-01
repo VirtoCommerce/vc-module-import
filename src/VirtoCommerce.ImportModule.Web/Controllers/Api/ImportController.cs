@@ -16,6 +16,7 @@ using VirtoCommerce.ImportModule.Web.Filters;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Security.Authorization;
 using ModuleConstants = VirtoCommerce.ImportModule.Core.ModuleConstants;
+using ValidationFailure = FluentValidation.Results.ValidationFailure;
 
 namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 {
@@ -67,7 +68,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 var storedProfile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
                 if (storedProfile is not null && !storedProfile.DataImporterType.EqualsIgnoreCase(importProfile.DataImporterType))
                 {
-                    throw new ValidationException($"Import profile '{importProfile.Id}' belongs to another importer.");
+                    throw new ValidationException([new ValidationFailure(nameof(ImportProfile.Id), $"Import profile '{importProfile.Id}' belongs to another importer.")]);
                 }
             }
 

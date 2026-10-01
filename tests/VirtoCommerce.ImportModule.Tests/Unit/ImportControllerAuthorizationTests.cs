@@ -79,8 +79,12 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var storedProfile = new ImportProfile { Id = ProfileId, DataImporterType = "OtherImporter" };
             var fixture = new Fixture(null, AuthorizationResult.Success(), [storedProfile]);
 
-            await Assert.ThrowsAsync<ValidationException>(() => fixture.Controller.RunImport(CreateProfile()));
+            var exception = await Assert.ThrowsAsync<ValidationException>(() => fixture.Controller.RunImport(CreateProfile()));
 
+            // ProblemDetailsFilter builds the 400 from Errors only, so a bare message would reach the caller as no reason
+            var failure = Assert.Single(exception.Errors);
+            Assert.Equal(nameof(ImportProfile.Id), failure.PropertyName);
+            Assert.Equal($"Import profile '{ProfileId}' belongs to another importer.", failure.ErrorMessage);
             fixture.RunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Never);
         }
 
