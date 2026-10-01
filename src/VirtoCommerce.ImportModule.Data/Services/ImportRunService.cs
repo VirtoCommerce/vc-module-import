@@ -180,7 +180,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var importRunHistory = importProfile.RunHistory
                 ?? await TryGetRunHistoryAsync(importProfile, pushNotification)
                 ?? ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
-            Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory);
+
+            SeedNotificationErrors(pushNotification, importRunHistory);
+
+            var sendFailures = new NotificationSendFailures();
+            Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory, sendFailures);
 
             try
             {
@@ -206,13 +210,47 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                pushNotification.Finished ??= DateTime.UtcNow;
+                await FinishRunHistoryAsync(pushNotification, importRunHistory, sendFailures);
+            }
 
-                await _pushNotificationManager.SendAsync(pushNotification);
+            return pushNotification;
+        }
 
-                importRunHistory.Finish(pushNotification);
+        private async Task FinishRunHistoryAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationSendFailures sendFailures)
+        {
+            pushNotification.Finished ??= DateTime.UtcNow;
+
+            // The row is the run's durable record: it is finished and saved before this notification goes out, so a
+            // failing send can neither leave it unfinished nor replace the run's own exception. (When the pipeline reached
+            // its final progress, that push announced the end already and still precedes the save; a run that failed
+            // earlier is announced here only.)
+            importRunHistory.Finish(pushNotification);
+
+            try
+            {
                 await _importRunHistoryCrudService.SaveChangesAsync([importRunHistory]);
+            }
+            finally
+            {
+                await SendPushNotificationAsync(pushNotification, importRunHistory, sendFailures);
 
+                if (sendFailures.Count > 1)
+                {
+                    LogSuppressedNotificationFailures(importRunHistory.Id, sendFailures.Count - 1);
+                }
+            }
+
+            // Outside the finally, unlike the push: the e-mail carries the run history row, so it is sent only once the
+            // finished row is saved.
+            await SendCompletionEmailAsync(pushNotification, importRunHistory);
+        }
+
+        // Never throws: like the push, the e-mail is a notification — a failure is logged and neither fails the job nor
+        // replaces the run's outcome.
+        private async Task SendCompletionEmailAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            try
+            {
                 var user = await _userManager.FindByNameAsync(pushNotification.Creator);
                 if (user != null)
                 {
@@ -226,11 +264,39 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
                 }
             }
-
-            return pushNotification;
+            catch (Exception ex)
+            {
+                LogFailedToSendCompletionEmail(ex, importRunHistory.Id);
+            }
         }
 
-        private protected async Task UpdateProgressAsync(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        // Never throws: a failed send is counted, and the first one of the run is logged.
+        private async Task SendPushNotificationAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationSendFailures sendFailures)
+        {
+            try
+            {
+                await _pushNotificationManager.SendAsync(pushNotification);
+            }
+            catch (Exception ex)
+            {
+                if (sendFailures.Count++ == 0)
+                {
+                    LogFailedToSendNotification(ex, importRunHistory.Id);
+                }
+            }
+        }
+
+        // A resumed run's notification starts with the errors its interrupted part reported, so a failure before the
+        // pipeline's first progress cannot finish the row without them.
+        private static void SeedNotificationErrors(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            if (!string.IsNullOrEmpty(importRunHistory.Cursor))
+            {
+                pushNotification.Errors = [.. (importRunHistory.Errors ?? []).Where(x => x != ImportErrorCollector.LimitReachedMessage)];
+            }
+        }
+
+        private protected async Task UpdateProgressAsync(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationSendFailures sendFailures)
         {
             pushNotification.Description = progressInfo.Description;
             pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
@@ -248,7 +314,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     : $"{pushNotification.ProcessedCount} have been imported";
             }
 
-            await _pushNotificationManager.SendAsync(pushNotification);
+            await SendPushNotificationAsync(pushNotification, importRunHistory, sendFailures);
 
             importRunHistory.UpdateProgress(pushNotification);
 
@@ -325,10 +391,27 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return validationResult;
         }
 
+        // Per-run count of push notifications that failed to send: the first failure is logged, the rest are counted, so an
+        // outage that lasts the whole run logs twice instead of once per page.
+        // private protected, not private: UpdateProgressAsync is private protected and takes it as a parameter.
+        private protected sealed class NotificationSendFailures
+        {
+            public int Count { get; set; }
+        }
+
         [LoggerMessage(LogLevel.Debug, "Saved import run history checkpoint {HistoryId} at {ProcessedCount}")]
         partial void LogSavedImportRunHistoryCheckpoint(string historyId, int processedCount);
 
         [LoggerMessage(LogLevel.Error, "Failed to save import run history checkpoint {historyId} at {ProcessedCount}")]
         partial void LogFailedToSaveImportRunHistoryCheckpoint(Exception exception, string historyId, int processedCount);
+
+        [LoggerMessage(LogLevel.Error, "Failed to send a push notification of import run history '{HistoryId}'; further failures of this run are counted")]
+        partial void LogFailedToSendNotification(Exception exception, string historyId);
+
+        [LoggerMessage(LogLevel.Error, "Failed to send the completion e-mail of import run history '{HistoryId}'")]
+        partial void LogFailedToSendCompletionEmail(Exception exception, string historyId);
+
+        [LoggerMessage(LogLevel.Error, "{Count} more push notifications of import run history '{HistoryId}' failed to send")]
+        partial void LogSuppressedNotificationFailures(string historyId, int count);
     }
 }

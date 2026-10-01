@@ -23,6 +23,28 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public bool IsResume { get; set; }
 
         /// <summary>
+        /// True when the read/write loop ended without an exception with the reader exhausted
+        /// (<see cref="Services.IImportDataReader.HasMoreResults"/> false) and the final flush succeeded.
+        /// Set by the pipeline before <see cref="Services.IDataImporter.OnImportCompletedAsync"/> runs.
+        /// The error limit does not clear it once the source was read to the end.
+        /// </summary>
+        public bool IsCompleted { get; set; }
+
+        /// <summary>
+        /// The cursor lifetime the pipeline resolved for this run: the profile's <c>Import.Cursor.LifetimeDays</c> when it stores
+        /// one, otherwise the module-level setting. Set before the cursor is restored; null on a context built outside the pipeline.
+        /// </summary>
+        public TimeSpan? CursorLifetime { get; set; }
+
+        /// <summary>
+        /// The number of pages between cursor checkpoints the pipeline resolved for this run: the profile's
+        /// <c>Import.Cursor.SaveIntervalPages</c> when it stores one, otherwise the module-level setting. Set before the
+        /// reader opens and read when the read/write loop starts, so an importer hook (<c>OpenReaderAsync</c>,
+        /// <c>OpenWriterAsync</c>, <c>OnImportStartedAsync</c>) may change it; 0 on a context built outside the pipeline.
+        /// </summary>
+        public int CursorSaveIntervalPages { get; set; }
+
+        /// <summary>
         /// JSON settings used by resumable readers to (de)serialize cursors. Null = Newtonsoft defaults.
         /// A reader that needs custom converters or discriminator handling populates this in its
         /// OnImportStartedAsync hook; the resume-cursor DIMs read it on save/restore.

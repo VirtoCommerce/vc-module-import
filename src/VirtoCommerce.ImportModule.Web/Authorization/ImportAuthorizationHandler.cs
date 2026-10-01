@@ -20,16 +20,22 @@ namespace VirtoCommerce.ImportModule.Web.Authorization
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ImportAuthorizationRequirement requirement)
         {
+            // Succeeds for a caller who holds the permission
             await base.HandleRequirementAsync(context, requirement);
 
             var organization = await context.User.ResolveOrganization(_memberResolver);
+            if (organization is null)
+            {
+                return;
+            }
 
-            if (organization != null && context.Resource != null && context.Resource is AuthorizationInfo authorizationInfo)
+            // An organization's employee is admitted only for an organization-scoped resource, limited to that
+            // organization's profiles and runs; any other resource needs the permission.
+            if (context.Resource is AuthorizationInfo authorizationInfo)
             {
                 authorizationInfo.OrganizationId = organization.Id;
+                context.Succeed(requirement);
             }
-            context.Succeed(requirement);
-
         }
     }
 }

@@ -68,6 +68,20 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.True(cursor.IsValid(context));
         }
 
+        private sealed record OneHourCursor : ImportDataCursor
+        {
+            protected override TimeSpan GetLifetime(ImportContext context) => TimeSpan.FromHours(1);
+        }
+
+        [Fact]
+        public void Overridden_Lifetime_Decides_Expiry()
+        {
+            var context = MakeContextWithLifetimeDays(7);
+
+            Assert.True(new OneHourCursor { CreatedAt = DateTime.UtcNow.AddMinutes(-59) }.IsValid(context));
+            Assert.False(new OneHourCursor { CreatedAt = DateTime.UtcNow.AddMinutes(-61) }.IsValid(context));
+        }
+
         private static ImportContext MakeContextWithLifetimeDays(int days)
         {
             var profile = new ImportProfile

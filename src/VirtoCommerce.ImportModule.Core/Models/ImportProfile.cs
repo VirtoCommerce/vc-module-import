@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -29,6 +30,9 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public string ImportReporterType { get; set; }
         public int PreviewObjectCount { get; set; } = 10;
 
+        // Assigned in-process by RunImportAsync; never taken from a caller. A posted row would be saved as-is, so a
+        // caller could overwrite any stored row by its Id or plant a cursor. The replay finds its row by JobId instead.
+        [JsonIgnore]
         public ImportRunHistory RunHistory { get; set; }
 
         public virtual void Update(ImportProfile importProfile)
