@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -173,12 +174,17 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         [Fact]
         public async Task Throwing_Reporter_Is_Reported_And_Final_Progress_Is_Sent()
         {
-            var progress = new List<ImportProgressInfo>();
+            // Every callback receives the same ImportProgressInfo instance, so each call is captured by value.
+            var snapshots = new List<(DateTime? Finished, List<string> Errors, string ReportUrl)>();
             var manager = TestHelperFactory.CreateManagerWithImporter(new PagedReader(), new ScriptedWriter(), reporter: ThrowingReporter());
 
-            await manager.ImportAsync(MakeProfile(), x => { progress.Add(x); return Task.CompletedTask; }, CancellationToken.None);
+            await manager.ImportAsync(MakeProfile(), x =>
+            {
+                snapshots.Add((x.Finished, x.Errors?.ToList(), x.ReportUrl));
+                return Task.CompletedTask;
+            }, CancellationToken.None);
 
-            var last = progress[^1];
+            var last = snapshots[^1];
             Assert.NotNull(last.Finished);
             Assert.Contains(last.Errors, x => x.Contains("report failed"));
             Assert.Null(last.ReportUrl);
