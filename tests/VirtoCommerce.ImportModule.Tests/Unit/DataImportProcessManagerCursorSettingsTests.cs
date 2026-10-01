@@ -166,7 +166,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var writer = new TraceWriter();
             var manager = TestHelperFactory.CreateManagerWithImporter(new PagedReader(), writer);
 
-            await Assert.ThrowsAnyAsync<Exception>(() => manager.ImportAsync(profile, _ => Task.CompletedTask, CancellationToken.None));
+            await Assert.ThrowsAsync<FormatException>(() => manager.ImportAsync(profile, _ => Task.CompletedTask, CancellationToken.None));
 
             Assert.Equal(0, writer.Writes);
         }
