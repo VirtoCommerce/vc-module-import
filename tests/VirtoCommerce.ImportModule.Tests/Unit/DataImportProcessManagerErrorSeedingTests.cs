@@ -244,7 +244,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Failing_Reset_Notification_Leaves_The_Cursor_Cleared()
+        public async Task Failing_Reset_Progress_Callback_Leaves_The_Cursor_Cleared()
         {
             var reader = new PagedReader { TotalPages = 2 };
             var profile = MakeProfile(saveInterval: 1000);
@@ -252,12 +252,13 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             var calls = 0;
             var manager = TestHelperFactory.CreateManagerWithImporter(reader, new NoopWriter(), historyCrud: Mock.Of<IImportRunHistoryCrudService>());
 
-            // The first call is the "Import has been started" notification; the second is the reset's.
+            // A caller's own progress callback: ImportRunService's never throws, since a push is best effort.
+            // The first call is the "Import has been started" progress; the second is the reset's.
             await Assert.ThrowsAsync<InvalidOperationException>(() => manager.ImportAsync(profile, _ =>
             {
                 calls++;
 
-                return calls == 2 ? Task.FromException(new InvalidOperationException("push failed")) : Task.CompletedTask;
+                return calls == 2 ? Task.FromException(new InvalidOperationException("callback failed")) : Task.CompletedTask;
             }, CancellationToken.None));
 
             Assert.Equal(2, calls);

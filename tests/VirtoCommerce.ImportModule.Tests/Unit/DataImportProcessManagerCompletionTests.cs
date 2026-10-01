@@ -214,13 +214,14 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     .ThrowsAsync(hookFailure),
                 logger: logger);
 
-            // Only the final progress carries Finished
+            // A caller's own progress callback: ImportRunService's never throws, since a push is best effort.
+            // Only the final progress carries Finished.
             var exception = await Assert.ThrowsAsync<TimeoutException>(() => manager.ImportAsync(MakeProfile(), x =>
             {
-                return x.Finished is null ? Task.CompletedTask : Task.FromException(new TimeoutException("push failed"));
+                return x.Finished is null ? Task.CompletedTask : Task.FromException(new TimeoutException("callback failed"));
             }, CancellationToken.None));
 
-            Assert.Equal("push failed", exception.Message);
+            Assert.Equal("callback failed", exception.Message);
             Assert.Contains(logger.Entries, x => x.Level == LogLevel.Error && ReferenceEquals(x.Exception, hookFailure));
         }
 
