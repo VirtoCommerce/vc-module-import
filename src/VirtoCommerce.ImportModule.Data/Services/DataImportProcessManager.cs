@@ -217,9 +217,14 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 completionFailure = ExceptionDispatchInfo.Capture(ex);
             }
 
-            importProgress.Description = completionFailure is null
-                ? $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}"
-                : "Import failed";
+            if (completionFailure is not null)
+            {
+                importProgress.Description = "Import failed";
+            }
+            else
+            {
+                importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
+            }
 
             // The final progress carries Finished, the report url and the flush and report errors to the run history row.
             await progressCallback(importProgress);
