@@ -269,6 +269,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// the history row (Cursor/ProcessedCount/Errors/ErrorsCount) and returns false, so the pipeline continues as a
         /// fresh run. The errors seeded from the replaced run are removed
         /// from <paramref name="errors"/>; errors this run already raised (for example while opening the reader) stay on the row.
+        /// The reset first sends the cleaned progress through <paramref name="progressCallback"/>, before the row is saved.
         /// A restore that throws is rethrown and fails the run.
         /// </summary>
         internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
