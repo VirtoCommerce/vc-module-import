@@ -183,8 +183,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             SeedNotificationErrors(pushNotification, importRunHistory);
 
-            var notificationDelivery = new NotificationDelivery();
-            Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory, notificationDelivery);
+            var sendFailures = new NotificationSendFailures();
+            Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory, sendFailures);
 
             try
             {
@@ -210,13 +210,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                await FinishRunHistoryAsync(pushNotification, importRunHistory, notificationDelivery);
+                await FinishRunHistoryAsync(pushNotification, importRunHistory, sendFailures);
             }
 
             return pushNotification;
         }
 
-        private async Task FinishRunHistoryAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationDelivery notificationDelivery)
+        private async Task FinishRunHistoryAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationSendFailures sendFailures)
         {
             pushNotification.Finished ??= DateTime.UtcNow;
 
@@ -232,12 +232,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                await SendNotificationSafelyAsync(pushNotification, importRunHistory, notificationDelivery);
+                await SendNotificationSafelyAsync(pushNotification, importRunHistory, sendFailures);
             }
 
-            if (notificationDelivery.Failures > 1)
+            if (sendFailures.Count > 1)
             {
-                LogSuppressedNotificationFailures(importRunHistory.Id, notificationDelivery.Failures - 1);
+                LogSuppressedNotificationFailures(importRunHistory.Id, sendFailures.Count - 1);
             }
 
             var user = await _userManager.FindByNameAsync(pushNotification.Creator);
@@ -254,7 +254,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
-        private async Task SendNotificationSafelyAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationDelivery notificationDelivery)
+        private async Task SendNotificationSafelyAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationSendFailures sendFailures)
         {
             try
             {
@@ -262,7 +262,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             catch (Exception ex)
             {
-                if (notificationDelivery.Failures++ == 0)
+                if (sendFailures.Count++ == 0)
                 {
                     LogFailedToSendNotification(ex, importRunHistory.Id);
                 }
@@ -279,7 +279,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
-        private protected async Task UpdateProgressAsync(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationDelivery notificationDelivery)
+        private protected async Task UpdateProgressAsync(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationSendFailures sendFailures)
         {
             pushNotification.Description = progressInfo.Description;
             pushNotification.EstimatingRemaining = progressInfo.EstimatingRemaining;
@@ -297,7 +297,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     : $"{pushNotification.ProcessedCount} have been imported";
             }
 
-            await SendNotificationSafelyAsync(pushNotification, importRunHistory, notificationDelivery);
+            await SendNotificationSafelyAsync(pushNotification, importRunHistory, sendFailures);
 
             importRunHistory.UpdateProgress(pushNotification);
 
@@ -377,9 +377,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
         // Per-run count of push notifications that failed to send: the first failure is logged, the rest are counted, so an
         // outage that lasts the whole run logs twice instead of once per page.
         // private protected, not private: UpdateProgressAsync is private protected and takes it as a parameter.
-        private protected sealed class NotificationDelivery
+        private protected sealed class NotificationSendFailures
         {
-            public int Failures { get; set; }
+            public int Count { get; set; }
         }
 
         [LoggerMessage(LogLevel.Debug, "Saved import run history checkpoint {HistoryId} at {ProcessedCount}")]
