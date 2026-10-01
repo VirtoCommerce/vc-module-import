@@ -205,8 +205,16 @@ namespace VirtoCommerce.ImportModule.Data.Services
             importProgress.Finished = DateTime.UtcNow;
             importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
 
-            await dataImporter.OnImportCompletedAsync(context);
-            await progressCallback(importProgress);
+            try
+            {
+                await dataImporter.OnImportCompletedAsync(context);
+            }
+            finally
+            {
+                // The final progress carries Finished, the report url and the flush and report errors; a throwing
+                // completion hook still fails the run, but must not keep them off the run history row.
+                await progressCallback(importProgress);
+            }
         }
 
         // A value stored on the profile (an importer that registers the setting for its own profiles) wins over the

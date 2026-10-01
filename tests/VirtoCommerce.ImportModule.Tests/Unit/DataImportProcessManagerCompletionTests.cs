@@ -172,6 +172,32 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Throwing_Completion_Hook_Still_Sends_The_Final_Progress()
+        {
+            var snapshots = new List<(DateTime? Finished, string ReportUrl)>();
+            var reporter = new Mock<IImportReporter>();
+            reporter.Setup(x => x.SaveErrorsAsync(It.IsAny<List<ErrorInfo>>())).ReturnsAsync("report-url");
+            var manager = TestHelperFactory.CreateManagerWithImporter(
+                new PagedReader(),
+                new ScriptedWriter { ErrorOnWrites = new HashSet<int> { 1 } },
+                configureImporter: importer => importer
+                    .Setup(x => x.OnImportCompletedAsync(It.IsAny<ImportContext>()))
+                    .ThrowsAsync(new InvalidOperationException("hook failed")),
+                reporter: reporter.Object);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => manager.ImportAsync(MakeProfile(), x =>
+            {
+                snapshots.Add((x.Finished, x.ReportUrl));
+                return Task.CompletedTask;
+            }, CancellationToken.None));
+
+            Assert.Equal("hook failed", exception.Message);
+            var last = snapshots[^1];
+            Assert.NotNull(last.Finished);
+            Assert.Equal("report-url", last.ReportUrl);
+        }
+
+        [Fact]
         public async Task Throwing_Reporter_Is_Reported_And_Final_Progress_Is_Sent()
         {
             // Every callback receives the same ImportProgressInfo instance, so each call is captured by value.
