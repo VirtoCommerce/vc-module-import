@@ -194,12 +194,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             var importProgress = context.ProgressInfo;
 
-            if (!await FlushSafelyAsync(writer, context))
+            if (!await TryFlushAsync(writer, context))
             {
                 context.IsCompleted = false;
             }
 
-            var errorReportResult = await SaveErrorsSafelyAsync(importReporter, errors.GetTopErrors(), context);
+            var errorReportResult = await SaveErrorReportAsync(importReporter, errors.GetTopErrors(), context);
             importRemainingEstimator.Stop(context);
 
             importProgress.Finished = DateTime.UtcNow;
@@ -243,7 +243,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 : await _settingsManager.GetValueAsync<int>(descriptor);
         }
 
-        private async Task<bool> FlushSafelyAsync(IImportDataWriter writer, ImportContext context)
+        private async Task<bool> TryFlushAsync(IImportDataWriter writer, ImportContext context)
         {
             try
             {
@@ -266,7 +266,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         // A report that cannot be saved must not skip Finished, OnImportCompletedAsync and the final progress:
         // the data is already written. The failure is reported like any other error, and the report url stays unset.
-        private async Task<string> SaveErrorsSafelyAsync(IImportReporter importReporter, List<ErrorInfo> errorsToSave, ImportContext context)
+        private async Task<string> SaveErrorReportAsync(IImportReporter importReporter, List<ErrorInfo> errorsToSave, ImportContext context)
         {
             try
             {
@@ -279,7 +279,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     ErrorLine = context.ProgressInfo?.ProcessedCount,
                     ErrorMessage = ex.ExpandExceptionMessage(),
                 });
-                LogSaveErrorsFailed(ex, context.ImportProfile.Name);
+                LogSaveErrorReportFailed(ex, context.ImportProfile.Name);
 
                 return null;
             }
@@ -361,7 +361,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         partial void LogFlushFailed(Exception exception, string profileName);
 
         [LoggerMessage(LogLevel.Error, "Saving the error report failed for import profile '{profileName}'")]
-        partial void LogSaveErrorsFailed(Exception exception, string profileName);
+        partial void LogSaveErrorReportFailed(Exception exception, string profileName);
 
         [LoggerMessage(LogLevel.Information, "Restored cursor from import run history '{HistoryId}' at {ProcessedCount} processed records")]
         partial void LogRestoredCursorFromImportRunHistory(string historyId, int processedCount);

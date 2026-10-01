@@ -232,7 +232,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                await SendNotificationSafelyAsync(pushNotification, importRunHistory, sendFailures);
+                await SendPushNotificationAsync(pushNotification, importRunHistory, sendFailures);
 
                 if (sendFailures.Count > 1)
                 {
@@ -240,26 +240,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 }
             }
 
-            await SendCompletionEmailSafelyAsync(pushNotification, importRunHistory);
-        }
-
-        // Like the push, the e-mail is a notification: a failure is logged and neither fails the job nor replaces the run's outcome.
-        private async Task SendCompletionEmailSafelyAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
-        {
+            // Like the push, the e-mail is a notification: a failure is logged and neither fails the job nor replaces the run's outcome.
             try
             {
-                var user = await _userManager.FindByNameAsync(pushNotification.Creator);
-                if (user != null)
-                {
-                    var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
-                    emailNotification.To = user.Email;
-                    emailNotification.ImportRunHistory = importRunHistory;
-                    if (!string.IsNullOrEmpty(user.MemberId))
-                    {
-                        emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
-                    }
-                    await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
-                }
+                await SendCompletionEmailAsync(pushNotification, importRunHistory);
             }
             catch (Exception ex)
             {
@@ -267,7 +251,24 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
-        private async Task SendNotificationSafelyAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationSendFailures sendFailures)
+        private async Task SendCompletionEmailAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            var user = await _userManager.FindByNameAsync(pushNotification.Creator);
+            if (user != null)
+            {
+                var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
+                emailNotification.To = user.Email;
+                emailNotification.ImportRunHistory = importRunHistory;
+                if (!string.IsNullOrEmpty(user.MemberId))
+                {
+                    emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
+                }
+                await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
+            }
+        }
+
+        // Never throws: a failed send is counted, and the first one of the run is logged.
+        private async Task SendPushNotificationAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory, NotificationSendFailures sendFailures)
         {
             try
             {
@@ -310,7 +311,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                     : $"{pushNotification.ProcessedCount} have been imported";
             }
 
-            await SendNotificationSafelyAsync(pushNotification, importRunHistory, sendFailures);
+            await SendPushNotificationAsync(pushNotification, importRunHistory, sendFailures);
 
             importRunHistory.UpdateProgress(pushNotification);
 
