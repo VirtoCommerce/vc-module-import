@@ -181,12 +181,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 ?? await TryGetRunHistoryAsync(importProfile, pushNotification)
                 ?? ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
 
-            // A resumed run's notification starts with the errors its interrupted part reported, so a failure before the
-            // pipeline's first progress cannot finish the row without them.
-            if (!string.IsNullOrEmpty(importRunHistory.Cursor))
-            {
-                pushNotification.Errors = [.. importRunHistory.Errors ?? []];
-            }
+            StartWithStoredErrors(pushNotification, importRunHistory);
 
             Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory);
 
@@ -236,6 +231,16 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
 
             return pushNotification;
+        }
+
+        // A resumed run's notification starts with the errors its interrupted part reported, so a failure before the
+        // pipeline's first progress cannot finish the row without them.
+        private static void StartWithStoredErrors(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            if (!string.IsNullOrEmpty(importRunHistory.Cursor))
+            {
+                pushNotification.Errors = [.. importRunHistory.Errors ?? []];
+            }
         }
 
         private protected async Task UpdateProgressAsync(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
