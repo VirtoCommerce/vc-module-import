@@ -10,6 +10,7 @@ using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.NotificationsModule.Core.Model;
 using VirtoCommerce.NotificationsModule.Core.Services;
 using VirtoCommerce.Platform.Core.PushNotifications;
 using VirtoCommerce.Platform.Core.Security;
@@ -141,12 +142,14 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         public async Task Failing_Completion_Email_Does_Not_Fail_The_Run()
         {
             var fixture = new Fixture();
-            fixture.CompletionEmailFails();
+            var mailFailure = new TimeoutException("mail down");
+            fixture.CompletionEmailFails(mailFailure);
 
             await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None);
 
             Assert.NotNull(fixture.SavedFinished[^1]);
-            Assert.Single(fixture.Logger.Entries, x => x.Level == LogLevel.Error);
+            var error = Assert.Single(fixture.Logger.Entries, x => x.Level == LogLevel.Error);
+            Assert.Same(mailFailure, error.Exception);
         }
 
         [Fact]
@@ -154,7 +157,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             var fixture = new Fixture();
             fixture.ImportThrows(new InvalidOperationException("import failed"));
-            fixture.CompletionEmailFails();
+            fixture.CompletionEmailFails(new TimeoutException("mail down"));
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None));
@@ -252,10 +255,12 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
             // The creator resolves to a user with an e-mail address, so the completion e-mail is attempted; its
             // notification search is the strict mock above and throws.
-            public void CompletionEmailFails()
+            public void CompletionEmailFails(Exception exception)
             {
                 _userManager.Setup(x => x.FindByNameAsync(It.IsAny<string>()))
                     .ReturnsAsync(new ApplicationUser { UserName = "tester", Email = "tester@example.com" });
+                _notificationSearch.Setup(x => x.SearchNotificationsAsync(It.IsAny<NotificationSearchCriteria>()))
+                    .ThrowsAsync(exception);
             }
 
             public void ImportThrows(Exception exception)
