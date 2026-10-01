@@ -34,7 +34,12 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         private sealed class TraceWriter : IImportDataWriter
         {
             public int Flushes { get; private set; }
-            public Task WriteAsync(object[] items, ImportContext context) => Task.CompletedTask;
+            public int Writes { get; private set; }
+            public Task WriteAsync(object[] items, ImportContext context)
+            {
+                Writes++;
+                return Task.CompletedTask;
+            }
             public Task FlushAsync(ImportContext context)
             {
                 Flushes++;
@@ -149,6 +154,21 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
             Assert.Equal(0, checkpoints);
             Assert.Equal(1, flushes);
+        }
+
+        [Fact]
+        public async Task Unreadable_Save_Interval_Fails_The_Run()
+        {
+            var profile = new ImportProfile
+            {
+                Settings = [new ObjectSettingEntry { Name = ImportCursorSettings.SaveIntervalPages.Name, Value = "abc", ValueType = SettingValueType.ShortText }],
+            };
+            var writer = new TraceWriter();
+            var manager = TestHelperFactory.CreateManagerWithImporter(new PagedReader(), writer);
+
+            await Assert.ThrowsAnyAsync<Exception>(() => manager.ImportAsync(profile, _ => Task.CompletedTask, CancellationToken.None));
+
+            Assert.Equal(0, writer.Writes);
         }
 
         [Fact]

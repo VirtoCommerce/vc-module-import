@@ -74,8 +74,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
             context.ProgressInfo = importProgress;
             context.ErrorCallback = errors.Handle;
 
-            // Resolved before the restore: the cursor is validated against it.
+            // Resolved before the run starts: a setting that cannot be read fails the job, and the cursor is validated against the lifetime.
             context.CursorLifetime = TimeSpan.FromDays(await GetCursorSettingAsync(importProfile, ImportCursorSettings.LifetimeDays));
+            context.CursorSaveIntervalPages = await GetCursorSettingAsync(importProfile, ImportCursorSettings.SaveIntervalPages);
 
             importRemainingEstimator.Start(context);
             await progressCallback(importProgress);
@@ -150,8 +151,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             var importProgress = context.ProgressInfo;
 
-            var saveIntervalPages = await GetCursorSettingAsync(context.ImportProfile, ImportCursorSettings.SaveIntervalPages);
-            var checkpointTracker = new CursorCheckpointTracker(saveIntervalPages);
+            var checkpointTracker = new CursorCheckpointTracker(context.CursorSaveIntervalPages);
             var cursorReader = reader as IResumableImportDataReader;
 
             do

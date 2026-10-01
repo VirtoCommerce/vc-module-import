@@ -37,6 +37,13 @@ namespace VirtoCommerce.ImportModule.Core.Models
         public TimeSpan? CursorLifetime { get; set; }
 
         /// <summary>
+        /// The number of pages between cursor checkpoints the pipeline resolved for this run: the profile's
+        /// <c>Import.Cursor.SaveIntervalPages</c> when it stores one, otherwise the module-level setting. Set before the
+        /// read/write loop starts.
+        /// </summary>
+        public int CursorSaveIntervalPages { get; set; }
+
+        /// <summary>
         /// JSON settings used by resumable readers to (de)serialize cursors. Null = Newtonsoft defaults.
         /// A reader that needs custom converters or discriminator handling populates this in its
         /// OnImportStartedAsync hook; the resume-cursor DIMs read it on save/restore.
