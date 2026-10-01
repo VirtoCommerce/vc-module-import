@@ -100,6 +100,30 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Run_Accepts_A_Profile_Id_Stored_For_The_Same_Importer_In_Another_Case()
+        {
+            var storedProfile = new ImportProfile { Id = ProfileId, DataImporterType = ImporterType.ToUpperInvariant() };
+            var fixture = new Fixture(null, AuthorizationResult.Success(), [storedProfile]);
+
+            var result = await fixture.Controller.RunImport(CreateProfile());
+
+            Assert.IsType<OkObjectResult>(result.Result);
+            fixture.RunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Run_Refuses_An_Unauthorized_Caller_Before_Looking_Up_The_Profile()
+        {
+            var storedProfile = new ImportProfile { Id = ProfileId, DataImporterType = "OtherImporter" };
+            var fixture = new Fixture(null, AuthorizationResult.Failed(), [storedProfile]);
+
+            var result = await fixture.Controller.RunImport(CreateProfile());
+
+            Assert.IsType<UnauthorizedResult>(result.Result);
+            fixture.ProfileCrudService.Verify(x => x.GetAsync(It.IsAny<IList<string>>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [Fact]
         public async Task Run_Accepts_A_Profile_Id_That_Is_Not_Stored()
         {
             var fixture = new Fixture(null, AuthorizationResult.Success(), []);
@@ -227,8 +251,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                         Results = [new ImportRunHistory { Id = RunHistoryId, JobId = JobId, ProfileId = ProfileId }],
                     });
 
-                var profileCrudService = new Mock<IImportProfileCrudService>();
-                profileCrudService
+                ProfileCrudService = new Mock<IImportProfileCrudService>();
+                ProfileCrudService
                     .Setup(x => x.GetAsync(It.IsAny<IList<string>>(), It.IsAny<string>(), It.IsAny<bool>()))
                     .ReturnsAsync(storedProfiles ?? [CreateProfile()]);
 
@@ -237,7 +261,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     RunService.Object,
                     Mock.Of<IImportProfilesSearchService>(),
                     runHistorySearchService.Object,
-                    profileCrudService.Object,
+                    ProfileCrudService.Object,
                     authorizationService.Object,
                     importerFactory.Object)
                 {
@@ -251,6 +275,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             public ImportController Controller { get; }
 
             public Mock<IImportRunService> RunService { get; }
+
+            public Mock<IImportProfileCrudService> ProfileCrudService { get; }
 
             public IAuthorizationRequirement AuthorizedRequirement { get; private set; }
         }
