@@ -219,9 +219,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             pushNotification.Finished ??= DateTime.UtcNow;
 
-            // The row is the run's durable record: it is finished and saved before the notification goes out, so a client
-            // that reloads it on 'finished' reads it finished, and a failing send can neither leave it unfinished nor
-            // replace the run's own exception.
+            // The row is the run's durable record: it is finished and saved before this notification goes out, so a
+            // failing send can neither leave it unfinished nor replace the run's own exception. (The pipeline's final
+            // progress has already announced the end; that push still precedes the save.)
             importRunHistory.Finish(pushNotification);
 
             try
