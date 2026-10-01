@@ -109,11 +109,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             catch (Exception ex)
             {
-                context.ErrorCallback?.Invoke(new ErrorInfo
-                {
-                    ErrorLine = context.ProgressInfo?.ProcessedCount,
-                    ErrorMessage = ex.ExpandExceptionMessage(),
-                });
+                ReportError(context, ex);
             }
             finally
             {
@@ -253,11 +249,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             catch (Exception ex)
             {
-                context.ErrorCallback?.Invoke(new ErrorInfo
-                {
-                    ErrorLine = context.ProgressInfo?.ProcessedCount,
-                    ErrorMessage = ex.ExpandExceptionMessage(),
-                });
+                ReportError(context, ex);
                 LogFlushFailed(ex, context.ImportProfile.Name);
 
                 return false;
@@ -274,11 +266,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             catch (Exception ex)
             {
-                context.ErrorCallback?.Invoke(new ErrorInfo
-                {
-                    ErrorLine = context.ProgressInfo?.ProcessedCount,
-                    ErrorMessage = ex.ExpandExceptionMessage(),
-                });
+                ReportError(context, ex);
                 LogSaveErrorReportFailed(ex, context.ImportProfile.Name);
 
                 return null;
@@ -352,6 +340,15 @@ namespace VirtoCommerce.ImportModule.Data.Services
             await progressCallback(context.ProgressInfo);
 
             await _importRunHistoryService.SaveChangesAsync([runHistory]);
+        }
+
+        private static void ReportError(ImportContext context, Exception exception)
+        {
+            context.ErrorCallback?.Invoke(new ErrorInfo
+            {
+                ErrorLine = context.ProgressInfo?.ProcessedCount,
+                ErrorMessage = exception.ExpandExceptionMessage(),
+            });
         }
 
         [LoggerMessage(LogLevel.Error, "OnImportCompletedAsync failed for import profile '{profileName}'")]
