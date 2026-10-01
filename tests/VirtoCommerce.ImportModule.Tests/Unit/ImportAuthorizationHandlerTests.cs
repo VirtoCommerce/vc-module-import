@@ -6,6 +6,7 @@ using Moq;
 using VirtoCommerce.CustomerModule.Core.Model;
 using VirtoCommerce.CustomerModule.Core.Services;
 using VirtoCommerce.ImportModule.Core;
+using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Data.Authorization;
 using VirtoCommerce.ImportModule.Web.Authorization;
 using Xunit;
@@ -86,7 +87,23 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.Equal(OrganizationId, resource.OrganizationId);
         }
 
-        private static async Task<AuthorizationHandlerContext> Authorize(ClaimsPrincipal user, AuthorizationInfo resource, IMemberResolver memberResolver = null)
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Employee_Without_An_Organization_Scoped_Resource_Is_Not_Admitted(bool hasProfileResource)
+        {
+            var user = CreateUser(new Claim("memberId", MemberId));
+            object resource = hasProfileResource ? new ImportProfile() : null;
+            var memberResolver = CreateMemberResolver(
+                new Employee { Id = MemberId, Organizations = [OrganizationId] },
+                new Organization { Id = OrganizationId });
+
+            var context = await Authorize(user, resource, memberResolver);
+
+            Assert.False(context.HasSucceeded);
+        }
+
+        private static async Task<AuthorizationHandlerContext> Authorize(ClaimsPrincipal user, object resource, IMemberResolver memberResolver = null)
         {
             var handler = new ImportAuthorizationHandler(memberResolver ?? Mock.Of<IMemberResolver>());
             var requirement = new ImportAuthorizationRequirement(ModuleConstants.Security.Permissions.Access);

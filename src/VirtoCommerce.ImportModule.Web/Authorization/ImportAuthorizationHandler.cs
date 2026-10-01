@@ -29,12 +29,13 @@ namespace VirtoCommerce.ImportModule.Web.Authorization
                 return;
             }
 
-            // An organization's employee is admitted, limited to that organization's profiles and runs
+            // An organization's employee is admitted only for an organization-scoped resource, limited to that
+            // organization's profiles and runs; any other resource needs the permission.
             if (context.Resource is AuthorizationInfo authorizationInfo)
             {
                 authorizationInfo.OrganizationId = organization.Id;
+                context.Succeed(requirement);
             }
-            context.Succeed(requirement);
         }
     }
 }
