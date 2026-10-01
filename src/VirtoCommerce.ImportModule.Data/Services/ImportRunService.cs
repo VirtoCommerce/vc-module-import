@@ -233,11 +233,11 @@ namespace VirtoCommerce.ImportModule.Data.Services
             finally
             {
                 await SendNotificationSafelyAsync(pushNotification, importRunHistory, sendFailures);
-            }
 
-            if (sendFailures.Count > 1)
-            {
-                LogSuppressedNotificationFailures(importRunHistory.Id, sendFailures.Count - 1);
+                if (sendFailures.Count > 1)
+                {
+                    LogSuppressedNotificationFailures(importRunHistory.Id, sendFailures.Count - 1);
+                }
             }
 
             var user = await _userManager.FindByNameAsync(pushNotification.Creator);

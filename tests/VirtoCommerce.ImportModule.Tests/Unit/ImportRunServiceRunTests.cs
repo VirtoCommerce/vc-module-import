@@ -99,6 +99,28 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None);
 
             Assert.NotNull(fixture.SavedFinished[^1]);
+            // One failed send is logged once; the "N more" line only appears for more than one failure
+            Assert.Single(fixture.Logger.Entries, x => x.Level == LogLevel.Error);
+        }
+
+        [Fact]
+        public async Task Suppressed_Push_Failures_Are_Logged_When_The_Closing_Save_Throws()
+        {
+            var fixture = new Fixture();
+            var failure = new TimeoutException("send failed");
+            fixture.SendThrows(failure);
+            fixture.ImportReports(new ImportProgressInfo(), new ImportProgressInfo());
+            fixture.SaveThrowsAfter(1, new InvalidOperationException("save failed"));
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None));
+
+            // 2 progress + 1 closing = 3 failed sends: the first is logged, the other 2 are counted
+            Assert.Equal("save failed", exception.Message);
+            var errors = fixture.Logger.Entries.Where(x => x.Level == LogLevel.Error).ToList();
+            Assert.Equal(2, errors.Count);
+            Assert.Same(failure, errors[0].Exception);
+            Assert.Contains("2 more push notifications", errors[1].Message);
         }
 
         [Fact]
@@ -151,6 +173,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             private readonly Mock<IDataImportProcessManager> _manager = new();
             private readonly Mock<IPushNotificationManager> _pushManager = new();
+            private Exception _saveFailure;
+            private int _savesBeforeFailure;
 
             public Fixture()
             {
@@ -162,7 +186,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                         SavedErrors.Add(x[0].Errors?.ToList());
                         SavedFinished.Add(x[0].Finished);
                     })
-                    .Returns(Task.CompletedTask);
+                    .Returns(() => _saveFailure is not null && Calls.Count(x => x == "save") > _savesBeforeFailure
+                        ? Task.FromException(_saveFailure)
+                        : Task.CompletedTask);
 
                 _pushManager.Setup(x => x.SendAsync(It.IsAny<PushNotification>()))
                     .Callback<PushNotification>(_ => Calls.Add("send"))
@@ -183,6 +209,13 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             public List<List<string>> SavedErrors { get; } = [];
 
             public List<DateTime?> SavedFinished { get; } = [];
+
+            // Saves after the first `successfulSaves` ones throw (the run's first save happens before the import starts).
+            public void SaveThrowsAfter(int successfulSaves, Exception exception)
+            {
+                _savesBeforeFailure = successfulSaves;
+                _saveFailure = exception;
+            }
 
             public void ImportThrows(Exception exception)
             {
