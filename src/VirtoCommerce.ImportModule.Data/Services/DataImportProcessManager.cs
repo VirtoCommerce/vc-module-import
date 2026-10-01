@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -201,20 +202,29 @@ namespace VirtoCommerce.ImportModule.Data.Services
             var errorReportResult = await SaveErrorsSafelyAsync(importReporter, errors.GetTopErrors(), context);
             importRemainingEstimator.Stop(context);
 
-            importProgress.Description = $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}";
             importProgress.Finished = DateTime.UtcNow;
             importProgress.ReportUrl = errorReportResult ?? importProgress.ReportUrl;
 
+            ExceptionDispatchInfo completionFailure = null;
             try
             {
                 await dataImporter.OnImportCompletedAsync(context);
             }
-            finally
+            catch (Exception ex)
             {
-                // The final progress carries Finished, the report url and the flush and report errors; a throwing
-                // completion hook still fails the run, but must not keep them off the run history row.
-                await progressCallback(importProgress);
+                // Logged here: the final progress below can throw too, and would replace it.
+                LogCompletionHookFailed(ex, context.ImportProfile.Name);
+                completionFailure = ExceptionDispatchInfo.Capture(ex);
             }
+
+            importProgress.Description = completionFailure is null
+                ? $"Import completed {(importProgress.Errors?.Count > 0 ? "with errors" : "successfully")}"
+                : "Import failed";
+
+            // The final progress carries Finished, the report url and the flush and report errors to the run history row.
+            await progressCallback(importProgress);
+
+            completionFailure?.Throw();
         }
 
         // A value stored on the profile (an importer that registers the setting for its own profiles) wins over the
@@ -338,6 +348,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             await _importRunHistoryService.SaveChangesAsync([runHistory]);
         }
+
+        [LoggerMessage(LogLevel.Error, "OnImportCompletedAsync failed for import profile '{profileName}'")]
+        partial void LogCompletionHookFailed(Exception exception, string profileName);
 
         [LoggerMessage(LogLevel.Error, "FlushAsync failed for import profile '{profileName}'")]
         partial void LogFlushFailed(Exception exception, string profileName);

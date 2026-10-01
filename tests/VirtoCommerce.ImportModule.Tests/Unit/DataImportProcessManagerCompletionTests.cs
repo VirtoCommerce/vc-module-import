@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.ImportModule.Data.Services;
 using VirtoCommerce.Platform.Core.Settings;
 using Xunit;
 
@@ -174,7 +176,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         [Fact]
         public async Task Throwing_Completion_Hook_Still_Sends_The_Final_Progress()
         {
-            var snapshots = new List<(DateTime? Finished, string ReportUrl)>();
+            var snapshots = new List<(DateTime? Finished, string ReportUrl, string Description)>();
+            var hookFailure = new InvalidOperationException("hook failed");
             var reporter = new Mock<IImportReporter>();
             reporter.Setup(x => x.SaveErrorsAsync(It.IsAny<List<ErrorInfo>>())).ReturnsAsync("report-url");
             var manager = TestHelperFactory.CreateManagerWithImporter(
@@ -182,19 +185,43 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 new ScriptedWriter { ErrorOnWrites = new HashSet<int> { 1 } },
                 configureImporter: importer => importer
                     .Setup(x => x.OnImportCompletedAsync(It.IsAny<ImportContext>()))
-                    .ThrowsAsync(new InvalidOperationException("hook failed")),
+                    .ThrowsAsync(hookFailure),
                 reporter: reporter.Object);
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => manager.ImportAsync(MakeProfile(), x =>
             {
-                snapshots.Add((x.Finished, x.ReportUrl));
+                snapshots.Add((x.Finished, x.ReportUrl, x.Description));
                 return Task.CompletedTask;
             }, CancellationToken.None));
 
-            Assert.Equal("hook failed", exception.Message);
+            Assert.Same(hookFailure, exception);
             var last = snapshots[^1];
             Assert.NotNull(last.Finished);
             Assert.Equal("report-url", last.ReportUrl);
+            Assert.Equal("Import failed", last.Description);
+        }
+
+        [Fact]
+        public async Task Throwing_Completion_Hook_Is_Logged_When_The_Final_Progress_Also_Throws()
+        {
+            var hookFailure = new InvalidOperationException("hook failed");
+            var logger = new RecordingLogger<DataImportProcessManager>();
+            var manager = TestHelperFactory.CreateManagerWithImporter(
+                new PagedReader(),
+                new ScriptedWriter(),
+                configureImporter: importer => importer
+                    .Setup(x => x.OnImportCompletedAsync(It.IsAny<ImportContext>()))
+                    .ThrowsAsync(hookFailure),
+                logger: logger);
+
+            // Only the final progress carries Finished
+            var exception = await Assert.ThrowsAsync<TimeoutException>(() => manager.ImportAsync(MakeProfile(), x =>
+            {
+                return x.Finished is null ? Task.CompletedTask : Task.FromException(new TimeoutException("push failed"));
+            }, CancellationToken.None));
+
+            Assert.Equal("push failed", exception.Message);
+            Assert.Contains(logger.Entries, x => x.Level == LogLevel.Error && ReferenceEquals(x.Exception, hookFailure));
         }
 
         [Fact]

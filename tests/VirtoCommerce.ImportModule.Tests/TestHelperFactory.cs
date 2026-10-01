@@ -57,7 +57,8 @@ namespace VirtoCommerce.ImportModule.Tests
             IImportReporter reporter = null,
             int? maxErrorsCountThreshold = null,
             IImportRunHistoryCrudService historyCrud = null,
-            Action<Mock<ISettingsManager>> configureSettings = null)
+            Action<Mock<ISettingsManager>> configureSettings = null,
+            ILogger<DataImportProcessManager> logger = null)
         {
             var importer = new Mock<IDataImporter>();
             importer.Setup(x => x.OpenReaderAsync(It.IsAny<ImportContext>())).ReturnsAsync(reader);
@@ -88,7 +89,8 @@ namespace VirtoCommerce.ImportModule.Tests
                 estimator: estimator.Object,
                 reporter: reporterFactory.Object,
                 settingsManager: settingsManager.Object,
-                historyCrud: historyCrud);
+                historyCrud: historyCrud,
+                logger: logger);
         }
 
         public sealed class TestableRunService : ImportRunService
