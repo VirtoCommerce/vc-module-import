@@ -209,28 +209,54 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                pushNotification.Finished ??= DateTime.UtcNow;
-
-                await _pushNotificationManager.SendAsync(pushNotification);
-
-                importRunHistory.Finish(pushNotification);
-                await _importRunHistoryCrudService.SaveChangesAsync([importRunHistory]);
-
-                var user = await _userManager.FindByNameAsync(pushNotification.Creator);
-                if (user != null)
-                {
-                    var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
-                    emailNotification.To = user.Email;
-                    emailNotification.ImportRunHistory = importRunHistory;
-                    if (!string.IsNullOrEmpty(user.MemberId))
-                    {
-                        emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
-                    }
-                    await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
-                }
+                await FinishRunHistoryAsync(pushNotification, importRunHistory);
             }
 
             return pushNotification;
+        }
+
+        private async Task FinishRunHistoryAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            pushNotification.Finished ??= DateTime.UtcNow;
+
+            // The row is the run's durable record: it is finished and saved before the notification goes out, so a client
+            // that reloads it on 'finished' reads it finished, and a failing send can neither leave it unfinished nor
+            // replace the run's own exception.
+            importRunHistory.Finish(pushNotification);
+
+            try
+            {
+                await _importRunHistoryCrudService.SaveChangesAsync([importRunHistory]);
+            }
+            finally
+            {
+                await SendNotificationSafelyAsync(pushNotification, importRunHistory);
+            }
+
+            var user = await _userManager.FindByNameAsync(pushNotification.Creator);
+            if (user != null)
+            {
+                var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
+                emailNotification.To = user.Email;
+                emailNotification.ImportRunHistory = importRunHistory;
+                if (!string.IsNullOrEmpty(user.MemberId))
+                {
+                    emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
+                }
+                await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
+            }
+        }
+
+        private async Task SendNotificationSafelyAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
+            try
+            {
+                await _pushNotificationManager.SendAsync(pushNotification);
+            }
+            catch (Exception ex)
+            {
+                LogFailedToSendFinishedNotification(ex, importRunHistory.Id);
+            }
         }
 
         // A resumed run's notification starts with the errors its interrupted part reported, so a failure before the
@@ -343,5 +369,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         [LoggerMessage(LogLevel.Error, "Failed to save import run history checkpoint {historyId} at {ProcessedCount}")]
         partial void LogFailedToSaveImportRunHistoryCheckpoint(Exception exception, string historyId, int processedCount);
+
+        [LoggerMessage(LogLevel.Error, "Failed to send the finished notification of import run history '{HistoryId}'")]
+        partial void LogFailedToSendFinishedNotification(Exception exception, string historyId);
     }
 }
