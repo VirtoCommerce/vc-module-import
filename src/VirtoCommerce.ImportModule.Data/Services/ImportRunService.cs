@@ -240,30 +240,31 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 }
             }
 
-            // Like the push, the e-mail is a notification: a failure is logged and neither fails the job nor replaces the run's outcome.
+            await SendCompletionEmailAsync(pushNotification, importRunHistory);
+        }
+
+        // Never throws: like the push, the e-mail is a notification — a failure is logged and neither fails the job nor
+        // replaces the run's outcome.
+        private async Task SendCompletionEmailAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        {
             try
             {
-                await SendCompletionEmailAsync(pushNotification, importRunHistory);
+                var user = await _userManager.FindByNameAsync(pushNotification.Creator);
+                if (user != null)
+                {
+                    var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
+                    emailNotification.To = user.Email;
+                    emailNotification.ImportRunHistory = importRunHistory;
+                    if (!string.IsNullOrEmpty(user.MemberId))
+                    {
+                        emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
+                    }
+                    await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
+                }
             }
             catch (Exception ex)
             {
                 LogFailedToSendCompletionEmail(ex, importRunHistory.Id);
-            }
-        }
-
-        private async Task SendCompletionEmailAsync(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
-        {
-            var user = await _userManager.FindByNameAsync(pushNotification.Creator);
-            if (user != null)
-            {
-                var emailNotification = await _notificationSearchService.GetNotificationAsync<ImportCompletedEmailNotification>();
-                emailNotification.To = user.Email;
-                emailNotification.ImportRunHistory = importRunHistory;
-                if (!string.IsNullOrEmpty(user.MemberId))
-                {
-                    emailNotification.Member = await _memberService.GetByIdAsync(user.MemberId);
-                }
-                await _notificationSender.ScheduleSendNotificationAsync(emailNotification);
             }
         }
 
