@@ -138,9 +138,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// Default behavior: search by <see cref="ImportPushNotification.JobId"/>, return the most
         /// recent row if it is resumable, clearing <c>Finished</c> so the following save paths treat it
         /// as in-progress again. Returns null for fresh runs or non-resumable history.
-        /// A row that never finished (its worker died mid-run) is never resumable, because nothing can tell a dead run
-        /// from a live one: it is closed here — finished, without a cursor, with an error saying so — and null is
-        /// returned, so the replayed job starts a new run instead of leaving that row in progress for good.
+        /// A row that never finished is not resumed (<c>IsResumable()</c> requires <c>Finished</c>, because outside a job
+        /// execution such a row may still be running). Here, inside the job, the per-profile concurrency lock of
+        /// <c>ImportJob</c> (<c>DisableConcurrentExecutionForImportProfile</c>) guarantees that no other execution of
+        /// it is running, so the row belongs to a worker that died: it is closed — finished, without a cursor, with an
+        /// error saying so — and null is returned, so the replayed job starts a new run instead of leaving that row in
+        /// progress for good. A job class without such a lock could close the row of a live run.
         /// </summary>
         protected virtual async Task<ImportRunHistory> TryGetRunHistoryAsync(ImportProfile importProfile, ImportPushNotification pushNotification)
         {
@@ -172,14 +175,15 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return runHistory;
         }
 
-        // The cursor is cleared so that the closed row stays non-resumable: it would otherwise offer a resume of a run
-        // that may have died anywhere.
+        // The cursor is cleared because a cursor left on a row that is now Finished would make IsResumable() true;
+        // resuming a killed run is deliberately not offered, so the closed row must stay non-resumable.
         private async Task CloseInterruptedRunHistoryAsync(ImportRunHistory runHistory)
         {
             runHistory.Finished = DateTime.UtcNow;
             runHistory.Cursor = null;
-            runHistory.Errors ??= [];
-            runHistory.Errors.Add("The run was interrupted before it finished; its job was run again as a new run.");
+            // A new list, not Add: the row may be a shallow clone sharing its Errors list with a cached instance.
+            // Stored errors are newest-first (see ImportErrorCollector.Seed).
+            runHistory.Errors = ["The run was interrupted before it finished; its job was run again as a new run.", .. runHistory.Errors ?? []];
             runHistory.ErrorsCount = runHistory.Errors.Count;
 
             await _importRunHistoryCrudService.SaveChangesAsync([runHistory]);

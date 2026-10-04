@@ -241,8 +241,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.NotNull(fixture.SavedFinished[0]);
             Assert.Null(interrupted.Cursor);
             Assert.Equal(2, fixture.SavedErrors[0].Count);
-            Assert.Equal("Line 5: b", fixture.SavedErrors[0][0]);
-            Assert.Contains("interrupted", fixture.SavedErrors[0][1]);
+            Assert.Contains("interrupted", fixture.SavedErrors[0][0]);
+            Assert.Equal("Line 5: b", fixture.SavedErrors[0][1]);
             Assert.Equal(2, interrupted.ErrorsCount);
             Assert.NotSame(interrupted, fixture.SavedRows[1]);
             Assert.Same(fixture.SavedRows[1], fixture.SavedRows[2]);
@@ -273,6 +273,28 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Replay_Of_A_Finished_Run_Without_A_Cursor_Closes_Nothing_And_Starts_A_New_One()
+        {
+            var finished = new ImportRunHistory
+            {
+                Id = "H1",
+                JobId = "job-1",
+                Finished = DateTime.UtcNow,
+                Cursor = null,
+                Errors = new List<string> { "Line 5: b" },
+            };
+            var fixture = new Fixture();
+            fixture.LatestRowOfJob("job-1", finished);
+
+            await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester") { JobId = "job-1" }, CancellationToken.None);
+
+            // Saves: the start of the new run, the finished new run; the finished row is never saved
+            Assert.Equal(2, fixture.SavedRows.Count);
+            Assert.DoesNotContain(finished, fixture.SavedRows);
+            Assert.All(fixture.SavedErrors, x => Assert.DoesNotContain(x ?? [], y => y.Contains("interrupted")));
+        }
+
+        [Fact]
         public async Task Replay_Without_A_Row_Of_The_Job_Closes_Nothing()
         {
             var fixture = new Fixture();
@@ -286,7 +308,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Run_Without_A_Job_Id_Searches_And_Closes_Nothing()
+        public async Task Run_Without_A_Job_Id_Neither_Searches_Nor_Closes()
         {
             var fixture = new Fixture();
             fixture.LatestRowOfJob("job-1", new ImportRunHistory { Id = "H1", JobId = "job-1" });
