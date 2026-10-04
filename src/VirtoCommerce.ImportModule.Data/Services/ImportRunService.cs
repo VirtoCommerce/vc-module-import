@@ -138,6 +138,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// Default behavior: search by <see cref="ImportPushNotification.JobId"/>, return the most
         /// recent row if it is resumable, clearing <c>Finished</c> so the following save paths treat it
         /// as in-progress again. Returns null for fresh runs or non-resumable history.
+        /// A row that never finished (its worker died mid-run) is never resumable, because nothing can tell a dead run
+        /// from a live one: it is closed here — finished, without a cursor, with an error saying so — and null is
+        /// returned, so the replayed job starts a new run instead of leaving that row in progress for good.
         /// </summary>
         protected virtual async Task<ImportRunHistory> TryGetRunHistoryAsync(ImportProfile importProfile, ImportPushNotification pushNotification)
         {
@@ -156,12 +159,32 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             if (runHistory?.IsResumable() != true)
             {
+                if (runHistory is { Finished: null })
+                {
+                    await CloseInterruptedRunHistoryAsync(runHistory);
+                }
+
                 return null;
             }
 
             runHistory.Finished = null;
 
             return runHistory;
+        }
+
+        // The cursor is cleared so that the closed row stays non-resumable: it would otherwise offer a resume of a run
+        // that may have died anywhere.
+        private async Task CloseInterruptedRunHistoryAsync(ImportRunHistory runHistory)
+        {
+            runHistory.Finished = DateTime.UtcNow;
+            runHistory.Cursor = null;
+            runHistory.Errors ??= [];
+            runHistory.Errors.Add("The run was interrupted before it finished; its job was run again as a new run.");
+            runHistory.ErrorsCount = runHistory.Errors.Count;
+
+            await _importRunHistoryCrudService.SaveChangesAsync([runHistory]);
+
+            LogClosedInterruptedRunHistory(runHistory.Id, runHistory.JobId);
         }
 
         public virtual Task<ImportPushNotification> RunImportAsync(ImportProfile importProfile, CancellationToken cancellationToken)
@@ -401,6 +424,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         [LoggerMessage(LogLevel.Debug, "Saved import run history checkpoint {HistoryId} at {ProcessedCount}")]
         partial void LogSavedImportRunHistoryCheckpoint(string historyId, int processedCount);
+
+        [LoggerMessage(LogLevel.Warning, "Closed import run history '{HistoryId}' that never finished: its job '{JobId}' was run again as a new run")]
+        partial void LogClosedInterruptedRunHistory(string historyId, string jobId);
 
         [LoggerMessage(LogLevel.Error, "Failed to save import run history checkpoint {historyId} at {ProcessedCount}")]
         partial void LogFailedToSaveImportRunHistoryCheckpoint(Exception exception, string historyId, int processedCount);

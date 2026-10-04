@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
@@ -218,6 +219,85 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.Contains("3 more push notifications", errors[1].Message);
         }
 
+        [Fact]
+        public async Task Replay_Of_An_Unfinished_Run_Closes_Its_Row_And_Starts_A_New_One()
+        {
+            var interrupted = new ImportRunHistory
+            {
+                Id = "H1",
+                JobId = "job-1",
+                Cursor = "dummy-cursor",
+                Errors = new List<string> { "Line 5: b" },
+                ErrorsCount = 1,
+            };
+            var fixture = new Fixture();
+            fixture.LatestRowOfJob("job-1", interrupted);
+
+            await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester") { JobId = "job-1" }, CancellationToken.None);
+
+            // Saves: the closed row, the start of the new run, the finished new run
+            Assert.Equal(3, fixture.SavedRows.Count);
+            Assert.Same(interrupted, fixture.SavedRows[0]);
+            Assert.NotNull(fixture.SavedFinished[0]);
+            Assert.Null(interrupted.Cursor);
+            Assert.Equal(2, fixture.SavedErrors[0].Count);
+            Assert.Equal("Line 5: b", fixture.SavedErrors[0][0]);
+            Assert.Contains("interrupted", fixture.SavedErrors[0][1]);
+            Assert.Equal(2, interrupted.ErrorsCount);
+            Assert.NotSame(interrupted, fixture.SavedRows[1]);
+            Assert.Same(fixture.SavedRows[1], fixture.SavedRows[2]);
+            Assert.Null(fixture.SavedRows[1].Cursor);
+            Assert.DoesNotContain("Line 5: b", fixture.SavedErrors[1] ?? []);
+        }
+
+        [Fact]
+        public async Task Replay_Of_A_Resumable_Run_Closes_Nothing_And_Continues_On_Its_Row()
+        {
+            var resumable = new ImportRunHistory
+            {
+                Id = "H1",
+                JobId = "job-1",
+                Finished = DateTime.UtcNow,
+                Cursor = "dummy-cursor",
+                Errors = new List<string> { "Line 5: b" },
+            };
+            var fixture = new Fixture();
+            fixture.LatestRowOfJob("job-1", resumable);
+
+            await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester") { JobId = "job-1" }, CancellationToken.None);
+
+            // Saves: the start of the resumed run, the finished run; both on the one row, the interrupted-run error absent
+            Assert.Equal(2, fixture.SavedRows.Count);
+            Assert.All(fixture.SavedRows, x => Assert.Same(resumable, x));
+            Assert.All(fixture.SavedErrors, x => Assert.DoesNotContain(x, y => y.Contains("interrupted")));
+        }
+
+        [Fact]
+        public async Task Replay_Without_A_Row_Of_The_Job_Closes_Nothing()
+        {
+            var fixture = new Fixture();
+            fixture.LatestRowOfJob("job-1", null);
+
+            await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester") { JobId = "job-1" }, CancellationToken.None);
+
+            // Saves: the start of the run, the finished run
+            Assert.Equal(2, fixture.SavedRows.Count);
+            Assert.Same(fixture.SavedRows[0], fixture.SavedRows[1]);
+        }
+
+        [Fact]
+        public async Task Run_Without_A_Job_Id_Searches_And_Closes_Nothing()
+        {
+            var fixture = new Fixture();
+            fixture.LatestRowOfJob("job-1", new ImportRunHistory { Id = "H1", JobId = "job-1" });
+
+            await fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None);
+
+            // Saves: the start of the run, the finished run
+            Assert.Equal(2, fixture.SavedRows.Count);
+            fixture.Search.Verify(x => x.SearchAsync(It.IsAny<SearchImportRunHistoryCriteria>(), It.IsAny<bool>()), Times.Never);
+        }
+
         private sealed class Fixture
         {
             private readonly Mock<IDataImportProcessManager> _manager = new();
@@ -236,6 +316,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     .Callback<IList<ImportRunHistory>>(x =>
                     {
                         Calls.Add("save");
+                        SavedRows.Add(x[0]);
                         SavedErrors.Add(x[0].Errors?.ToList());
                         SavedFinished.Add(x[0].Finished);
                     })
@@ -253,18 +334,33 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 // No user means no completion e-mail
                 _userManager.Setup(x => x.FindByNameAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser)null);
 
-                Service = new TestableRunImportService(historyCrud.Object, _manager.Object, _pushManager.Object, Logger, _userManager.Object, _notificationSearch.Object);
+                Service = new TestableRunImportService(historyCrud.Object, Search.Object, _manager.Object, _pushManager.Object, Logger, _userManager.Object, _notificationSearch.Object);
             }
 
             public TestableRunImportService Service { get; }
 
             public RecordingLogger<ImportRunService> Logger { get; } = new();
 
+            public Mock<IImportRunHistorySearchService> Search { get; } = new();
+
             public List<string> Calls { get; } = [];
+
+            public List<ImportRunHistory> SavedRows { get; } = [];
 
             public List<List<string>> SavedErrors { get; } = [];
 
             public List<DateTime?> SavedFinished { get; } = [];
+
+            // The latest row the search finds for the job (none when `row` is null)
+            public void LatestRowOfJob(string jobId, ImportRunHistory row)
+            {
+                Search.Setup(x => x.SearchAsync(It.Is<SearchImportRunHistoryCriteria>(c => c.JobId == jobId), It.IsAny<bool>()))
+                    .ReturnsAsync(new SearchImportRunHistoryResult
+                    {
+                        Results = row is not null ? new[] { row } : Array.Empty<ImportRunHistory>(),
+                        TotalCount = row is not null ? 1 : 0,
+                    });
+            }
 
             // Saves after the first `successfulSaves` ones throw (the run's first save happens before the import starts).
             public void SaveThrowsAfter(int successfulSaves, Exception exception)
@@ -311,7 +407,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
         private sealed class TestableRunImportService : ImportRunService
         {
-            public TestableRunImportService(IImportRunHistoryCrudService historyCrud, IDataImportProcessManager manager, IPushNotificationManager pushManager, ILogger<ImportRunService> logger, UserManager<ApplicationUser> userManager, INotificationSearchService notificationSearch)
+            public TestableRunImportService(IImportRunHistoryCrudService historyCrud, IImportRunHistorySearchService historySearch, IDataImportProcessManager manager, IPushNotificationManager pushManager, ILogger<ImportRunService> logger, UserManager<ApplicationUser> userManager, INotificationSearchService notificationSearch)
                 : base(
                     /* UserManager */                    userManager,
                     /* IUserNameResolver */              null!,
@@ -322,7 +418,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     /* INotificationSender */            null!,
                     /* IImportProfileCrudService */      null!,
                     /* IImportRunHistoryCrudService */   historyCrud,
-                    /* IImportRunHistorySearchService */ null!,
+                    /* IImportRunHistorySearchService */ historySearch,
                     /* IDataImporterFactory */           null!,
                     /* IDataImportProcessManager */      manager,
                     /* ILogger<ImportRunService> */      logger)
