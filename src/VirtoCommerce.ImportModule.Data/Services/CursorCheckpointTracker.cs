@@ -1,6 +1,9 @@
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.ImportModule.Data.Models;
 
 namespace VirtoCommerce.ImportModule.Data.Services
 {
@@ -12,14 +15,22 @@ namespace VirtoCommerce.ImportModule.Data.Services
     /// <see cref="IResumableImportDataReader.HasStableCursor"/> false — e.g. mid-slice of a
     /// pre-fetched batch — and happens immediately on the next call once the reader becomes stable.
     /// </summary>
-    public class CursorCheckpointTracker
+    public partial class CursorCheckpointTracker
     {
         private readonly int _saveIntervalPages;
+        private readonly ILogger _logger;
         private int _pagesSinceLastSave;
 
+        // Kept for callers compiled against the released constructor; they get no oversized-cursor warning.
         public CursorCheckpointTracker(int saveIntervalPages)
+            : this(saveIntervalPages, NullLogger.Instance)
+        {
+        }
+
+        public CursorCheckpointTracker(int saveIntervalPages, ILogger logger)
         {
             _saveIntervalPages = saveIntervalPages;
+            _logger = logger;
         }
 
         public async Task TrySaveCursorAsync(ImportContext context, IResumableImportDataReader cursorReader, IImportDataWriter writer)
@@ -38,7 +49,16 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             await writer.FlushAsync(context);
 
-            progress.Cursor = cursorReader.GetSerializedCursor(context);
+            var serializedCursor = cursorReader.GetSerializedCursor(context);
+
+            // Never truncate: a truncated cursor would silently resume at a wrong position.
+            if (serializedCursor?.Length > ImportRunHistoryEntity.CursorMaxLength)
+            {
+                LogCursorTooLong(context.ImportProfile?.Name, serializedCursor.Length, ImportRunHistoryEntity.CursorMaxLength);
+                serializedCursor = null;
+            }
+
+            progress.Cursor = serializedCursor;
             progress.ShouldSaveHistory = !string.IsNullOrEmpty(progress.Cursor);
 
             _pagesSinceLastSave = 0;
@@ -53,5 +73,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
             context.ProgressInfo?.Cursor = null;
             context.ProgressInfo?.ShouldSaveHistory = false;
         }
+
+        [LoggerMessage(LogLevel.Warning, "Skipped the cursor checkpoint of import profile '{ProfileName}': the serialized cursor is {Length} characters, longer than the {MaxLength} the run history can store")]
+        partial void LogCursorTooLong(string profileName, int length, int maxLength);
     }
 }

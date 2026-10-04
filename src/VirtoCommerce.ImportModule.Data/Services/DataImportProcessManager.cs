@@ -139,7 +139,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         private static bool HasStoredCursor(ImportProfile importProfile) => !string.IsNullOrEmpty(importProfile.RunHistory?.Cursor);
 
-        private static async Task ReadAndWritePagesAsync(
+        private async Task ReadAndWritePagesAsync(
             ImportContext context,
             IImportDataReader reader,
             IImportDataWriter writer,
@@ -150,7 +150,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         {
             var importProgress = context.ProgressInfo;
 
-            var checkpointTracker = new CursorCheckpointTracker(context.CursorSaveIntervalPages);
+            var checkpointTracker = new CursorCheckpointTracker(context.CursorSaveIntervalPages, _logger);
             var cursorReader = reader as IResumableImportDataReader;
 
             do
