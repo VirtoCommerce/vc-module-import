@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Models;
@@ -20,12 +19,6 @@ namespace VirtoCommerce.ImportModule.Data.Services
         private readonly int _saveIntervalPages;
         private readonly ILogger _logger;
         private int _pagesSinceLastSave;
-
-        // Kept for callers compiled against the released constructor; they get no oversized-cursor warning.
-        public CursorCheckpointTracker(int saveIntervalPages)
-            : this(saveIntervalPages, NullLogger.Instance)
-        {
-        }
 
         public CursorCheckpointTracker(int saveIntervalPages, ILogger logger)
         {

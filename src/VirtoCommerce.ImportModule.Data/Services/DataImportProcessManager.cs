@@ -39,7 +39,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             _logger = logger.CreateLogger<DataImportProcessManager>();
         }
 
-        public async Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken token)
+        public async Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken cancellationToken)
         {
             var maxErrorsCountThreshold = await _settingsManager.GetValueAsync<int>(ModuleConstants.Settings.General.MaxErrorsCountThreshold);
 
@@ -88,7 +88,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             using var reader = await dataImporter.OpenReaderAsync(context);
             using var writer = await dataImporter.OpenWriterAsync(context);
 
-            context.IsResume = await TryRestoreCursorAsync(reader, context, errors, progressCallback);
+            context.IsResume = await TryRestoreCursorAsync(context, reader, errors, progressCallback);
 
             await dataImporter.OnImportStartedAsync(context);
 
@@ -97,7 +97,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             await progressCallback(importProgress);
             importProgress.TotalCount = await reader.GetTotalCountAsync(context);
 
-            token.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Start import
             importProgress.Description = "Import in progress";
@@ -105,7 +105,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             try
             {
-                await ReadAndWritePagesAsync(context, reader, writer, errors, importRemainingEstimator, progressCallback, token);
+                await ReadAndWritePagesAsync(context, reader, writer, importRemainingEstimator, errors, progressCallback, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -113,7 +113,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             finally
             {
-                await FinishRunAsync(dataImporter, importReporter, importRemainingEstimator, writer, context, errors, progressCallback);
+                await FinishRunAsync(context, dataImporter, writer, importRemainingEstimator, importReporter, errors, progressCallback);
             }
         }
 
@@ -143,10 +143,10 @@ namespace VirtoCommerce.ImportModule.Data.Services
             ImportContext context,
             IImportDataReader reader,
             IImportDataWriter writer,
-            ImportErrorCollector errors,
             IImportRemainingEstimator importRemainingEstimator,
+            ImportErrorCollector errors,
             Func<ImportProgressInfo, Task> progressCallback,
-            CancellationToken token)
+            CancellationToken cancellationToken)
         {
             var importProgress = context.ProgressInfo;
 
@@ -155,13 +155,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             do
             {
-                token.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 await checkpointTracker.TrySaveCursorAsync(context, cursorReader, writer);
 
                 var items = await reader.ReadNextPageAsync(context);
 
-                token.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 await writer.WriteAsync(items, context);
                 importProgress.ProcessedCount += items.Length;
@@ -180,22 +180,22 @@ namespace VirtoCommerce.ImportModule.Data.Services
         }
 
         private async Task FinishRunAsync(
-            IDataImporter dataImporter,
-            IImportReporter importReporter,
-            IImportRemainingEstimator importRemainingEstimator,
-            IImportDataWriter writer,
             ImportContext context,
+            IDataImporter dataImporter,
+            IImportDataWriter writer,
+            IImportRemainingEstimator importRemainingEstimator,
+            IImportReporter importReporter,
             ImportErrorCollector errors,
             Func<ImportProgressInfo, Task> progressCallback)
         {
             var importProgress = context.ProgressInfo;
 
-            if (!await TryFlushAsync(writer, context))
+            if (!await TryFlushAsync(context, writer))
             {
                 context.IsCompleted = false;
             }
 
-            var errorReportResult = await SaveErrorReportAsync(importReporter, errors.GetTopErrors(), context);
+            var errorReportResult = await SaveErrorReportAsync(context, importReporter, errors.GetTopErrors());
             importRemainingEstimator.Stop(context);
 
             importProgress.Finished = DateTime.UtcNow;
@@ -239,7 +239,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 : await _settingsManager.GetValueAsync<int>(descriptor);
         }
 
-        private async Task<bool> TryFlushAsync(IImportDataWriter writer, ImportContext context)
+        private async Task<bool> TryFlushAsync(ImportContext context, IImportDataWriter writer)
         {
             try
             {
@@ -258,7 +258,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
         // A report that cannot be saved must not skip Finished, OnImportCompletedAsync and the final progress:
         // the data is already written. The failure is reported like any other error, and the report url stays unset.
-        private async Task<string> SaveErrorReportAsync(IImportReporter importReporter, List<ErrorInfo> errorsToSave, ImportContext context)
+        private async Task<string> SaveErrorReportAsync(ImportContext context, IImportReporter importReporter, List<ErrorInfo> errorsToSave)
         {
             try
             {
@@ -285,7 +285,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         /// The reset clears the row, then sends the cleaned progress through <paramref name="progressCallback"/>, then saves the row.
         /// A restore that throws is rethrown and fails the run.
         /// </summary>
-        internal async Task<bool> TryRestoreCursorAsync(IImportDataReader reader, ImportContext context, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
+        internal async Task<bool> TryRestoreCursorAsync(ImportContext context, IImportDataReader reader, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
         {
             var runHistory = context.ImportProfile.RunHistory;
             if (string.IsNullOrEmpty(runHistory?.Cursor))
@@ -296,7 +296,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
             if (reader is not IResumableImportDataReader cursorReader)
             {
                 LogCursorFromImportRunHistoryNotResumable(runHistory.Id);
-                await ResetRunHistoryAsync(runHistory, context, errors, progressCallback);
+                await ResetRunHistoryAsync(context, runHistory, errors, progressCallback);
 
                 return false;
             }
@@ -320,12 +320,12 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
 
             LogCursorFromImportRunHistoryInvalid(runHistory.Id);
-            await ResetRunHistoryAsync(runHistory, context, errors, progressCallback);
+            await ResetRunHistoryAsync(context, runHistory, errors, progressCallback);
 
             return false;
         }
 
-        private async Task ResetRunHistoryAsync(ImportRunHistory runHistory, ImportContext context, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
+        private async Task ResetRunHistoryAsync(ImportContext context, ImportRunHistory runHistory, ImportErrorCollector errors, Func<ImportProgressInfo, Task> progressCallback)
         {
             // A clean start inherits nothing from the run it replaces; errors this run raised at open time stay.
             errors.RemoveSeeded();
