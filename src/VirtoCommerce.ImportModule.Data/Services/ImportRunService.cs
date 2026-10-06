@@ -208,7 +208,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
                 ?? await TryGetRunHistoryAsync(importProfile, pushNotification)
                 ?? ExType<ImportRunHistory>.New().CreateNew(importProfile, pushNotification);
 
-            SeedNotificationErrors(pushNotification, importRunHistory);
+            SeedNotificationFromHistory(pushNotification, importRunHistory);
 
             var sendFailures = new NotificationSendFailures();
             Task ProgressInfoCallback(ImportProgressInfo info) => UpdateProgressAsync(info, pushNotification, importRunHistory, sendFailures);
@@ -313,13 +313,15 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
         }
 
-        // A resumed run's notification starts with the errors its interrupted part reported, so a failure before the
-        // pipeline's first progress cannot finish the row without them.
-        private static void SeedNotificationErrors(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
+        // A resumed run's notification starts with the errors and counts its interrupted part reported, so a failure
+        // before the pipeline's first progress cannot finish the row without them.
+        private static void SeedNotificationFromHistory(ImportPushNotification pushNotification, ImportRunHistory importRunHistory)
         {
             if (!string.IsNullOrEmpty(importRunHistory.Cursor))
             {
                 pushNotification.Errors = [.. (importRunHistory.Errors ?? []).Where(x => x != ImportErrorCollector.LimitReachedMessage)];
+                pushNotification.ProcessedCount = importRunHistory.ProcessedCount;
+                pushNotification.TotalCount = importRunHistory.TotalCount;
             }
         }
 

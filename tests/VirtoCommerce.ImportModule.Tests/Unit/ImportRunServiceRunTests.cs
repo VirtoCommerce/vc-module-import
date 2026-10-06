@@ -46,6 +46,26 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Failure_Before_The_First_Progress_Keeps_The_Counts_Of_A_Resumed_Run()
+        {
+            var row = new ImportRunHistory
+            {
+                Id = "H1",
+                Cursor = "dummy-cursor",
+                ProcessedCount = 50,
+                TotalCount = 100,
+            };
+            var fixture = new Fixture();
+            fixture.ImportThrows(new InvalidOperationException("opening failed"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => fixture.Service.RunImportAsync(new ImportProfile { RunHistory = row }, new ImportPushNotification("tester"), CancellationToken.None));
+
+            // The row saved in finally is the one the failed run leaves behind
+            Assert.Equal((50, 100), fixture.SavedCounts[^1]);
+        }
+
+        [Fact]
         public async Task Seeded_Notification_Drops_The_Limit_Reached_Message()
         {
             var row = new ImportRunHistory
@@ -341,6 +361,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                         SavedRows.Add(x[0]);
                         SavedErrors.Add(x[0].Errors?.ToList());
                         SavedFinished.Add(x[0].Finished);
+                        SavedCounts.Add((x[0].ProcessedCount, x[0].TotalCount));
                     })
                     .Returns(() => _saveFailure is not null && Calls.Count(x => x == "save") > _savesBeforeFailure
                         ? Task.FromException(_saveFailure)
@@ -372,6 +393,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             public List<List<string>> SavedErrors { get; } = [];
 
             public List<DateTime?> SavedFinished { get; } = [];
+
+            public List<(int Processed, int Total)> SavedCounts { get; } = [];
 
             // The latest row the search finds for the job (none when `row` is null)
             public void LatestRowOfJob(string jobId, ImportRunHistory row)

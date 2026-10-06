@@ -94,7 +94,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 },
             };
 
-        private static ImportRunHistory ResumedRow(string cursor) =>
+        private static ImportRunHistory ResumedRow(string cursor, int processedCount = 0, int totalCount = 0) =>
             new()
             {
                 Id = "H1",
@@ -102,6 +102,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 Finished = null,   // TryGetRunHistoryAsync has already cleared it on a replay
                 Errors = new List<string> { "Line 5: b", "Line 3: a" },
                 ErrorsCount = 2,
+                ProcessedCount = processedCount,
+                TotalCount = totalCount,
             };
 
         [Fact]
@@ -156,6 +158,53 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.Equal(["Line 0: open"], rowErrorsAtReset);
             Assert.Equal(["Line 0: open"], lastErrors);
             Assert.Equal(["open"], reported.Select(x => x.ErrorMessage));
+        }
+
+        [Fact]
+        public async Task Failure_Before_The_Cursor_Restore_Keeps_The_Counts_Of_A_Resumed_Run()
+        {
+            var reader = new PagedReader { TotalPages = 3 };
+            var profile = MakeProfile(saveInterval: 1000);
+            profile.RunHistory = ResumedRow(new PageCursor(1) { ProcessedCount = 50 }.Serialize(), processedCount: 50, totalCount: 100);
+            var lastCounts = (Processed: -1, Total: -1);
+            var manager = TestHelperFactory.CreateManagerWithImporter(reader, new NoopWriter(),
+                configureImporter: importer => importer
+                    .Setup(x => x.OpenReaderAsync(It.IsAny<ImportContext>()))
+                    .ThrowsAsync(new InvalidOperationException("opening failed")));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => manager.ImportAsync(profile, x =>
+            {
+                lastCounts = (x.ProcessedCount, x.TotalCount);
+                return Task.CompletedTask;
+            }, CancellationToken.None));
+
+            Assert.Equal((50, 100), lastCounts);
+        }
+
+        [Fact]
+        public async Task Invalid_Cursor_Resets_The_Seeded_Counts_On_The_Row_And_The_Progress()
+        {
+            var reader = new PagedReader { TotalPages = 2 };
+            var profile = MakeProfile(saveInterval: 1000);
+            profile.RunHistory = ResumedRow("garbage-not-base64", processedCount: 50, totalCount: 100);
+            int? rowProcessedAtReset = null;
+            var crud = new Mock<IImportRunHistoryCrudService>();
+            crud.Setup(x => x.SaveChangesAsync(It.IsAny<IList<ImportRunHistory>>()))
+                .Callback<IList<ImportRunHistory>>(x => rowProcessedAtReset ??= x[0].ProcessedCount)
+                .Returns(Task.CompletedTask);
+            var deliveredCounts = new List<(int Processed, int Total)>();
+            var manager = TestHelperFactory.CreateManagerWithImporter(reader, new NoopWriter(), historyCrud: crud.Object);
+
+            await manager.ImportAsync(profile, x =>
+            {
+                deliveredCounts.Add((x.ProcessedCount, x.TotalCount));
+                return Task.CompletedTask;
+            }, CancellationToken.None);
+
+            // The first call is the "Import has been started" progress; the second is the reset's.
+            Assert.Equal((50, 100), deliveredCounts[0]);
+            Assert.Equal((0, 0), deliveredCounts[1]);
+            Assert.Equal(0, rowProcessedAtReset);
         }
 
         [Fact]

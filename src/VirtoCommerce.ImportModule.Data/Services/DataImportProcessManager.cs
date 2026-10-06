@@ -61,12 +61,15 @@ namespace VirtoCommerce.ImportModule.Data.Services
 
             var errors = new ImportErrorCollector(maxErrorsCountThreshold, importProgress, _logger);
 
-            // A resumed run keeps the errors its interrupted part reported. IsResumable() cannot key this:
-            // TryGetRunHistoryAsync has already cleared Finished on the row it attaches. Seeding must precede the
-            // first progressCallback, which aliases the row's Errors to ProgressInfo.Errors.
+            // A resumed run keeps the errors and counts its interrupted part reported: a failure before the cursor
+            // restore finishes the row from this progress, so a fresh one would overwrite them with zeros.
+            // IsResumable() cannot key this: TryGetRunHistoryAsync has already cleared Finished on the row it attaches.
+            // Seeding must precede the first progressCallback, which aliases the row's Errors to ProgressInfo.Errors.
             if (HasStoredCursor(importProfile))
             {
                 errors.Seed(importProfile.RunHistory.Errors);
+                importProgress.ProcessedCount = importProfile.RunHistory.ProcessedCount;
+                importProgress.TotalCount = importProfile.RunHistory.TotalCount;
             }
 
             // Import context — via AbstractTypeFactory so downstream can OverrideType with a derived context
@@ -334,6 +337,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
             runHistory.ProcessedCount = 0;
             runHistory.Errors = context.ProgressInfo?.Errors?.ToList() ?? [];
             runHistory.ErrorsCount = runHistory.Errors.Count;
+
+            // The progress was seeded with the replaced run's counts; the callback would copy them back over the reset row.
+            if (context.ProgressInfo is not null)
+            {
+                context.ProgressInfo.ProcessedCount = 0;
+                context.ProgressInfo.TotalCount = 0;
+            }
 
             // Notified after the row is reset and before it is saved: the notification still holds the list rendered
             // before the reset, and a failing notification, save or start hook finishes the row from the notification.
