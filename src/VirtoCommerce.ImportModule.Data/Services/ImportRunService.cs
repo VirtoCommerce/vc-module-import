@@ -18,6 +18,7 @@ using VirtoCommerce.ImportModule.Data.BackgroundJobs;
 using VirtoCommerce.NotificationsModule.Core.Extensions;
 using VirtoCommerce.NotificationsModule.Core.Services;
 using VirtoCommerce.Platform.Core.Common;
+using VirtoCommerce.Platform.Core.Exceptions;
 using VirtoCommerce.Platform.Core.PushNotifications;
 using VirtoCommerce.Platform.Core.Security;
 
@@ -231,7 +232,8 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             catch (Exception ex)
             {
-                pushNotification.Errors.Add(ex.ToString());
+                // The stack trace stays in the job's failed state and log, not in the row an admin reads.
+                pushNotification.Errors.Add(ex.ExpandExceptionMessage());
                 pushNotification.Description = "Import failed";
                 throw;
             }

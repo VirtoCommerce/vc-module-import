@@ -66,6 +66,23 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Failure_Records_The_Exception_Message_Not_Its_Type_Name_Or_Stack_Trace()
+        {
+            var fixture = new Fixture();
+            var failure = new InvalidOperationException("import failed", new ArgumentException("inner detail"));
+            fixture.ImportThrows(failure);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => fixture.Service.RunImportAsync(new ImportProfile(), new ImportPushNotification("tester"), CancellationToken.None));
+
+            var recorded = Assert.Single(fixture.SavedErrors[^1]);
+            Assert.Contains("import failed", recorded);
+            Assert.Contains("inner detail", recorded);
+            Assert.DoesNotContain(typeof(InvalidOperationException).FullName, recorded);
+            Assert.DoesNotContain(recorded.Split('\n'), x => x.StartsWith("   at "));
+        }
+
+        [Fact]
         public async Task Seeded_Notification_Drops_The_Limit_Reached_Message()
         {
             var row = new ImportRunHistory
