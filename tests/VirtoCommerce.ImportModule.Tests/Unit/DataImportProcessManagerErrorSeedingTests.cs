@@ -198,6 +198,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             await manager.ImportAsync(profile, x =>
             {
                 deliveredCounts.Add((x.ProcessedCount, x.TotalCount));
+                // As ImportRunService does: every progress is copied onto the row before the reset saves it
+                profile.RunHistory.ProcessedCount = x.ProcessedCount;
+                profile.RunHistory.TotalCount = x.TotalCount;
                 return Task.CompletedTask;
             }, CancellationToken.None);
 
