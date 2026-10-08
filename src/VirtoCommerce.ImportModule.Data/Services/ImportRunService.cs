@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
 using Hangfire;
 using Hangfire.Server;
+using Hangfire.States;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using VirtoCommerce.CustomerModule.Core.Services;
@@ -21,11 +23,18 @@ using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Exceptions;
 using VirtoCommerce.Platform.Core.PushNotifications;
 using VirtoCommerce.Platform.Core.Security;
+using ValidationFailure = FluentValidation.Results.ValidationFailure;
 
 namespace VirtoCommerce.ImportModule.Data.Services
 {
     public partial class ImportRunService : IImportRunService
     {
+        // A job still queued or running would execute twice if requeued, and its replay would close the live run's row.
+        // Deleted stays in: it is how a run is cancelled, and a cancelled run's row is resumable only once its execution
+        // has saved it, so at most the closing tail (push, e-mail) is still running; ImportJob's per-profile lock holds a
+        // replay behind that tail.
+        private static readonly string[] _finishedJobStates = [SucceededState.StateName, FailedState.StateName, DeletedState.StateName];
+
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserNameResolver _userNameResolver;
         private readonly IMemberService _memberService;
@@ -110,11 +119,19 @@ namespace VirtoCommerce.ImportModule.Data.Services
             }
             if (!history.IsResumable())
             {
-                throw new InvalidOperationException($"Import run {runHistoryId} is not resumable");
+                // Also the common answer to a second resume: the replay saves the row unfinished as soon as it starts.
+                throw new ValidationException([new ValidationFailure(nameof(ImportRunHistory.Cursor), $"Import run {runHistoryId} has nothing to resume: it is still running or saved no checkpoint.")
+                {
+                    ErrorCode = "NotResumable",
+                }]);
             }
-            if (string.IsNullOrEmpty(history.JobId) || !RequeueHangfireJob(history.JobId))
+            if (string.IsNullOrEmpty(history.JobId))
             {
                 throw new InvalidOperationException($"Could not re-queue import run {runHistoryId}");
+            }
+            if (!RequeueHangfireJob(history.JobId))
+            {
+                throw CreateRequeueRefusal(runHistoryId, history.JobId);
             }
 
             return new ImportPushNotification(_userNameResolver.GetCurrentUserName())
@@ -130,7 +147,38 @@ namespace VirtoCommerce.ImportModule.Data.Services
             };
         }
 
-        protected virtual bool RequeueHangfireJob(string jobId) => BackgroundJob.Requeue(jobId);
+        protected virtual bool RequeueHangfireJob(string jobId)
+        {
+            // Each attempt checks the job's state under the job's lock, so a job that starts in between is never requeued.
+            return _finishedJobStates.Any(x => BackgroundJob.Requeue(jobId, x));
+        }
+
+        /// <summary>
+        /// Returns the job's current Hangfire state name, or null when the job no longer exists (finished jobs expire).
+        /// </summary>
+        protected virtual string GetHangfireJobState(string jobId)
+        {
+            using var connection = JobStorage.Current.GetConnection();
+
+            return connection.GetJobData(jobId)?.State;
+        }
+
+        private ValidationException CreateRequeueRefusal(string runHistoryId, string jobId)
+        {
+            var state = GetHangfireJobState(jobId);
+
+            var failure = state is null
+                ? new ValidationFailure(nameof(ImportRunHistory.JobId), $"Import run {runHistoryId} cannot be resumed: its background job {jobId} has expired. Start a new import instead.")
+                {
+                    ErrorCode = "JobExpired",
+                }
+                : new ValidationFailure(nameof(ImportRunHistory.JobId), $"Import run {runHistoryId} cannot be resumed while its background job {jobId} is {state}.")
+                {
+                    ErrorCode = "JobNotFinished",
+                };
+
+            return new ValidationException([failure]);
+        }
 
         /// <summary>
         /// Attempts to locate an existing <see cref="ImportRunHistory"/> row to continue on the
