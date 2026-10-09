@@ -31,6 +31,21 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
+        public async Task Unauthenticated_Caller_Carrying_An_Employee_Member_Id_Is_Refused()
+        {
+            var user = new ClaimsPrincipal(new ClaimsIdentity([new Claim("memberId", MemberId)]));
+            var resource = new AuthorizationInfo();
+            var memberResolver = CreateMemberResolver(
+                new Employee { Id = MemberId, Organizations = [OrganizationId] },
+                new Organization { Id = OrganizationId });
+
+            var context = await Authorize(user, resource, memberResolver);
+
+            Assert.False(context.HasSucceeded);
+            Assert.Null(resource.OrganizationId);
+        }
+
+        [Fact]
         public async Task Caller_Without_Permission_Or_Organization_Is_Refused()
         {
             var user = CreateUser(new Claim("memberId", MemberId));

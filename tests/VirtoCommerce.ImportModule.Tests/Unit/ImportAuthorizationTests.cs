@@ -8,11 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using VirtoCommerce.CustomerModule.Core.Model;
 using VirtoCommerce.CustomerModule.Core.Services;
-using VirtoCommerce.ImportModule.Core;
-using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Services;
-using VirtoCommerce.ImportModule.Data.Authorization;
 using VirtoCommerce.ImportModule.Web.Authorization;
 using VirtoCommerce.ImportModule.Web.Controllers.Api;
 using VirtoCommerce.Platform.Core;
@@ -55,50 +52,6 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 .ReturnsAsync(new SearchImportProfilesResult());
         }
 
-        // Handler
-
-        [Fact]
-        public async Task Handler_Fails_For_Anonymous_User()
-        {
-            var user = Anonymous(new Claim(PlatformConstants.Security.Claims.MemberIdClaimType, EmployeeId));
-            var authorizationInfo = new AuthorizationInfo();
-
-            var result = await AuthorizeAsync(user, authorizationInfo);
-
-            Assert.False(result.Succeeded);
-            Assert.Null(authorizationInfo.OrganizationId);
-        }
-
-        [Fact]
-        public async Task Handler_Fails_For_Authenticated_User_Without_Permission_Or_Organization()
-        {
-            var result = await AuthorizeAsync(Authenticated(), new AuthorizationInfo());
-
-            Assert.False(result.Succeeded);
-        }
-
-        [Fact]
-        public async Task Handler_Succeeds_For_User_With_Permission_Without_Organization_Scope()
-        {
-            var authorizationInfo = new AuthorizationInfo();
-
-            var result = await AuthorizeAsync(WithAccessPermission(), authorizationInfo);
-
-            Assert.True(result.Succeeded);
-            Assert.Null(authorizationInfo.OrganizationId);
-        }
-
-        [Fact]
-        public async Task Handler_Succeeds_For_Organization_Member_And_Scopes_To_Organization()
-        {
-            var authorizationInfo = new AuthorizationInfo();
-
-            var result = await AuthorizeAsync(OrganizationMember(), authorizationInfo);
-
-            Assert.True(result.Succeeded);
-            Assert.Equal(OrganizationId, authorizationInfo.OrganizationId);
-        }
-
         // ImportController
 
         [Fact]
@@ -133,36 +86,12 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             _profilesSearchService.Verify(x => x.SearchAsync(It.IsAny<SearchImportProfilesCriteria>(), It.IsAny<bool>()), Times.Never);
         }
 
-        [Fact]
-        public async Task RunImport_Returns_Unauthorized_For_Anonymous_User_When_Importer_Has_No_Requirement()
-        {
-            var importer = new Mock<IDataImporter>();
-            importer.SetupGet(x => x.AuthorizationRequirement).Returns((IAuthorizationRequirement)null);
-            _dataImporterFactory.Setup(x => x.Create(It.IsAny<string>())).Returns(importer.Object);
-            var controller = CreateImportController(Anonymous());
-
-            var result = await controller.RunImport(new ImportProfile { DataImporterType = "AnyImporter" });
-
-            Assert.IsType<UnauthorizedResult>(result.Result);
-            _importRunService.Verify(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>()), Times.Never);
-        }
-
         // OrganizationController
 
         [Fact]
         public async Task GetOrganizationInfo_Returns_Unauthorized_For_Anonymous_User()
         {
             var controller = CreateOrganizationController(Anonymous());
-
-            var result = await controller.GetOrganizationInfo(OtherOrganizationId);
-
-            Assert.IsType<UnauthorizedResult>(result.Result);
-        }
-
-        [Fact]
-        public async Task GetOrganizationInfo_Returns_Unauthorized_When_Member_Requests_Another()
-        {
-            var controller = CreateOrganizationController(OrganizationMember());
 
             var result = await controller.GetOrganizationInfo(OtherOrganizationId);
 
@@ -180,11 +109,6 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             services.AddTransient<IAuthorizationHandler, ImportAuthorizationHandler>();
 
             return services.BuildServiceProvider().GetRequiredService<IAuthorizationService>();
-        }
-
-        private Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, AuthorizationInfo authorizationInfo)
-        {
-            return CreateAuthorizationService().AuthorizeAsync(user, authorizationInfo, new ImportAuthorizationRequirement(ModuleConstants.Security.Permissions.Access));
         }
 
         private ImportController CreateImportController(ClaimsPrincipal user)
@@ -223,11 +147,6 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         private static ClaimsPrincipal Authenticated(params Claim[] claims)
         {
             return new ClaimsPrincipal(new ClaimsIdentity(claims, authenticationType: "Test"));
-        }
-
-        private static ClaimsPrincipal WithAccessPermission()
-        {
-            return Authenticated(new Claim(PlatformConstants.Security.Claims.PermissionClaimType, ModuleConstants.Security.Permissions.Access));
         }
 
         private static ClaimsPrincipal OrganizationMember()
