@@ -1,8 +1,10 @@
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
@@ -49,25 +51,46 @@ namespace VirtoCommerce.ImportModule.Tests
         }
 
         public static DataImportProcessManager CreateManagerWithImporter(
-            IImportDataReader reader, IImportDataWriter writer)
+            IImportDataReader reader,
+            IImportDataWriter writer,
+            Action<Mock<IDataImporter>> configureImporter = null,
+            IImportReporter reporter = null,
+            int? maxErrorsCountThreshold = null,
+            IImportRunHistoryCrudService historyCrud = null,
+            Action<Mock<ISettingsManager>> configureSettings = null,
+            ILogger<DataImportProcessManager> logger = null)
         {
             var importer = new Mock<IDataImporter>();
             importer.Setup(x => x.OpenReaderAsync(It.IsAny<ImportContext>())).ReturnsAsync(reader);
             importer.Setup(x => x.OpenWriterAsync(It.IsAny<ImportContext>())).ReturnsAsync(writer);
             importer.Setup(x => x.Clone()).Returns(() => importer.Object);
+            configureImporter?.Invoke(importer);
 
             var factory = new Mock<IDataImporterFactory>();
             factory.Setup(x => x.Create(It.IsAny<string>())).Returns(importer.Object);
 
             var estimator = new Mock<IImportRemainingEstimatorFactory>();
             estimator.Setup(x => x.Create(It.IsAny<string>())).Returns(Mock.Of<IImportRemainingEstimator>());
-            var reporter = new Mock<IImportReporterFactory>();
-            reporter.Setup(x => x.Create(It.IsAny<string>())).Returns(Mock.Of<IImportReporter>());
+            var reporterFactory = new Mock<IImportReporterFactory>();
+            reporterFactory.Setup(x => x.Create(It.IsAny<string>())).Returns(reporter ?? Mock.Of<IImportReporter>());
+
+            var settingsManager = new Mock<ISettingsManager>();
+            if (maxErrorsCountThreshold is not null)
+            {
+                settingsManager
+                    .Setup(x => x.GetObjectSettingAsync(ModuleConstants.Settings.General.MaxErrorsCountThreshold.Name, It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync(new ObjectSettingEntry { Value = maxErrorsCountThreshold.Value });
+            }
+
+            configureSettings?.Invoke(settingsManager);
 
             return CreateManager(
                 factory: factory.Object,
                 estimator: estimator.Object,
-                reporter: reporter.Object);
+                reporter: reporterFactory.Object,
+                settingsManager: settingsManager.Object,
+                historyCrud: historyCrud,
+                logger: logger);
         }
 
         public sealed class TestableRunService : ImportRunService
@@ -92,7 +115,7 @@ namespace VirtoCommerce.ImportModule.Tests
 
             public Task InvokeCallbackForTesting(ImportProgressInfo progressInfo, ImportPushNotification pushNotification, ImportRunHistory history)
             {
-                return UpdateProgressAsync(progressInfo, pushNotification, history);
+                return UpdateProgressAsync(progressInfo, pushNotification, history, new NotificationSendFailures());
             }
         }
 

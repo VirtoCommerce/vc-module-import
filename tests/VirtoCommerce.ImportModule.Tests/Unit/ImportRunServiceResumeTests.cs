@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using VirtoCommerce.ImportModule.Core.Models;
@@ -43,13 +44,15 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_History_Still_Running()
+        public async Task ResumeImportAsync_Throws_NotResumable_ValidationException_When_History_Still_Running()
         {
             var stillRunning = new ImportRunHistory { Id = "h", JobId = "job", Finished = null, TotalCount = 100, ProcessedCount = 50 };
             var service = new TestableResumeService(stillRunning, requeueReturns: true);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.ResumeImportAsync("h"));
+
+            Assert.Equal("NotResumable", Assert.Single(exception.Errors).ErrorCode);
             Assert.Null(service.RequeuedJobId);
         }
 
@@ -89,23 +92,42 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_History_Has_No_Cursor()
+        public async Task ResumeImportAsync_Throws_NotResumable_ValidationException_When_History_Has_No_Cursor()
         {
             var noCursor = new ImportRunHistory { Id = "h", JobId = "job", Finished = DateTime.UtcNow, TotalCount = 100, ProcessedCount = 42, Cursor = null };
             var service = new TestableResumeService(noCursor, requeueReturns: true);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.ResumeImportAsync("h"));
+
+            Assert.Equal("NotResumable", Assert.Single(exception.Errors).ErrorCode);
             Assert.Null(service.RequeuedJobId);
         }
 
         [Fact]
-        public async Task ResumeImportAsync_Throws_InvalidOperationException_When_Hangfire_Rejects()
+        public async Task ResumeImportAsync_Throws_JobExpired_ValidationException_When_Hangfire_Job_Is_Gone()
         {
-            var service = new TestableResumeService(Resumable("h", "job"), requeueReturns: false);
+            var service = new TestableResumeService(Resumable("h", "job"), requeueReturns: false, jobState: null);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<ValidationException>(
                 () => service.ResumeImportAsync("h"));
+
+            var failure = Assert.Single(exception.Errors);
+            Assert.Equal("JobExpired", failure.ErrorCode);
+            Assert.Equal("job", service.RequeuedJobId);
+        }
+
+        [Fact]
+        public async Task ResumeImportAsync_Throws_JobNotFinished_ValidationException_When_Hangfire_Job_Is_Still_Live()
+        {
+            var service = new TestableResumeService(Resumable("h", "job"), requeueReturns: false, jobState: "Processing");
+
+            var exception = await Assert.ThrowsAsync<ValidationException>(
+                () => service.ResumeImportAsync("h"));
+
+            var failure = Assert.Single(exception.Errors);
+            Assert.Equal("JobNotFinished", failure.ErrorCode);
+            Assert.Contains("Processing", failure.ErrorMessage);
             Assert.Equal("job", service.RequeuedJobId);
         }
 
@@ -125,8 +147,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         private sealed class TestableResumeService : ImportRunService
         {
             private readonly bool _requeueReturns;
+            private readonly string _jobState;
 
-            public TestableResumeService(ImportRunHistory history, bool requeueReturns, string currentUser = "tester")
+            public TestableResumeService(ImportRunHistory history, bool requeueReturns, string currentUser = "tester", string jobState = null)
                 : base(
                     /* UserManager */                  null!,
                     /* IUserNameResolver */            BuildUserNameResolver(currentUser),
@@ -143,6 +166,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                     /* ILogger<ImportRunService> */    NullLogger<ImportRunService>.Instance)
             {
                 _requeueReturns = requeueReturns;
+                _jobState = jobState;
             }
 
             public string RequeuedJobId { get; private set; }
@@ -151,6 +175,11 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             {
                 RequeuedJobId = jobId;
                 return _requeueReturns;
+            }
+
+            protected override string GetHangfireJobState(string jobId)
+            {
+                return _jobState;
             }
 
             private static IUserNameResolver BuildUserNameResolver(string userName)

@@ -385,12 +385,10 @@ const selectedItemId = ref();
 const bladeWidth = ref(70);
 const resumingJobId = ref<string | undefined>(undefined);
 
-// The generated ImportRunHistory TS class does not expose `cursor`. We use ProcessedCount > 0
-// as a proxy: cursor saves are gated on ProcessedCount > 0 in the pipeline, so any run with
-// progress has a saved cursor. The backend IsResumable() is the authoritative guard; clicking
-// Resume on a cursor-less run returns 400.
+// Mirrors the backend IsResumable(): a finished row that kept a cursor. A row closed after its worker
+// died has no cursor and is not offered; the backend stays the authoritative guard.
 function canResume(row: ImportRunHistory): boolean {
-  return !!row.jobId && !!row.finished && (row.processedCount ?? 0) > 0;
+  return !!row.jobId && !!row.finished && !!row.cursor;
 }
 
 async function onResumeClick(row: ImportRunHistory): Promise<void> {
