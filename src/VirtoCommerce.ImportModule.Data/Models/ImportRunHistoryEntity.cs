@@ -10,6 +10,9 @@ namespace VirtoCommerce.ImportModule.Data.Models
 {
     public class ImportRunHistoryEntity : AuditableEntity, IDataEntity<ImportRunHistoryEntity, ImportRunHistory>
     {
+        /// <summary>Column length of <see cref="Cursor"/>; a serialized cursor longer than this cannot be stored.</summary>
+        public const int CursorMaxLength = 2048;
+
         [StringLength(128)]
         [Required]
         public string UserId { get; set; }
@@ -41,7 +44,7 @@ namespace VirtoCommerce.ImportModule.Data.Models
         [StringLength(2048)]
         public string ReportUrl { get; set; }
 
-        [StringLength(2048)]
+        [StringLength(CursorMaxLength)]
         public string Cursor { get; set; }
 
         public virtual ImportRunHistoryEntity FromModel(ImportRunHistory model, PrimaryKeyResolvingMap pkMap)
