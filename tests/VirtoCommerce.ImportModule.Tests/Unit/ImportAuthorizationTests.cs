@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using VirtoCommerce.CustomerModule.Core.Model;
 using VirtoCommerce.CustomerModule.Core.Services;
+using VirtoCommerce.ImportModule.Core;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Web.Authorization;
@@ -146,7 +147,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
         private static ClaimsPrincipal OrganizationMember()
         {
-            return Authenticated(new Claim(PlatformConstants.Security.Claims.MemberIdClaimType, EmployeeId));
+            return Authenticated(
+                new Claim(PlatformConstants.Security.Claims.MemberIdClaimType, EmployeeId),
+                new Claim(PlatformConstants.Security.Claims.PermissionClaimType, ModuleConstants.Security.Permissions.Access));
         }
     }
 }

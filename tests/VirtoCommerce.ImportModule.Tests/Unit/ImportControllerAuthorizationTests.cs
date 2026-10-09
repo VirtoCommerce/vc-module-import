@@ -13,6 +13,7 @@ using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Models.Search;
 using VirtoCommerce.ImportModule.Core.PushNotifications;
 using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.ImportModule.Data.Authorization;
 using VirtoCommerce.ImportModule.Web.Controllers.Api;
 using VirtoCommerce.Platform.Security.Authorization;
 using Xunit;
@@ -232,11 +233,23 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 var importerFactory = new Mock<IDataImporterFactory>();
                 importerFactory.Setup(x => x.Create(ImporterType)).Returns(importer.Object);
 
+                // The import:access check that precedes the run check always passes here; the result under test applies to
+                // the run check, whose requirement is recorded.
                 var authorizationService = new Mock<IAuthorizationService>();
                 authorizationService
                     .Setup(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<IEnumerable<IAuthorizationRequirement>>()))
-                    .Callback<ClaimsPrincipal, object, IEnumerable<IAuthorizationRequirement>>((_, _, requirements) => AuthorizedRequirement = requirements.Single())
-                    .ReturnsAsync(authorizationResult);
+                    .ReturnsAsync((ClaimsPrincipal _, object _, IEnumerable<IAuthorizationRequirement> requirements) =>
+                    {
+                        var requirement = requirements.Single();
+                        if (requirement is ImportAuthorizationRequirement)
+                        {
+                            return AuthorizationResult.Success();
+                        }
+
+                        AuthorizedRequirement = requirement;
+
+                        return authorizationResult;
+                    });
 
                 RunService = new Mock<IImportRunService>();
                 RunService.Setup(x => x.RunImportBackgroundJob(It.IsAny<ImportProfile>())).Returns(new ImportPushNotification("test"));

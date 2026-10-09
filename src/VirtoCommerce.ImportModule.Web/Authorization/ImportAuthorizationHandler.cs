@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using VirtoCommerce.CustomerModule.Core.Services;
@@ -20,26 +21,17 @@ namespace VirtoCommerce.ImportModule.Web.Authorization
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ImportAuthorizationRequirement requirement)
         {
-            if (context.User?.Identity?.IsAuthenticated != true)
+            // The permission is always required, organization membership only narrows the data scope
+            await base.HandleRequirementAsync(context, requirement);
+            if (context.PendingRequirements.Contains(requirement))
             {
                 return;
             }
-
-            // Succeeds for a caller who holds the permission
-            await base.HandleRequirementAsync(context, requirement);
 
             var organization = await context.User.ResolveOrganization(_memberResolver);
-            if (organization is null)
-            {
-                return;
-            }
-
-            // An organization's employee is admitted only for an organization-scoped resource, limited to that
-            // organization's profiles and runs; any other resource needs the permission.
-            if (context.Resource is AuthorizationInfo authorizationInfo)
+            if (organization != null && context.Resource is AuthorizationInfo authorizationInfo)
             {
                 authorizationInfo.OrganizationId = organization.Id;
-                context.Succeed(requirement);
             }
         }
     }

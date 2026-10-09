@@ -71,7 +71,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Organization_Employee_Without_Permission_Is_Admitted_Scoped_To_Its_Organization()
+        public async Task Organization_Employee_Without_Permission_Is_Refused_Even_For_An_Organization_Scoped_Resource()
         {
             var user = CreateUser(new Claim("memberId", MemberId));
             var resource = new AuthorizationInfo();
@@ -81,8 +81,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
             var context = await Authorize(user, resource, memberResolver);
 
-            Assert.True(context.HasSucceeded);
-            Assert.Equal(OrganizationId, resource.OrganizationId);
+            Assert.False(context.HasSucceeded);
+            Assert.Null(resource.OrganizationId);
         }
 
         [Fact]
