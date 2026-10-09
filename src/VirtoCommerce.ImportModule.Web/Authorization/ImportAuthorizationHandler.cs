@@ -20,6 +20,11 @@ namespace VirtoCommerce.ImportModule.Web.Authorization
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ImportAuthorizationRequirement requirement)
         {
+            if (context.User?.Identity?.IsAuthenticated != true)
+            {
+                return;
+            }
+
             // Succeeds for a caller who holds the permission
             await base.HandleRequirementAsync(context, requirement);
 
