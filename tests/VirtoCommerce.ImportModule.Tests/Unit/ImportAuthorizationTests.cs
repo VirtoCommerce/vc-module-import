@@ -29,8 +29,6 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         private readonly Mock<IMemberResolver> _memberResolver = new();
         private readonly Mock<IImportRunHistorySearchService> _historySearchService = new();
         private readonly Mock<IImportProfilesSearchService> _profilesSearchService = new();
-        private readonly Mock<IImportRunService> _importRunService = new();
-        private readonly Mock<IDataImporterFactory> _dataImporterFactory = new();
 
         public ImportAuthorizationTests()
         {
@@ -40,9 +38,6 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             _memberResolver
                 .Setup(x => x.ResolveMemberByIdAsync(OrganizationId))
                 .ReturnsAsync(new Organization { Id = OrganizationId, Name = "Own organization" });
-            _memberResolver
-                .Setup(x => x.ResolveMemberByIdAsync(OtherOrganizationId))
-                .ReturnsAsync(new Organization { Id = OtherOrganizationId, Name = "Other organization" });
 
             _historySearchService
                 .Setup(x => x.SearchAsync(It.IsAny<SearchImportRunHistoryCriteria>(), It.IsAny<bool>()))
@@ -115,12 +110,12 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             return new ImportController(
                 Mock.Of<IDataImporterRegistrar>(),
-                _importRunService.Object,
+                Mock.Of<IImportRunService>(),
                 _profilesSearchService.Object,
                 _historySearchService.Object,
                 Mock.Of<IImportProfileCrudService>(),
                 CreateAuthorizationService(),
-                _dataImporterFactory.Object)
+                Mock.Of<IDataImporterFactory>())
             {
                 ControllerContext = CreateControllerContext(user),
             };
@@ -139,9 +134,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             return new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
         }
 
-        private static ClaimsPrincipal Anonymous(params Claim[] claims)
+        private static ClaimsPrincipal Anonymous()
         {
-            return new ClaimsPrincipal(new ClaimsIdentity(claims));
+            return new ClaimsPrincipal(new ClaimsIdentity());
         }
 
         private static ClaimsPrincipal Authenticated(params Claim[] claims)
