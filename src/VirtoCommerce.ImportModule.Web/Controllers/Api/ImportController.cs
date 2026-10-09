@@ -55,13 +55,9 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         public async Task<ActionResult<ImportPushNotification>> RunImport([FromBody] ImportProfile importProfile)
         {
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
-            if (importer.AuthorizationRequirement != null)
+            if (!await AuthorizeImporterAsync(importer, importProfile))
             {
-                var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, importer.AuthorizationRequirement);
-                if (!authorizationResult.Succeeded)
-                {
-                    return Unauthorized();
-                }
+                return Unauthorized();
             }
 
             var result = _importRunService.RunImportBackgroundJob(importProfile);
@@ -100,13 +96,9 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                                 ?? throw new OperationCanceledException($"ImportProfile with {runHistory.ProfileId} is not found");
 
             var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
-            if (importer.AuthorizationRequirement != null)
+            if (!await AuthorizeImporterAsync(importer, importProfile))
             {
-                var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, importer.AuthorizationRequirement);
-                if (!authorizationResult.Succeeded)
-                {
-                    return Unauthorized();
-                }
+                return Unauthorized();
             }
 
             var notification = await _importRunService.ResumeImportAsync(runHistory.Id);
@@ -246,6 +238,15 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             var result = await _importRunHistorySearchService.SearchAsync(criteria);
 
             return Ok(result);
+        }
+
+        private async Task<bool> AuthorizeImporterAsync(IDataImporter importer, ImportProfile importProfile)
+        {
+            // Importers without their own requirement still must not be runnable anonymously
+            var requirement = importer.AuthorizationRequirement ?? new ImportAuthorizationRequirement(ModuleConstants.Security.Permissions.Access);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, requirement);
+
+            return authorizationResult.Succeeded;
         }
     }
 }
