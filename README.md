@@ -44,14 +44,14 @@ Importers built on `CsvDataReader` can add these settings to their import profil
 
 | Permission | Description |
 |------------|-------------|
-| `import:access` | Open the Import App; view importers, profiles, and run history; preview, validate, run, resume, and cancel imports |
+| `import:access` | Open the Import App; view importers, profiles, and run history; preview, validate, and cancel imports |
+| `import:execute` | Run and resume imports, together with `import:access`, when the importer doesn't declare its own permission |
 | `import:create` | Create import profiles |
 | `import:update` | Update import profiles |
 | `import:delete` | Delete import profiles |
 | `import:read` | Declared by the module; not checked by its REST API |
-| `import:execute` | Declared by the module; not checked by its REST API |
 
-An importer can require an additional permission, which is checked when its import is run or resumed. Organization membership doesn't grant access by itself: for users who belong to an organization, it limits profile and history searches, runs, and resumes to that organization.
+An importer can declare its own permission; when it does, that permission is checked instead of `import:execute` when its import is run or resumed. Organization membership doesn't grant access by itself: for users who belong to an organization, it limits profile and history searches, runs, and resumes to that organization.
 
 ## Architecture
 
@@ -74,7 +74,7 @@ The module follows a layered architecture aligned with Virto Commerce platform c
 ### Import Flow
 
 1. The **Import App** (or an API client) posts an import profile to `POST /api/import/run`
-2. The request is authorized: `import:access` first, then the importer's own requirement if it has one
+2. The request is authorized: `import:access` first, then the importer's own requirement, or `import:execute` if it has none
 3. `ImportRunService` enqueues an `ImportJob` in **Hangfire**; a distributed lock allows only one run per profile at a time
 4. `DataImportProcessManager` creates the importer, reporter, and remaining-time estimator, then opens the reader and writer
 5. When a run is resumed, the reader's cursor is restored from the run history
@@ -153,8 +153,8 @@ Base route: `api/import`
 | `POST` | `/profiles/execution/history/search` | `import:access` | Search run history |
 | `POST` | `/preview` | `import:access` | Preview the first records of an import |
 | `POST` | `/validate` | `import:access` | Validate an import profile and its source |
-| `POST` | `/run` | `import:access` + importer's requirement | Start an import |
-| `POST` | `/runs/resume` | `import:access` + importer's requirement | Resume an interrupted import |
+| `POST` | `/run` | `import:access` + importer's requirement (`import:execute` if none) | Start an import |
+| `POST` | `/runs/resume` | `import:access` + importer's requirement (`import:execute` if none) | Resume an interrupted import |
 | `POST` | `/task/cancel` | `import:access` | Cancel a running import |
 | `GET` | `/organization` | `import:access` | Get the current user's organization |
 

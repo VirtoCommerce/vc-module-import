@@ -7,6 +7,6 @@ namespace VirtoCommerce.ImportModule.Core.Services
 {
     public interface IDataImportProcessManager
     {
-        Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken token);
+        Task ImportAsync(ImportProfile importProfile, Func<ImportProgressInfo, Task> progressCallback, CancellationToken cancellationToken);
     }
 }

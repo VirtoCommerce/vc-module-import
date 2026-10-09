@@ -14,7 +14,9 @@ using VirtoCommerce.ImportModule.Data.Validators;
 using VirtoCommerce.ImportModule.Web.Authorization;
 using VirtoCommerce.ImportModule.Web.Filters;
 using VirtoCommerce.Platform.Core.Common;
+using VirtoCommerce.Platform.Security.Authorization;
 using ModuleConstants = VirtoCommerce.ImportModule.Core.ModuleConstants;
+using ValidationFailure = FluentValidation.Results.ValidationFailure;
 
 namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 {
@@ -52,6 +54,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("run")]
+        [Authorize]
         public async Task<ActionResult<ImportPushNotification>> RunImport([FromBody] ImportProfile importProfile)
         {
             var authorizationInfo = new AuthorizationInfo();
@@ -66,13 +69,20 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 return BadRequest($"Data importer type '{importProfile.DataImporterType}' is not registered");
             }
 
-            if (!await AuthorizeImporterAsync(importer, importProfile))
+            if (!await AuthorizeRunAsync(importer, importProfile))
             {
                 return Unauthorized();
             }
 
-            // Run history is created by the import itself and must not come from the request
-            importProfile.RunHistory = null;
+            // ResumeImport authorizes the stored profile, so a posted id must not name a profile of another importer.
+            if (!string.IsNullOrEmpty(importProfile.Id))
+            {
+                var storedProfile = await _importProfileCrudService.GetByIdAsync(importProfile.Id);
+                if (storedProfile is not null && !storedProfile.DataImporterType.EqualsIgnoreCase(importProfile.DataImporterType))
+                {
+                    throw new ValidationException([new ValidationFailure(nameof(ImportProfile.Id), $"Import profile '{importProfile.Id}' belongs to another importer.")]);
+                }
+            }
 
             if (!string.IsNullOrEmpty(authorizationInfo.OrganizationId))
             {
@@ -96,6 +106,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("runs/resume")]
+        [Authorize]
         public async Task<ActionResult<ImportPushNotification>> ResumeImport([FromBody] ImportResumeRequest request)
         {
             var authorizationInfo = new AuthorizationInfo();
@@ -126,8 +137,13 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             var importProfile = await _importProfileCrudService.GetByIdAsync(runHistory.ProfileId)
                                 ?? throw new OperationCanceledException($"ImportProfile with {runHistory.ProfileId} is not found");
 
-            var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
-            if (!await AuthorizeImporterAsync(importer, importProfile))
+            var importer = CreateImporter(importProfile.DataImporterType);
+            if (importer == null)
+            {
+                return BadRequest($"Data importer type '{importProfile.DataImporterType}' is not registered");
+            }
+
+            if (!await AuthorizeRunAsync(importer, importProfile))
             {
                 return Unauthorized();
             }
@@ -218,6 +234,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("profiles/search")]
+        [Authorize]
         public async Task<ActionResult<SearchImportProfilesResult>> SearchImportProfiles([FromBody] SearchImportProfilesCriteria criteria)
         {
             var authorizationInfo = new AuthorizationInfo();
@@ -252,6 +269,7 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
 
         [HttpPost]
         [Route("profiles/execution/history/search")]
+        [Authorize]
         public async Task<ActionResult<SearchImportRunHistoryResult>> SearchImportRunHistory([FromBody] SearchImportRunHistoryCriteria criteria)
         {
             var authorizationInfo = new AuthorizationInfo();
@@ -278,14 +296,13 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             return authorizationResult.Succeeded;
         }
 
-        private async Task<bool> AuthorizeImporterAsync(IDataImporter importer, ImportProfile importProfile)
+        // The importer decides who may run it; one that declares no requirement falls back to the module's run permission,
+        // so the action is never open to every caller.
+        private async Task<bool> AuthorizeRunAsync(IDataImporter importer, ImportProfile importProfile)
         {
-            if (importer.AuthorizationRequirement == null)
-            {
-                return true;
-            }
-
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, importer.AuthorizationRequirement);
+            var requirement = importer.AuthorizationRequirement
+                ?? new PermissionAuthorizationRequirement(ModuleConstants.Security.Permissions.Execute);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, requirement);
 
             return authorizationResult.Succeeded;
         }

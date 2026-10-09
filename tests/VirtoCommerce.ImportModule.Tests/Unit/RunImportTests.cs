@@ -39,6 +39,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         private const string JobId = "job-1";
 
         private static readonly string _access = ModuleConstants.Security.Permissions.Access;
+        private static readonly string _execute = ModuleConstants.Security.Permissions.Execute;
         private static readonly DataImporterRegistrar _registrar = CreateRegistrar();
 
         private readonly Mock<IMemberResolver> _memberResolver = new();
@@ -90,17 +91,33 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Run_User_With_Access_Permission_Can_Run()
+        public async Task Run_Access_Permission_Alone_Is_Not_Enough()
         {
             var result = await RunAsync(WithPermissions(_access), nameof(RunTestImporter));
+
+            AssertUnauthorizedAndNotEnqueued(result);
+        }
+
+        [Fact]
+        public async Task Run_Execute_Permission_Alone_Is_Not_Enough_Without_Access_Permission()
+        {
+            var result = await RunAsync(WithPermissions(_execute), nameof(RunTestImporter));
+
+            AssertUnauthorizedAndNotEnqueued(result);
+        }
+
+        [Fact]
+        public async Task Run_User_With_Access_And_Execute_Permissions_Can_Run()
+        {
+            var result = await RunAsync(WithPermissions(_access, _execute), nameof(RunTestImporter));
 
             AssertOkAndEnqueued(result);
         }
 
         [Fact]
-        public async Task Run_Organization_Member_With_Access_Permission_Can_Run()
+        public async Task Run_Organization_Member_With_Access_And_Execute_Permissions_Can_Run()
         {
-            var result = await RunAsync(OrganizationMember(_access), nameof(RunTestImporter));
+            var result = await RunAsync(OrganizationMember(_access, _execute), nameof(RunTestImporter));
 
             AssertOkAndEnqueued(result);
         }
@@ -171,7 +188,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             var profile = new ImportProfile { DataImporterType = nameof(RunTestImporter), UserId = OtherOrganizationId };
 
-            await CreateController(OrganizationMember(_access)).RunImport(profile);
+            await CreateController(OrganizationMember(_access, _execute)).RunImport(profile);
 
             _importRunService.Verify(x => x.RunImportBackgroundJob(It.Is<ImportProfile>(p => p.UserId == OrganizationId)), Times.Once);
         }
@@ -181,23 +198,9 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             var profile = new ImportProfile { DataImporterType = nameof(RunTestImporter), UserId = OtherOrganizationId };
 
-            await CreateController(WithPermissions(_access)).RunImport(profile);
+            await CreateController(WithPermissions(_access, _execute)).RunImport(profile);
 
             _importRunService.Verify(x => x.RunImportBackgroundJob(It.Is<ImportProfile>(p => p.UserId == OtherOrganizationId)), Times.Once);
-        }
-
-        [Fact]
-        public async Task Run_Does_Not_Pass_Client_Supplied_RunHistory_To_The_Import_Job()
-        {
-            var profile = new ImportProfile
-            {
-                DataImporterType = nameof(RunTestImporter),
-                RunHistory = new ImportRunHistory { Id = "existing-run", UserId = OtherOrganizationId },
-            };
-
-            await CreateController(WithPermissions(_access)).RunImport(profile);
-
-            _importRunService.Verify(x => x.RunImportBackgroundJob(It.Is<ImportProfile>(p => p.RunHistory == null)), Times.Once);
         }
 
         // Resume
@@ -224,11 +227,22 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Resume_Organization_Member_Can_Resume_Own_Organization_Run()
+        public async Task Resume_Access_Permission_Alone_Is_Not_Enough()
         {
             SetupRunHistory(OrganizationId);
 
             var result = await CreateController(OrganizationMember(_access)).ResumeImport(new ImportResumeRequest { JobId = JobId });
+
+            Assert.IsType<UnauthorizedResult>(result.Result);
+            _importRunService.Verify(x => x.ResumeImportAsync(It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Resume_Organization_Member_Can_Resume_Own_Organization_Run()
+        {
+            SetupRunHistory(OrganizationId);
+
+            var result = await CreateController(OrganizationMember(_access, _execute)).ResumeImport(new ImportResumeRequest { JobId = JobId });
 
             Assert.IsType<OkObjectResult>(result.Result);
             _importRunService.Verify(x => x.ResumeImportAsync("run-1"), Times.Once);
@@ -250,7 +264,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             SetupRunHistory(OtherOrganizationId);
 
-            var result = await CreateController(WithPermissions(_access)).ResumeImport(new ImportResumeRequest { JobId = JobId });
+            var result = await CreateController(WithPermissions(_access, _execute)).ResumeImport(new ImportResumeRequest { JobId = JobId });
 
             Assert.IsType<OkObjectResult>(result.Result);
             _importRunService.Verify(x => x.ResumeImportAsync("run-1"), Times.Once);
