@@ -89,7 +89,18 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         [Fact]
-        public async Task Handler_Succeeds_For_Organization_Member_And_Scopes_To_Organization()
+        public async Task Handler_Fails_For_Organization_Member_Without_Permission()
+        {
+            var authorizationInfo = new AuthorizationInfo();
+
+            var result = await AuthorizeAsync(OrganizationMemberWithoutPermission(), authorizationInfo);
+
+            Assert.False(result.Succeeded);
+            Assert.Null(authorizationInfo.OrganizationId);
+        }
+
+        [Fact]
+        public async Task Handler_Succeeds_For_Organization_Member_With_Permission_And_Scopes_To_Organization()
         {
             var authorizationInfo = new AuthorizationInfo();
 
@@ -232,6 +243,13 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         }
 
         private static ClaimsPrincipal OrganizationMember()
+        {
+            return Authenticated(
+                new Claim(PlatformConstants.Security.Claims.MemberIdClaimType, EmployeeId),
+                new Claim(PlatformConstants.Security.Claims.PermissionClaimType, ModuleConstants.Security.Permissions.Access));
+        }
+
+        private static ClaimsPrincipal OrganizationMemberWithoutPermission()
         {
             return Authenticated(new Claim(PlatformConstants.Security.Claims.MemberIdClaimType, EmployeeId));
         }

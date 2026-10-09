@@ -54,10 +54,29 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         [Route("run")]
         public async Task<ActionResult<ImportPushNotification>> RunImport([FromBody] ImportProfile importProfile)
         {
-            var importer = _dataImporterFactory.Create(importProfile.DataImporterType);
+            var authorizationInfo = new AuthorizationInfo();
+            if (!await AuthorizeAccessAsync(authorizationInfo))
+            {
+                return Unauthorized();
+            }
+
+            var importer = CreateImporter(importProfile.DataImporterType);
+            if (importer == null)
+            {
+                return BadRequest($"Data importer type '{importProfile.DataImporterType}' is not registered");
+            }
+
             if (!await AuthorizeImporterAsync(importer, importProfile))
             {
                 return Unauthorized();
+            }
+
+            // Run history is created by the import itself and must not come from the request
+            importProfile.RunHistory = null;
+
+            if (!string.IsNullOrEmpty(authorizationInfo.OrganizationId))
+            {
+                importProfile.UserId = authorizationInfo.OrganizationId;
             }
 
             var result = _importRunService.RunImportBackgroundJob(importProfile);
@@ -79,6 +98,12 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
         [Route("runs/resume")]
         public async Task<ActionResult<ImportPushNotification>> ResumeImport([FromBody] ImportResumeRequest request)
         {
+            var authorizationInfo = new AuthorizationInfo();
+            if (!await AuthorizeAccessAsync(authorizationInfo))
+            {
+                return Unauthorized();
+            }
+
             await ExType<ImportResumeRequestValidator>.New().ValidateAndThrowAsync(request);
 
             var jobId = request.JobId;
@@ -89,8 +114,14 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
                 Take = 1,
                 Sort = $"{nameof(ImportRunHistory.CreatedDate)}:desc",
             };
-            var runHistory = (await _importRunHistorySearchService.SearchAsync(criteria))?.Results?.FirstOrDefault()
-                          ?? throw new OperationCanceledException($"Import run history for jobId {jobId} is not found");
+            var runHistory = (await _importRunHistorySearchService.SearchAsync(criteria))?.Results?.FirstOrDefault();
+
+            // Runs of another organization are reported as not found
+            if (runHistory == null ||
+                (!string.IsNullOrEmpty(authorizationInfo.OrganizationId) && runHistory.UserId != authorizationInfo.OrganizationId))
+            {
+                throw new OperationCanceledException($"Import run history for jobId {jobId} is not found");
+            }
 
             var importProfile = await _importProfileCrudService.GetByIdAsync(runHistory.ProfileId)
                                 ?? throw new OperationCanceledException($"ImportProfile with {runHistory.ProfileId} is not found");
@@ -240,13 +271,41 @@ namespace VirtoCommerce.ImportModule.Web.Controllers.Api
             return Ok(result);
         }
 
-        private async Task<bool> AuthorizeImporterAsync(IDataImporter importer, ImportProfile importProfile)
+        private async Task<bool> AuthorizeAccessAsync(AuthorizationInfo authorizationInfo)
         {
-            // Importers without their own requirement still must not be runnable anonymously
-            var requirement = importer.AuthorizationRequirement ?? new ImportAuthorizationRequirement(ModuleConstants.Security.Permissions.Access);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, requirement);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, authorizationInfo, new ImportAuthorizationRequirement(ModuleConstants.Security.Permissions.Access));
 
             return authorizationResult.Succeeded;
+        }
+
+        private async Task<bool> AuthorizeImporterAsync(IDataImporter importer, ImportProfile importProfile)
+        {
+            if (importer.AuthorizationRequirement == null)
+            {
+                return true;
+            }
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, importProfile, importer.AuthorizationRequirement);
+
+            return authorizationResult.Succeeded;
+        }
+
+        private IDataImporter CreateImporter(string dataImporterType)
+        {
+            if (string.IsNullOrEmpty(dataImporterType))
+            {
+                return null;
+            }
+
+            try
+            {
+                return _dataImporterFactory.Create(dataImporterType);
+            }
+            catch (OperationCanceledException)
+            {
+                // AbstractTypeFactory throws for a type name that is not registered
+                return null;
+            }
         }
     }
 }
