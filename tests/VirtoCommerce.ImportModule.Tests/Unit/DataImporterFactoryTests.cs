@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.ImportModule.Core.Models;
 using VirtoCommerce.ImportModule.Core.Services;
 using VirtoCommerce.ImportModule.Data.Services;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 using Xunit;
 
@@ -88,6 +89,23 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             Assert.Same(scope.ServiceProvider, importer.ServiceProvider);
         }
 
+        [Fact]
+        public void Create_Applies_The_Setup_Action_Of_The_Importer_Type()
+        {
+            using var root = CreateRootProvider();
+            root.GetRequiredService<IDataImporterRegistrar>().Register<SetupActionTestImporter>();
+            AbstractTypeFactory<IDataImporter>.FindTypeInfoByName(nameof(SetupActionTestImporter))
+                .WithSetupAction(x => ((SetupActionTestImporter)x).Marker = "setup");
+
+            using var scope = root.CreateScope();
+            var importer = (SetupActionTestImporter)scope.ServiceProvider.GetRequiredService<IDataImporterFactory>().Create(nameof(SetupActionTestImporter));
+
+            // Create repeats the post-creation step of AbstractTypeFactory.TryCreateInstance by hand, so a type's setup action
+            // reaches a scoped importer only through that repetition
+            Assert.Same(scope.ServiceProvider, importer.ServiceProvider);
+            Assert.Equal("setup", importer.Marker);
+        }
+
         private static ServiceProvider CreateRootProvider(Action<IServiceCollection> addServices = null)
         {
             var services = new ServiceCollection();
@@ -121,6 +139,16 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
         private sealed class LegacyTestImporter : TestImporterBase
         {
+            public string Marker { get; set; }
+        }
+
+        private sealed class SetupActionTestImporter : TestImporterBase
+        {
+            public SetupActionTestImporter(IServiceProvider serviceProvider)
+                : base(serviceProvider)
+            {
+            }
+
             public string Marker { get; set; }
         }
 
