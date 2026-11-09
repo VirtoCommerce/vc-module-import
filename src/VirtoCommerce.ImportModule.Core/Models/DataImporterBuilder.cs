@@ -23,7 +23,7 @@ namespace VirtoCommerce.ImportModule.Core.Models
             ServiceProvider = serviceProvider;
             _importerType = importerType;
             _clonesFactoryPrototype = factory != null;
-            DataImporter = _clonesFactoryPrototype ? factory() : CreatePrototype(serviceProvider, importerType);
+            DataImporter = _clonesFactoryPrototype ? factory() : CreateImporter(serviceProvider, importerType);
         }
 
         public IDataImporter DataImporter { get; private set; }
@@ -76,14 +76,14 @@ namespace VirtoCommerce.ImportModule.Core.Models
                 return Build();
             }
 
-            var importer = (IDataImporter)ActivatorUtilities.GetServiceOrCreateInstance(serviceProvider, _importerType);
+            var importer = CreateImporter(serviceProvider, _importerType);
             importer.AuthorizationRequirement = DataImporter.AuthorizationRequirement;
             importer.AvailSettings = DataImporter.AvailSettings;
 
             return importer;
         }
 
-        private static IDataImporter CreatePrototype(IServiceProvider serviceProvider, Type importerType)
+        private static IDataImporter CreateImporter(IServiceProvider serviceProvider, Type importerType)
         {
             return serviceProvider is null
                 ? Activator.CreateInstance(importerType) as IDataImporter
