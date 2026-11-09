@@ -8,13 +8,13 @@ namespace VirtoCommerce.ImportModule.Data.Services
     /// <inheritdoc />
     public class DataImporterFactory : IDataImporterFactory
     {
-        private readonly DataImporterRegistrar _registrar;
         private readonly IServiceProvider _serviceProvider;
+        private readonly DataImporterRegistrar _registrar;
 
-        public DataImporterFactory(DataImporterRegistrar registrar, IServiceProvider serviceProvider)
+        public DataImporterFactory(IServiceProvider serviceProvider, DataImporterRegistrar registrar)
         {
-            _registrar = registrar;
             _serviceProvider = serviceProvider;
+            _registrar = registrar;
         }
 
         public virtual IDataImporter Create(string typeName)

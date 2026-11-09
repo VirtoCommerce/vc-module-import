@@ -48,7 +48,7 @@ namespace VirtoCommerce.ImportSampleModule.Tests
             Mock<ILoggerFactory> _loggerFactoryMock = new();
             _loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(() => _loggerMock.Object);
 
-            var result = new DataImportProcessManager(new DataImporterFactory(dataImporterRegistrar, provider), importRemainingEstimatorRegistrar, importReporterRegistrar, settingsManager, new Mock<IImportRunHistoryCrudService>().Object, _loggerFactoryMock.Object);
+            var result = new DataImportProcessManager(new DataImporterFactory(provider, dataImporterRegistrar), importRemainingEstimatorRegistrar, importReporterRegistrar, settingsManager, new Mock<IImportRunHistoryCrudService>().Object, _loggerFactoryMock.Object);
             return result;
         }
 
