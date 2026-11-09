@@ -44,17 +44,19 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             root.GetRequiredService<IDataImporterRegistrar>().Register<LegacyTestImporter>(() =>
             {
                 factoryCalls++;
-                return new LegacyTestImporter();
+                return new LegacyTestImporter { Marker = "factory" };
             });
 #pragma warning restore CS0618
 
             using var scope = root.CreateScope();
             var importerFactory = scope.ServiceProvider.GetRequiredService<IDataImporterFactory>();
-            var first = importerFactory.Create(nameof(LegacyTestImporter));
-            var second = importerFactory.Create(nameof(LegacyTestImporter));
+            var first = (LegacyTestImporter)importerFactory.Create(nameof(LegacyTestImporter));
+            var second = (LegacyTestImporter)importerFactory.Create(nameof(LegacyTestImporter));
 
+            // The marker exists only on the factory's instance, so an importer built from the scope instead of cloned lacks it
             Assert.Equal(1, factoryCalls);
-            Assert.IsType<LegacyTestImporter>(first);
+            Assert.Equal("factory", first.Marker);
+            Assert.Equal("factory", second.Marker);
             Assert.NotSame(first, second);
         }
 
@@ -63,7 +65,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
         {
             using var root = CreateRootProvider();
 #pragma warning disable CS0618 // The obsolete overload is the subject of this test
-            root.GetRequiredService<IDataImporterRegistrar>().Register<NullFactoryTestImporter>((Func<IDataImporter>)null);
+            root.GetRequiredService<IDataImporterRegistrar>().Register<NullFactoryTestImporter>(null);
 #pragma warning restore CS0618
 
             using var scope = root.CreateScope();
@@ -119,6 +121,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
 
         private sealed class LegacyTestImporter : TestImporterBase
         {
+            public string Marker { get; set; }
         }
 
         private sealed class NullFactoryTestImporter : TestImporterBase

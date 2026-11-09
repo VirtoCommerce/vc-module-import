@@ -13,6 +13,8 @@ namespace VirtoCommerce.ImportModule.Core.Services
         /// so the readers and writers it resolves are released when that scope ends.
         /// The importer is created with <c>ActivatorUtilities.GetServiceOrCreateInstance</c>: a service collection registration of
         /// <typeparamref name="TDataImporter"/> is used when there is one.
+        /// At registration the importer is also activated once from the root provider to hold its metadata, so take scoped
+        /// services from the provider while the import runs, not through the constructor.
         /// </summary>
         DataImporterBuilder Register<TDataImporter>() where TDataImporter : IDataImporter;
 

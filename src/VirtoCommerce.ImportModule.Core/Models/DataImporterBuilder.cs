@@ -12,10 +12,11 @@ namespace VirtoCommerce.ImportModule.Core.Models
     public sealed class DataImporterBuilder
     {
         private readonly Type _importerType;
-        private readonly bool _isLegacy;
+        private readonly bool _clonesFactoryPrototype;
 
         /// <summary>
-        /// A non-null <paramref name="factory"/> builds the one prototype that every <see cref="Build()"/> clones (legacy mode).
+        /// A non-null <paramref name="factory"/> builds the one prototype that every <see cref="Build()"/> and
+        /// <see cref="Build(IServiceProvider)"/> clones.
         /// Without it the importer is resolved from the caller's scope on each <see cref="Build(IServiceProvider)"/>,
         /// and the prototype only carries the registration metadata.
         /// </summary>
@@ -23,8 +24,8 @@ namespace VirtoCommerce.ImportModule.Core.Models
         {
             ServiceProvider = serviceProvider;
             _importerType = importerType;
-            _isLegacy = factory != null;
-            DataImporter = _isLegacy ? factory() : CreatePrototype(serviceProvider, importerType);
+            _clonesFactoryPrototype = factory != null;
+            DataImporter = _clonesFactoryPrototype ? factory() : CreatePrototype(serviceProvider, importerType);
         }
 
         public IDataImporter DataImporter { get; private set; }
@@ -68,11 +69,11 @@ namespace VirtoCommerce.ImportModule.Core.Models
         /// <summary>
         /// Builds the importer from <paramref name="serviceProvider"/>, which is expected to belong to the scope of the caller,
         /// so that the readers and writers the importer resolves are released with that scope.
-        /// A legacy builder (registered with a factory) returns a clone of its prototype instead.
+        /// A builder created with a factory returns a clone of the factory's prototype instead.
         /// </summary>
         public IDataImporter Build(IServiceProvider serviceProvider)
         {
-            if (_isLegacy)
+            if (_clonesFactoryPrototype)
             {
                 return Build();
             }
