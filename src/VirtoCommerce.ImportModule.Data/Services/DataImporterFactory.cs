@@ -5,9 +5,7 @@ using VirtoCommerce.Platform.Core.Common;
 
 namespace VirtoCommerce.ImportModule.Data.Services
 {
-    /// <summary>
-    /// Creates importers from the provider of the scope this factory was resolved from.
-    /// </summary>
+    /// <inheritdoc />
     public class DataImporterFactory : IDataImporterFactory
     {
         private readonly DataImporterRegistrar _registrar;
@@ -22,7 +20,7 @@ namespace VirtoCommerce.ImportModule.Data.Services
         public virtual IDataImporter Create(string typeName)
         {
             var typeInfo = AbstractTypeFactory<IDataImporter>.FindTypeInfoByName(typeName);
-            var builder = typeInfo is null ? null : _registrar.FindBuilder(typeInfo.Type);
+            var builder = typeInfo is null ? null : _registrar.FindBuilder(typeInfo);
 
             // An unknown name throws OperationCanceledException here, which ImportController.CreateImporter maps to BadRequest;
             // a type overridden without a registrar builder is created by the type factory

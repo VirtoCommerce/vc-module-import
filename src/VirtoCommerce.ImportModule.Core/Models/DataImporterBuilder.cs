@@ -15,10 +15,8 @@ namespace VirtoCommerce.ImportModule.Core.Models
         private readonly bool _clonesFactoryPrototype;
 
         /// <summary>
-        /// A non-null <paramref name="factory"/> builds the one prototype that every <see cref="Build()"/> and
-        /// <see cref="Build(IServiceProvider)"/> clones.
-        /// Without it the importer is resolved from the caller's scope on each <see cref="Build(IServiceProvider)"/>,
-        /// and the prototype only carries the registration metadata.
+        /// The prototype holds the registration metadata; a non-null <paramref name="factory"/> creates it, and every importer
+        /// is then a clone of it.
         /// </summary>
         public DataImporterBuilder(IServiceProvider serviceProvider, Type importerType, Func<IDataImporter> factory = null)
         {

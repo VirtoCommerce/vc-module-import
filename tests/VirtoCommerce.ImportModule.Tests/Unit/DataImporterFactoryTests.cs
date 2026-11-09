@@ -114,7 +114,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             public IAuthorizationRequirement AuthorizationRequirement { get; set; }
 
             public IImportDataReader OpenReader(ImportContext context) => throw new NotSupportedException();
-            public IImportDataWriter OpenWriter(ImportContext context) => throw new NotSupportedException();
+            public virtual IImportDataWriter OpenWriter(ImportContext context) => throw new NotSupportedException();
             public Task<ValidationResult> ValidateAsync(ImportContext context) => Task.FromResult(new ValidationResult());
             public object Clone() => MemberwiseClone();
         }
@@ -142,24 +142,14 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
             public override string TypeName => "SomeOtherName";
         }
 
-        private sealed class ScopeTestImporter : IDataImporter
+        private sealed class ScopeTestImporter : TestImporterBase
         {
-            private readonly IServiceProvider _serviceProvider;
-
             public ScopeTestImporter(IServiceProvider serviceProvider)
+                : base(serviceProvider)
             {
-                _serviceProvider = serviceProvider;
             }
 
-            public string TypeName => GetType().Name;
-            public Dictionary<string, string> Metadata { get; } = new();
-            public SettingDescriptor[] AvailSettings { get; set; }
-            public IAuthorizationRequirement AuthorizationRequirement { get; set; }
-
-            public IImportDataReader OpenReader(ImportContext context) => throw new NotSupportedException();
-            public IImportDataWriter OpenWriter(ImportContext context) => _serviceProvider.GetRequiredService<ScopeTestWriter>();
-            public Task<ValidationResult> ValidateAsync(ImportContext context) => Task.FromResult(new ValidationResult());
-            public object Clone() => MemberwiseClone();
+            public override IImportDataWriter OpenWriter(ImportContext context) => ServiceProvider.GetRequiredService<ScopeTestWriter>();
         }
 
         private sealed class ScopeTestWriter : IImportDataWriter

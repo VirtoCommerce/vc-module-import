@@ -12,7 +12,8 @@ namespace VirtoCommerce.ImportModule.Core.Services
         /// Registers an importer that is resolved from the caller's DI scope on each <see cref="IDataImporterFactory.Create"/>,
         /// so the readers and writers it resolves are released when that scope ends.
         /// The importer is created with <c>ActivatorUtilities.GetServiceOrCreateInstance</c>: a service collection registration of
-        /// <typeparamref name="TDataImporter"/> is used when there is one.
+        /// <typeparamref name="TDataImporter"/> is used when there is one; register it as transient, because a singleton or scoped
+        /// registration makes every Create return one shared instance, with its per-run state.
         /// At registration the importer is also activated once from the root provider to hold its metadata, so take scoped
         /// services from the provider while the import runs, not through the constructor.
         /// </summary>

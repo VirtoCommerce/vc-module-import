@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using VirtoCommerce.ImportModule.Core.Models;
@@ -10,8 +11,9 @@ namespace VirtoCommerce.ImportModule.Data.Services
     public class DataImporterRegistrar : IDataImporterRegistrar
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly Dictionary<Type, DataImporterBuilder> _builders = new();
-        private readonly object _lock = new();
+        // Keyed by the TypeInfo the registration configured, not by the CLR type: registering a base after its derived type
+        // configures the derived TypeInfo, and the builder must follow it exactly as its factory does
+        private readonly ConcurrentDictionary<TypeInfo<IDataImporter>, DataImporterBuilder> _builders = new();
 
         public IEnumerable<IDataImporter> AllRegisteredImporters
         {
@@ -37,22 +39,16 @@ namespace VirtoCommerce.ImportModule.Data.Services
             return RegisterBuilder<TDataImporter>(factory);
         }
 
-        internal DataImporterBuilder FindBuilder(Type type)
+        internal DataImporterBuilder FindBuilder(TypeInfo<IDataImporter> typeInfo)
         {
-            lock (_lock)
-            {
-                return _builders.GetValueOrDefault(type);
-            }
+            return _builders.GetValueOrDefault(typeInfo);
         }
 
         private DataImporterBuilder RegisterBuilder<TDataImporter>(Func<IDataImporter> factory) where TDataImporter : IDataImporter
         {
             var typeInfo = AbstractTypeFactory<IDataImporter>.RegisterType<TDataImporter>();
             var builder = new DataImporterBuilder(_serviceProvider, typeof(TDataImporter), factory);
-            lock (_lock)
-            {
-                _builders[typeof(TDataImporter)] = builder;
-            }
+            _builders[typeInfo] = builder;
             typeInfo.WithFactory(() => builder.Build());
 
             return builder;
