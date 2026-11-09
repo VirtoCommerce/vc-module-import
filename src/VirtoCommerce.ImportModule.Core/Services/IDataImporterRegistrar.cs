@@ -7,6 +7,21 @@ namespace VirtoCommerce.ImportModule.Core.Services
     public interface IDataImporterRegistrar
     {
         IEnumerable<IDataImporter> AllRegisteredImporters { get; }
-        DataImporterBuilder Register<TDataImporter>(Func<IDataImporter> factory = null) where TDataImporter : IDataImporter;
+
+        /// <summary>
+        /// Registers an importer that is resolved from the caller's DI scope on each <see cref="IDataImporterFactory.Create"/>,
+        /// so the readers and writers it resolves are released when that scope ends.
+        /// The importer is created with <c>ActivatorUtilities.GetServiceOrCreateInstance</c>: a service collection registration of
+        /// <typeparamref name="TDataImporter"/> is used when there is one.
+        /// </summary>
+        DataImporterBuilder Register<TDataImporter>() where TDataImporter : IDataImporter;
+
+        /// <summary>
+        /// Registers an importer through a factory that is called once; every created importer is a clone of that instance.
+        /// A factory that resolves services from the root provider keeps every reader and writer the importer resolves
+        /// alive until the process stops.
+        /// </summary>
+        [Obsolete("Use Register<TDataImporter>(). For custom construction register TDataImporter in the service collection with a factory (services.AddTransient<TDataImporter>(sp => ...)) and call Register<TDataImporter>().")]
+        DataImporterBuilder Register<TDataImporter>(Func<IDataImporter> factory) where TDataImporter : IDataImporter;
     }
 }

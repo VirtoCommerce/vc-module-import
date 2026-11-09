@@ -11,10 +11,20 @@ namespace VirtoCommerce.ImportModule.Core.Models
 {
     public sealed class DataImporterBuilder
     {
+        private readonly Type _importerType;
+        private readonly bool _isLegacy;
+
+        /// <summary>
+        /// A non-null <paramref name="factory"/> builds the one prototype that every <see cref="Build()"/> clones (legacy mode).
+        /// Without it the importer is resolved from the caller's scope on each <see cref="Build(IServiceProvider)"/>,
+        /// and the prototype only carries the registration metadata.
+        /// </summary>
         public DataImporterBuilder(IServiceProvider serviceProvider, Type importerType, Func<IDataImporter> factory = null)
         {
             ServiceProvider = serviceProvider;
-            DataImporter = factory != null ? factory() : Activator.CreateInstance(importerType) as IDataImporter;
+            _importerType = importerType;
+            _isLegacy = factory != null;
+            DataImporter = _isLegacy ? factory() : CreatePrototype(serviceProvider, importerType);
         }
 
         public IDataImporter DataImporter { get; private set; }
@@ -49,9 +59,36 @@ namespace VirtoCommerce.ImportModule.Core.Models
 
             return WithAuthorizationReqirement(permissionAuthorizationRequirement);
         }
+
         public IDataImporter Build()
         {
             return DataImporter.Clone() as IDataImporter;
+        }
+
+        /// <summary>
+        /// Builds the importer from <paramref name="serviceProvider"/>, which is expected to belong to the scope of the caller,
+        /// so that the readers and writers the importer resolves are released with that scope.
+        /// A legacy builder (registered with a factory) returns a clone of its prototype instead.
+        /// </summary>
+        public IDataImporter Build(IServiceProvider serviceProvider)
+        {
+            if (_isLegacy)
+            {
+                return Build();
+            }
+
+            var importer = (IDataImporter)ActivatorUtilities.GetServiceOrCreateInstance(serviceProvider, _importerType);
+            importer.AuthorizationRequirement = DataImporter.AuthorizationRequirement;
+            importer.AvailSettings = DataImporter.AvailSettings;
+
+            return importer;
+        }
+
+        private static IDataImporter CreatePrototype(IServiceProvider serviceProvider, Type importerType)
+        {
+            return serviceProvider is null
+                ? Activator.CreateInstance(importerType) as IDataImporter
+                : (IDataImporter)ActivatorUtilities.GetServiceOrCreateInstance(serviceProvider, importerType);
         }
     }
 }
