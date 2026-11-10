@@ -35,6 +35,11 @@ namespace VirtoCommerce.ImportSampleModule.Tests.Functional.Shared
             throw new NotImplementedException();
         }
 
+        public IDictionary<string, string[]> GetSettingTypeAssignments()
+        {
+            throw new NotImplementedException();
+        }
+
         public void RegisterSettings(IEnumerable<SettingDescriptor> settings, string moduleId = null)
         {
             throw new NotImplementedException();

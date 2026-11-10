@@ -34,21 +34,17 @@ namespace VirtoCommerce.ImportSampleModule.Web
             //Importers
             var importerRegistrar = appBuilder.ApplicationServices.GetService<IDataImporterRegistrar>();
 
-            importerRegistrar.Register<TestImporter>(() => appBuilder.ApplicationServices
-                .GetService<TestImporter>())
+            importerRegistrar.Register<TestImporter>()
                 .WithSettings(TestSettings.AllSettings);
 
-            importerRegistrar.Register<CsvProductImporter>(() => appBuilder.ApplicationServices
-                .GetService<CsvProductImporter>())
+            importerRegistrar.Register<CsvProductImporter>()
                 .WithSettings(CsvProductSettings.AllSettings);
 
-            importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices
-                .GetService<CsvProductImageImporter>())
+            importerRegistrar.Register<CsvProductImageImporter>()
                 .WithSettings(CsvProductImageSettings.AllSettings)
                 .WithAuthorizationPermission("catalog:update");
 
-            importerRegistrar.Register<ShopifyProductImporter>(() => appBuilder.ApplicationServices
-                .GetService<ShopifyProductImporter>())
+            importerRegistrar.Register<ShopifyProductImporter>()
                 .WithSettings(ShopifyProductSettings.AllSettings);
 
             AbstractTypeFactory<ImportProfile>.RegisterType<MyCustomImportProfile>();
