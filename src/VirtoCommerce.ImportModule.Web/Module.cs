@@ -70,7 +70,7 @@ namespace VirtoCommerce.ImportModule.Web
             serviceCollection.AddTransient<IImportRunHistorySearchService, ImportRunHistorySearchService>();
 
             serviceCollection.AddSingleton<DataImporterRegistrar>();
-            serviceCollection.AddSingleton<IDataImporterFactory>(provider => provider.GetService<DataImporterRegistrar>());
+            serviceCollection.AddTransient<IDataImporterFactory, DataImporterFactory>();
             serviceCollection.AddSingleton<IDataImporterRegistrar>(provider => provider.GetService<DataImporterRegistrar>());
 
             serviceCollection.AddSingleton<ImportRemainingEstimatorRegistrar>();

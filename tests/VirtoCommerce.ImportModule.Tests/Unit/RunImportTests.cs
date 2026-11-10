@@ -320,7 +320,7 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 _historySearchService.Object,
                 _profileCrudService.Object,
                 authorizationService,
-                _registrar)
+                new DataImporterFactory(new ServiceCollection().BuildServiceProvider(), _registrar))
             {
                 ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } },
             };

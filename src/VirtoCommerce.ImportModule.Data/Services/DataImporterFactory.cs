@@ -1,0 +1,38 @@
+using System;
+using VirtoCommerce.ImportModule.Core.Models;
+using VirtoCommerce.ImportModule.Core.Services;
+using VirtoCommerce.Platform.Core.Common;
+
+namespace VirtoCommerce.ImportModule.Data.Services
+{
+    /// <inheritdoc />
+    public class DataImporterFactory : IDataImporterFactory
+    {
+        private readonly IServiceProvider _serviceProvider;
+        private readonly DataImporterRegistrar _registrar;
+
+        public DataImporterFactory(IServiceProvider serviceProvider, DataImporterRegistrar registrar)
+        {
+            _serviceProvider = serviceProvider;
+            _registrar = registrar;
+        }
+
+        public virtual IDataImporter Create(string typeName)
+        {
+            var typeInfo = AbstractTypeFactory<IDataImporter>.FindTypeInfoByName(typeName);
+            var builder = typeInfo is null ? null : _registrar.FindBuilder(typeInfo);
+
+            // An unknown name throws OperationCanceledException here, which ImportController.CreateImporter maps to BadRequest;
+            // a type overridden without a registrar builder is created by the type factory
+            if (builder is null)
+            {
+                return AbstractTypeFactory<IDataImporter>.TryCreateInstance(typeName);
+            }
+
+            var importer = builder.Build(_serviceProvider);
+            typeInfo.SetupAction?.Invoke(importer);
+
+            return importer;
+        }
+    }
+}

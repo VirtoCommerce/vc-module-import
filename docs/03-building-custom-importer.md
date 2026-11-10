@@ -197,7 +197,7 @@ Now that we have everything at hand to wire up our new _CsvProductImageImporter_
 5 public void PostInitialize(IApplicationBuilder appBuilder)
 6  {
 7  var importerRegistrar = appBuilder.ApplicationServices.GetService<IDataImporterRegistrar>();
-8  importerRegistrar.Register<CsvProductImageImporter>(() => appBuilder.ApplicationServices.GetService<CsvProductImageImporter>())
+8  importerRegistrar.Register<CsvProductImageImporter>()
 9                    .WithSettings(CsvSettings.AllSettings)
 10                   .WithSettings(CsvProductImageSettings.AllSettings)
 11                   .WithAuthorizationPermission("catalog:update");
@@ -206,7 +206,7 @@ Now that we have everything at hand to wire up our new _CsvProductImageImporter_
 
 ***Notes:***
 
-Line 3: Registering `CsvProductImageImporter` in the DI
+Line 3: Registering `CsvProductImageImporter` in the DI as transient. Each import run resolves its own importer from the run's DI scope, so the services it resolves are released with that scope. The importer is also activated once from the root provider at registration, so take scoped services from the provider while the import runs, not through the constructor. A singleton registration would share one importer, with its per-run state, between all runs, and a scoped one between everything created in the same scope.
 
 Line 8: Registering `CsvProductImageImporter` in the global importer registry, so that the new importer may become available for import profile creation and for running the import process.
 

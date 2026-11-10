@@ -84,13 +84,19 @@ The module follows a layered architecture aligned with Virto Commerce platform c
 
 ### Building an Importer
 
-Register the importer in your module's `PostInitialize`:
+Register the importer as transient in your module's `Initialize`, then in the importer registry in `PostInitialize`.
+Each run resolves its own importer from the run's DI scope, so the services it resolves are released with that scope.
+The importer is also activated once from the root provider at registration, so take scoped services from the provider while the import runs, not through the constructor:
 
 ```csharp
+// Initialize
+serviceCollection.AddTransient<ProductCsvImporter>();
+
+// PostInitialize
 var importerRegistrar = appBuilder.ApplicationServices.GetRequiredService<IDataImporterRegistrar>();
 
 importerRegistrar
-    .Register<ProductCsvImporter>(() => appBuilder.ApplicationServices.GetRequiredService<ProductCsvImporter>())
+    .Register<ProductCsvImporter>()
     .WithSettings(ProductCsvImporterSettings.AllSettings)
     .WithAuthorizationPermission("my-module:import");
 ```
@@ -118,7 +124,8 @@ See [How to build a custom importer](/docs/03-building-custom-importer.md) for a
 |---------|-----------|----------------|
 | `ImportRunService` | `IImportRunService` | Starts, resumes, cancels, previews, and validates imports |
 | `DataImportProcessManager` | `IDataImportProcessManager` | Runs the read-write loop, progress, error handling, and cursor checkpoints |
-| `DataImporterRegistrar` | `IDataImporterRegistrar`, `IDataImporterFactory` | Registers importers and creates them by type name |
+| `DataImporterRegistrar` | `IDataImporterRegistrar` | Registers importers |
+| `DataImporterFactory` | `IDataImporterFactory` | Creates an importer by type name from the caller's DI scope; transient, never hold it in a singleton |
 | `ImportReporterRegistrar` | `IImportReporterRegistrar`, `IImportReporterFactory` | Registers and creates error reporters |
 | `ImportRemainingEstimatorRegistrar` | `IImportRemainingEstimatorRegistrar`, `IImportRemainingEstimatorFactory` | Registers and creates remaining-time estimators |
 | `ImportProfileCrudService` | `IImportProfileCrudService` | CRUD operations for import profiles |
