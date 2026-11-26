@@ -88,35 +88,47 @@ namespace VirtoCommerce.ImportModule.Data.Services
             context.CursorSaveIntervalPages = await GetCursorSettingAsync(importProfile, ImportCursorSettings.SaveIntervalPages);
 
             // Reading & writing
-            using var reader = await dataImporter.OpenReaderAsync(context);
-            using var writer = await dataImporter.OpenWriterAsync(context);
-
-            context.IsResume = await TryRestoreCursorAsync(context, reader, errors, progressCallback);
-
-            await dataImporter.OnImportStartedAsync(context);
-
-            // Calculate total count
-            importProgress.Description = "Evaluating total records counts";
-            await progressCallback(importProgress);
-            importProgress.TotalCount = await reader.GetTotalCountAsync(context);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Start import
-            importProgress.Description = "Import in progress";
-            await progressCallback(importProgress);
-
+            var reader = await dataImporter.OpenReaderAsync(context);
             try
             {
-                await ReadAndWritePagesAsync(context, reader, writer, importRemainingEstimator, errors, progressCallback, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                ReportError(context, ex);
+                using var writer = await dataImporter.OpenWriterAsync(context);
+
+                context.IsResume = await TryRestoreCursorAsync(context, reader, errors, progressCallback);
+
+                await dataImporter.OnImportStartedAsync(context);
+
+                // Calculate total count
+                importProgress.Description = "Evaluating total records counts";
+                await progressCallback(importProgress);
+                importProgress.TotalCount = await reader.GetTotalCountAsync(context);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Start import
+                importProgress.Description = "Import in progress";
+                await progressCallback(importProgress);
+
+                try
+                {
+                    await ReadAndWritePagesAsync(context, reader, writer, importRemainingEstimator, errors, progressCallback, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    ReportError(context, ex);
+                }
+                finally
+                {
+                    // The source is released before the completion hook, which may delete the file the reader holds
+                    // open: a local file system refuses to delete an open file.
+                    reader.Dispose();
+                    reader = null;
+
+                    await FinishRunAsync(context, dataImporter, writer, importRemainingEstimator, importReporter, errors, progressCallback);
+                }
             }
             finally
             {
-                await FinishRunAsync(context, dataImporter, writer, importRemainingEstimator, importReporter, errors, progressCallback);
+                reader?.Dispose();
             }
         }
 
