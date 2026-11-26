@@ -31,7 +31,8 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 PageIdx++;
                 return Task.FromResult(new object[1]);
             }
-            public void Dispose() { }
+            public int DisposeCount { get; private set; }
+            public void Dispose() => DisposeCount++;
         }
 
         private sealed class ScriptedWriter : IImportDataWriter
@@ -155,6 +156,39 @@ namespace VirtoCommerce.ImportModule.Tests.Unit
                 threshold: 2);
 
             Assert.True(completed);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData(2)]
+        public async Task Completion_Hook_Runs_After_The_Reader_Is_Disposed_Once(int? throwOnWrite)
+        {
+            var reader = new PagedReader();
+            int? disposeCountInHook = null;
+            var manager = TestHelperFactory.CreateManagerWithImporter(reader, new ScriptedWriter { ThrowOnWrite = throwOnWrite },
+                configureImporter: importer => importer
+                    .Setup(x => x.OnImportCompletedAsync(It.IsAny<ImportContext>()))
+                    .Callback<ImportContext>(_ => disposeCountInHook = reader.DisposeCount)
+                    .Returns(Task.CompletedTask));
+
+            await manager.ImportAsync(MakeProfile(), _ => Task.CompletedTask, CancellationToken.None);
+
+            Assert.Equal(1, disposeCountInHook);
+            Assert.Equal(1, reader.DisposeCount);
+        }
+
+        [Fact]
+        public async Task Failure_Before_The_Page_Loop_Still_Disposes_The_Reader()
+        {
+            var reader = new PagedReader();
+            var manager = TestHelperFactory.CreateManagerWithImporter(reader, new ScriptedWriter(),
+                configureImporter: importer => importer
+                    .Setup(x => x.OnImportStartedAsync(It.IsAny<ImportContext>()))
+                    .ThrowsAsync(new InvalidOperationException("start failed")));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => manager.ImportAsync(MakeProfile(), _ => Task.CompletedTask, CancellationToken.None));
+
+            Assert.Equal(1, reader.DisposeCount);
         }
 
         private static IImportReporter ThrowingReporter()
